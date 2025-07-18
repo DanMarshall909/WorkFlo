@@ -581,3 +581,5 @@ appsettings.local.json
 .gh-api-server.pid
 .progress-cache/
 .temp-key-loader.js
+# Test coverage results
+TestResults/
