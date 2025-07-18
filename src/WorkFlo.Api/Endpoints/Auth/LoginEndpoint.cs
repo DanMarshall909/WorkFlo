@@ -9,7 +9,7 @@ namespace WorkFlo.Api.Endpoints.Auth;
 /// <summary>
 /// Endpoint for user login
 /// </summary>
-internal sealed class LoginEndpoint : Endpoint<LoginRequest, AuthResponse>
+public sealed class LoginEndpoint : Endpoint<LoginRequest, AuthResponse>
 {
     private readonly ICommandDispatcher _commandDispatcher;
 
