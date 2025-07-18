@@ -26,7 +26,14 @@
 
 ### 🎯 Next Steps
 
-**Immediate Priority**: Issue #3 - Local API Server
+**Immediate Priority**: Issue #8 - Technical Debt Cleanup
+- [ ] Fix architectural inconsistencies
+- [ ] Improve test coverage to 95%+
+- [ ] Standardize Result pattern usage
+- [ ] Create shared test utilities project
+- [ ] Add comprehensive documentation
+
+**Next Milestone**: Issue #3 - Local API Server
 - [ ] Create API endpoints for validation rules
 - [ ] Update git hooks to call local API
 - [ ] Add configuration for API endpoint URL
@@ -35,6 +42,7 @@
 **Future Milestones**:
 - Issue #3: Local API Server (hooks call API)
 - Issue #5: AI Integration (MCP endpoints)
+- Issue #8: Technical Debt Cleanup (NEW)
 - Issue #6: Cloud Deployment Support
 - Issue #7: Analytics & Learning
 
