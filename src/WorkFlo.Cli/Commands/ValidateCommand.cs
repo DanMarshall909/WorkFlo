@@ -101,7 +101,7 @@ public class ValidateCommand
             return 1;
         }
         
-        _console.WriteLine("✓ Pre-commit validation passed");
+        await _console.WriteLineAsync("✓ Pre-commit validation passed").ConfigureAwait(false);
         return 0;
     }
 
@@ -119,7 +119,7 @@ public class ValidateCommand
             return 1;
         }
         
-        _console.WriteLine("✓ Commit message validation passed");
+        await _console.WriteLineAsync("✓ Commit message validation passed").ConfigureAwait(false);
         return 0;
     }
 }

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anchor PR Quality Report</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #007acc; padding-bottom: 20px; margin-bottom: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 6px; text-align: center; border-left: 4px solid #007acc; }
+        .summary-card h3 { margin: 0 0 10px 0; color: #333; }
+        .summary-card .number { font-size: 2em; font-weight: bold; color: #007acc; }
+        .status-PASSED { color: #28a745; }
+        .status-FAILED { color: #dc3545; }
+        .status-PASSED_WITH_WARNINGS { color: #ffc107; }
+        .checks { margin-top: 20px; }
+        .check { margin-bottom: 15px; padding: 15px; border-radius: 6px; border-left: 4px solid; }
+        .check.PASS { background: #d4edda; border-color: #28a745; }
+        .check.FAIL { background: #f8d7da; border-color: #dc3545; }
+        .check.WARN { background: #fff3cd; border-color: #ffc107; }
+        .check.SKIP { background: #e2e3e5; border-color: #6c757d; }
+        .check.INFO { background: #d1ecf1; border-color: #17a2b8; }
+        .check-name { font-weight: bold; margin-bottom: 5px; }
+        .check-details { font-size: 0.9em; opacity: 0.8; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #6c757d; }
+        .timestamp { font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Anchor PR Quality Report</h1>
+            <h2 class="status-FAILED">FAILED</h2>
+            <p class="timestamp">Generated: Fri Jul 18 22:53:17 AEST 2025 | Duration: 0 minutes</p>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Passed</h3>
+                <div class="number status-PASSED">4</div>
+            </div>
+            <div class="summary-card">
+                <h3>Failed</h3>
+                <div class="number status-FAILED">3</div>
+            </div>
+            <div class="summary-card">
+                <h3>Warnings</h3>
+                <div class="number" style="color: #ffc107;">3</div>
+            </div>
+            <div class="summary-card">
+                <h3>Skipped</h3>
+                <div class="number" style="color: #6c757d;">2</div>
+            </div>
+        </div>
+        
+        <div class="checks">
+            <h3>Quality Check Results</h3>
+            <div class="check PASS">
+                <div class="check-name">Tool: .NET SDK</div>
+                <div class="check-details">Available and working</div>
+            </div>
+            <div class="check SKIP">
+                <div class="check-name">Tool: ReSharper CLI</div>
+                <div class="check-details">Not found. ReSharper analysis will be skipped.</div>
+            </div>
+            <div class="check PASS">
+                <div class="check-name">Clean Solution</div>
+                <div class="check-details">Solution cleaned successfully</div>
+            </div>
+            <div class="check PASS">
+                <div class="check-name">Restore Packages</div>
+                <div class="check-details">Packages restored successfully</div>
+            </div>
+            <div class="check WARN">
+                <div class="check-name">Build Solution</div>
+                <div class="check-details">322 build warnings found</div>
+            </div>
+            <div class="check FAIL">
+                <div class="check-name">Code Formatting</div>
+                <div class="check-details">Code formatting issues found. Run 'dotnet format' to fix.</div>
+            </div>
+            <div class="check SKIP">
+                <div class="check-name">ReSharper Analysis</div>
+                <div class="check-details">ReSharper CLI tools not available</div>
+            </div>
+            <div class="check WARN">
+                <div class="check-name">Security Scan</div>
+                <div class="check-details">43 potential secret patterns found - manual review required</div>
+            </div>
+            <div class="check PASS">
+                <div class="check-name">Unit Tests</div>
+                <div class="check-details">85/85 tests passed</div>
+                <div class="check-details"><strong>Output:</strong> /home/dan/code/WorkFlo/reports/test-results.trx</div>
+            </div>
+            <div class="check FAIL">
+                <div class="check-name">Code Coverage</div>
+                <div class="check-details"></div>
+            </div>
+            <div class="check WARN">
+                <div class="check-name">Documentation</div>
+                <div class="check-details">Missing documentation: README.md,docs/domain-glossary.md,docs/architectural-summary.md</div>
+            </div>
+            <div class="check FAIL">
+                <div class="check-name">Architecture Doc Update</div>
+                <div class="check-details">Architectural summary not found at docs/architectural-summary.md</div>
+            </div>
+            <div class="check INFO">
+                <div class="check-name">Git Status</div>
+                <div class="check-details">9 files have changes</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Generated by Anchor PR Quality Check Script</p>
+            <p>For more information, see <code>scripts/README.md</code></p>
+        </div>
+    </div>
+</body>
+</html>

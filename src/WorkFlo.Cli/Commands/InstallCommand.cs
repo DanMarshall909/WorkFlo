@@ -36,22 +36,22 @@ public class InstallCommand
 
     private async Task HandleAsync(bool force)
     {
-        _console.WriteLine("Installing WorkFlo git hooks...");
+        await _console.WriteLineAsync("Installing WorkFlo git hooks...").ConfigureAwait(false);
         
         var result = await _hookInstallationService.InstallHooksAsync(force).ConfigureAwait(false);
         
         if (result.IsFailure())
         {
-            _console.WriteError($"✗ Installation failed: {result.Error}");
+            await _console.WriteErrorAsync($"✗ Installation failed: {result.Error}").ConfigureAwait(false);
             Environment.Exit(1);
             return;
         }
         
-        _console.WriteLine("✓ Git hooks installed successfully!");
-        _console.WriteLine(string.Empty);
-        _console.WriteLine("WorkFlo will now enforce:");
-        _console.WriteLine("  • Maximum 3 files per commit");
-        _console.WriteLine("  • Commits only on 'dev' branch");
-        _console.WriteLine("  • Conventional commit messages");
+        await _console.WriteLineAsync("✓ Git hooks installed successfully!").ConfigureAwait(false);
+        await _console.WriteLineAsync(string.Empty).ConfigureAwait(false);
+        await _console.WriteLineAsync("WorkFlo will now enforce:").ConfigureAwait(false);
+        await _console.WriteLineAsync("  • Maximum 3 files per commit").ConfigureAwait(false);
+        await _console.WriteLineAsync("  • Commits only on 'dev' branch").ConfigureAwait(false);
+        await _console.WriteLineAsync("  • Conventional commit messages").ConfigureAwait(false);
     }
 }
