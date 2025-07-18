@@ -74,7 +74,7 @@ public static class DatabaseServiceExtensions
     public static async Task<IServiceProvider> EnsureDatabaseAsync(this IServiceProvider serviceProvider)
     {
 #pragma warning disable MA0004, CA2007 // ConfigureAwait not supported with await using
-        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
+        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope().ConfigureAwait(false);
 #pragma warning restore MA0004, CA2007
         AnchorDbContext context = scope.ServiceProvider.GetRequiredService<AnchorDbContext>();
         IConfiguration configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();

@@ -30,4 +30,3 @@ if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
     return 0;
 }
 
-return await rootCommand.InvokeAsync(args).ConfigureAwait(false);

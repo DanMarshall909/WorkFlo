@@ -36,14 +36,14 @@ public class Program
             WebApplication app = builder.Build();
 
             // Configure application pipeline
-            await app.EnsureDatabaseReadyAsync(builder.Configuration);
+            await app.EnsureDatabaseReadyAsync(builder.Configuration).ConfigureAwait(false);
 
             app.ConfigureDevelopmentPipeline()
                .ConfigureRequestPipeline()
                .ConfigureEndpoints();
 
             Log.Information("Anchor API started successfully");
-            await app.RunAsync();
+            await app.RunAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -52,7 +52,7 @@ public class Program
         }
         finally
         {
-            await Log.CloseAndFlushAsync();
+            await Log.CloseAndFlushAsync().ConfigureAwait(false);
         }
     }
 }

@@ -22,7 +22,7 @@ internal static class WebApplicationExtensions
     {
         if (!configuration.GetValue<bool>("Database:UseInMemory"))
         {
-            await app.Services.EnsureDatabaseAsync();
+            await app.Services.EnsureDatabaseAsync().ConfigureAwait(false);
         }
         return app;
     }
