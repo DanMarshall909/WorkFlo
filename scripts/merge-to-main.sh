@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-# Anchor Project - Safe Merge to Main Script
+# WorkFlo Project - Safe Merge to Main Script
 # Enforces quality checks before merging dev to main
 
-echo "⚓ Anchor Project: Safe Merge to Main"
+echo "⚓ WorkFlo Project: Safe Merge to Main"
 echo "===================================="
 
 # Color codes

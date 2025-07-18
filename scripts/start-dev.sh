@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Anchor Development Server Startup Script
+# WorkFlo Development Server Startup Script
 # This script starts both the API server and web application in development mode
 
 set -e
@@ -65,9 +65,9 @@ cleanup() {
     
     # Stop Seq container if it was started by this script
     if command -v docker >/dev/null 2>&1; then
-        if docker ps | grep -q "anchor-seq"; then
+        if docker ps | grep -q "workflo-seq"; then
             print_status "Stopping Seq logging container..."
-            docker stop anchor-seq >/dev/null 2>&1
+            docker stop workflo-seq >/dev/null 2>&1
         fi
     fi
     exit 0
@@ -76,7 +76,7 @@ cleanup() {
 # Set up signal handlers
 trap cleanup SIGINT SIGTERM
 
-print_status "Starting Anchor Development Environment..."
+print_status "Starting WorkFlo Development Environment..."
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -87,9 +87,9 @@ if command -v docker >/dev/null 2>&1; then
     print_status "Starting Seq logging container..."
     
     # Check if Seq container is already running
-    if ! docker ps | grep -q "anchor-seq"; then
+    if ! docker ps | grep -q "workflo-seq"; then
         docker run -d \
-            --name anchor-seq \
+            --name workflo-seq \
             --rm \
             -e ACCEPT_EULA=Y \
             -e SEQ_FIRSTRUN_ADMINPASSWORD=admin123! \
@@ -111,8 +111,8 @@ else
 fi
 
 # Check if we're in the right directory
-if [ ! -f "$PROJECT_ROOT/Anchor.sln" ]; then
-    print_error "Could not find Anchor.sln. Make sure you're running this script from the project root or scripts directory."
+if [ ! -f "$PROJECT_ROOT/WorkFlo.sln" ]; then
+    print_error "Could not find WorkFlo.sln. Make sure you're running this script from the project root or scripts directory."
     exit 1
 fi
 
@@ -130,14 +130,14 @@ fi
 
 # Start API server
 print_status "Starting API server on port $API_PORT..."
-cd "$PROJECT_ROOT/src/Anchor.Api"
+cd "$PROJECT_ROOT/src/WorkFlo.Api"
 
-if [ ! -f "Anchor.Api.csproj" ]; then
-    print_error "Could not find Anchor.Api.csproj in src/Anchor.Api/"
+if [ ! -f "WorkFlo.Api.csproj" ]; then
+    print_error "Could not find WorkFlo.Api.csproj in src/WorkFlo.Api/"
     exit 1
 fi
 
-dotnet run --urls "http://localhost:$API_PORT" > /tmp/anchor-api.log 2>&1 &
+dotnet run --urls "http://localhost:$API_PORT" > /tmp/workflo-api.log 2>&1 &
 API_PID=$!
 
 # Wait a moment for API to start
@@ -145,7 +145,7 @@ sleep 3
 
 # Check if API started successfully
 if ! kill -0 $API_PID 2>/dev/null; then
-    print_error "Failed to start API server. Check /tmp/anchor-api.log for details."
+    print_error "Failed to start API server. Check /tmp/workflo-api.log for details."
     exit 1
 fi
 
@@ -171,7 +171,7 @@ fi
 # Set the port for Next.js
 export PORT=$WEB_PORT
 
-npm run dev > /tmp/anchor-web.log 2>&1 &
+npm run dev > /tmp/workflo-web.log 2>&1 &
 WEB_PID=$!
 
 # Wait a moment for web app to start
@@ -179,7 +179,7 @@ sleep 5
 
 # Check if web app started successfully
 if ! kill -0 $WEB_PID 2>/dev/null; then
-    print_error "Failed to start web application. Check /tmp/anchor-web.log for details."
+    print_error "Failed to start web application. Check /tmp/workflo-web.log for details."
     cleanup
     exit 1
 fi
@@ -189,20 +189,20 @@ print_success "Web application started on http://localhost:$WEB_PORT"
 # Display summary
 echo ""
 echo "======================================"
-echo "🚀 Anchor Development Environment Ready"
+echo "🚀 WorkFlo Development Environment Ready"
 echo "======================================"
 echo ""
 echo "📱 Web Application: http://localhost:$WEB_PORT"
 echo "🔧 API Server:      http://localhost:$API_PORT"
 echo "📚 Swagger UI:      http://localhost:$API_PORT/swagger"
-if command -v docker >/dev/null 2>&1 && docker ps | grep -q "anchor-seq"; then
+if command -v docker >/dev/null 2>&1 && docker ps | grep -q "workflo-seq"; then
     echo "📊 Seq Logging:     http://localhost:8080 (admin/admin123!)"
 fi
 echo ""
 echo "📋 Logs:"
-echo "   API:  tail -f /tmp/anchor-api.log"
-echo "   Web:  tail -f /tmp/anchor-web.log"
-if command -v docker >/dev/null 2>&1 && docker ps | grep -q "anchor-seq"; then
+echo "   API:  tail -f /tmp/workflo-api.log"
+echo "   Web:  tail -f /tmp/workflo-web.log"
+if command -v docker >/dev/null 2>&1 && docker ps | grep -q "workflo-seq"; then
     echo "   Seq:  http://localhost:8080"
 fi
 echo ""

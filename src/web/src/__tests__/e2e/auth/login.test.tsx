@@ -56,7 +56,7 @@ describe('Login Page - End-to-End User Flow', () => {
       render(<LoginPage />);
 
       // Check main heading
-      expect(screen.getByRole('heading', { name: /welcome back to anchor/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /welcome back to workflo/i })).toBeInTheDocument();
 
       // Check form elements
       expect(screen.getByRole('textbox', { name: /email address/i })).toBeInTheDocument();
@@ -312,7 +312,7 @@ describe('Login Page - End-to-End User Flow', () => {
     it('has responsive CSS classes for mobile and desktop', () => {
       render(<LoginPage />);
 
-      const mainContainer = screen.getByText(/welcome back to anchor/i).closest('.sm\\:mx-auto');
+      const mainContainer = screen.getByText(/welcome back to workflo/i).closest('.sm\\:mx-auto');
       expect(mainContainer).toHaveClass('sm:mx-auto', 'sm:w-full', 'sm:max-w-md');
 
       const cardContainer = screen.getByRole('textbox', { name: /email address/i }).closest('.card');

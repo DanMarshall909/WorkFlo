@@ -20,7 +20,7 @@ const winstonLogger = winston.createLogger({
     winston.format.json()
   ),
   defaultMeta: {
-    service: 'anchor-web',
+    service: 'workflo-web',
     version: process.env.npm_package_version || '1.0.0'
   },
   transports: [
@@ -108,7 +108,7 @@ export class Logger {
     });
   }
 
-  // Focus events (specific to Anchor)
+  // Focus events (specific to WorkFlo)
   public logFocusEvent(event: string, context: LogContext = {}): void {
     this.logger.info('Focus event', {
       event,

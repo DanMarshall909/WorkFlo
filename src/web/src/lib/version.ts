@@ -1,5 +1,5 @@
 /**
- * Version information for the Anchor frontend
+ * Version information for the WorkFlo frontend
  * This gets updated automatically by build scripts
  */
 

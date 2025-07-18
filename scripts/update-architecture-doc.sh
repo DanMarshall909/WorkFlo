@@ -24,7 +24,7 @@ show_help() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-Update the architectural summary documentation for the Anchor project.
+Update the architectural summary documentation for the WorkFlo project.
 
 OPTIONS:
     --check         Check if architectural documentation needs updates

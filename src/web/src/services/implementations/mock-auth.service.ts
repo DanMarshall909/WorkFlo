@@ -9,8 +9,8 @@ import { IAuthService, IStorageService, IApiService } from '../container';
 export class MockAuthService implements IAuthService {
   private storageService: IStorageService;
   private apiService: IApiService;
-  private readonly TOKEN_KEY = 'anchor-auth-token';
-  private readonly USER_KEY = 'anchor-user';
+  private readonly TOKEN_KEY = 'workflo-auth-token';
+  private readonly USER_KEY = 'workflo-user';
   private shouldFailNext: boolean = false;
   private failureError: Error | null = null;
 

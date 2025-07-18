@@ -28,7 +28,7 @@ public sealed class TestWebApplicationFactory : BaseTestWebApplicationFactory
             try
             {
                 using var scope = Services.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<AnchorDbContext>();
+                var context = scope.ServiceProvider.GetRequiredService<WorkFloDbContext>();
                 context.Database.EnsureDeleted();
             }
             catch (ObjectDisposedException)

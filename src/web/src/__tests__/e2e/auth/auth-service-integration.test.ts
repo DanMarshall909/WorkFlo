@@ -138,8 +138,8 @@ describe('Authentication Service Integration', () => {
       expect(authService.getToken()).toBe('mock-jwt-token-12345');
 
       // Verify storage persistence
-      expect(storageService.get('anchor-auth-token')).toBe('mock-jwt-token-12345');
-      expect(storageService.get('anchor-user')).toEqual({
+      expect(storageService.get('workflo-auth-token')).toBe('mock-jwt-token-12345');
+      expect(storageService.get('workflo-user')).toEqual({
         id: '123',
         email,
         name: 'Test User',
@@ -157,7 +157,7 @@ describe('Authentication Service Integration', () => {
       // Verify no authentication state is set
       expect(authService.isAuthenticated()).toBe(false);
       expect(authService.getToken()).toBeNull();
-      expect(storageService.get('anchor-auth-token')).toBeNull();
+      expect(storageService.get('workflo-auth-token')).toBeNull();
     });
 
     it('validates required fields', async () => {
@@ -252,7 +252,7 @@ describe('Authentication Service Integration', () => {
 
     it('fetches user from API when not in storage', async () => {
       // Manually set token without user data
-      storageService.set('anchor-auth-token', 'mock-token');
+      storageService.set('workflo-auth-token', 'mock-token');
 
       const user = await authService.getCurrentUser();
       expect(user).toEqual({
@@ -262,7 +262,7 @@ describe('Authentication Service Integration', () => {
       });
 
       // Verify user is now cached in storage
-      expect(storageService.get('anchor-user')).toEqual(user);
+      expect(storageService.get('workflo-user')).toEqual(user);
     });
 
     it('returns null when not authenticated', async () => {
@@ -272,14 +272,14 @@ describe('Authentication Service Integration', () => {
 
     it('handles API errors gracefully', async () => {
       // Set invalid token that should cause API failure
-      storageService.set('anchor-auth-token', 'invalid-token');
+      storageService.set('workflo-auth-token', 'invalid-token');
 
       const user = await authService.getCurrentUser();
       expect(user).toBeNull();
 
       // Verify auth state is cleared on error
       expect(authService.isAuthenticated()).toBe(false);
-      expect(storageService.get('anchor-auth-token')).toBeNull();
+      expect(storageService.get('workflo-auth-token')).toBeNull();
     });
   });
 
@@ -295,8 +295,8 @@ describe('Authentication Service Integration', () => {
       // Verify auth state is cleared
       expect(authService.isAuthenticated()).toBe(false);
       expect(authService.getToken()).toBeNull();
-      expect(storageService.get('anchor-auth-token')).toBeNull();
-      expect(storageService.get('anchor-user')).toBeNull();
+      expect(storageService.get('workflo-auth-token')).toBeNull();
+      expect(storageService.get('workflo-user')).toBeNull();
     });
 
     it('handles logout gracefully when not authenticated', async () => {
@@ -315,7 +315,7 @@ describe('Authentication Service Integration', () => {
       await authService.logout();
 
       expect(authService.isAuthenticated()).toBe(false);
-      expect(storageService.get('anchor-auth-token')).toBeNull();
+      expect(storageService.get('workflo-auth-token')).toBeNull();
     });
   });
 
@@ -387,13 +387,13 @@ describe('Authentication Service Integration', () => {
     it('clears all stored data on logout', async () => {
       // Login and verify data is stored
       await authService.login('user@example.com', 'password123');
-      expect(storageService.get('anchor-auth-token')).toBeTruthy();
-      expect(storageService.get('anchor-user')).toBeTruthy();
+      expect(storageService.get('workflo-auth-token')).toBeTruthy();
+      expect(storageService.get('workflo-user')).toBeTruthy();
 
       // Logout and verify all data is cleared
       await authService.logout();
-      expect(storageService.get('anchor-auth-token')).toBeNull();
-      expect(storageService.get('anchor-user')).toBeNull();
+      expect(storageService.get('workflo-auth-token')).toBeNull();
+      expect(storageService.get('workflo-user')).toBeNull();
     });
   });
 });

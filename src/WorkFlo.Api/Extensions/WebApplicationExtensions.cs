@@ -39,7 +39,7 @@ internal static class WebApplicationExtensions
             app.UseOpenApi();
             app.UseSwaggerUi(config =>
             {
-                config.DocumentTitle = "Anchor API";
+                config.DocumentTitle = "WorkFlo API";
                 config.Path = "/swagger-ui";
                 config.DocumentPath = "/swagger/{documentName}/swagger.json";
             });
@@ -89,7 +89,7 @@ internal static class WebApplicationExtensions
                 VersionInfo version = versionService.GetVersionInfo();
                 return Results.Ok(new
                 {
-                    message = "Anchor API is running",
+                    message = "WorkFlo API is running",
                     version = version.Version,
                     build = version.BuildDate,
                     commit = version.GitCommit,

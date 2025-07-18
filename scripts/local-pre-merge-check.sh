@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-# Anchor Project - Local Pre-Merge Quality Check
+# WorkFlo Project - Local Pre-Merge Quality Check
 # Enforces quality standards before merging to main branch
 
-echo "🔍 Anchor Local Pre-Merge Quality Check"
+echo "🔍 WorkFlo Local Pre-Merge Quality Check"
 echo "======================================="
 
 # Color codes for output
@@ -87,7 +87,7 @@ echo "===================================="
 
 # Test Application layer with coverage (critical)
 log_info "Running Application tests with coverage collection..."
-if dotnet test tests/Anchor.Application.Tests --configuration Release --collect:"XPlat Code Coverage" --results-directory:/tmp/coverage --logger "console;verbosity=minimal" > /tmp/app_tests.log 2>&1; then
+if dotnet test tests/WorkFlo.Application.Tests --configuration Release --collect:"XPlat Code Coverage" --results-directory:/tmp/coverage --logger "console;verbosity=minimal" > /tmp/app_tests.log 2>&1; then
     PASSED=$(grep "Passed:" /tmp/app_tests.log | grep -o "[0-9]\+" | head -1)
     FAILED=$(grep "Failed:" /tmp/app_tests.log | grep -o "[0-9]\+" | head -1)
     
@@ -128,8 +128,8 @@ if dotnet test tests/Anchor.Application.Tests --configuration Release --collect:
         log_info "Running mutation testing on Application layer..."
         if command -v dotnet-stryker >/dev/null 2>&1; then
             # Run Stryker mutation testing on Application project
-            cd tests/Anchor.Application.Tests || exit 1
-            if timeout 300 dotnet stryker --project ../../src/Anchor.Application/Anchor.Application.csproj --reporter json --output /tmp/mutation-report > /tmp/mutation.log 2>&1; then
+            cd tests/WorkFlo.Application.Tests || exit 1
+            if timeout 300 dotnet stryker --project ../../src/WorkFlo.Application/WorkFlo.Application.csproj --reporter json --output /tmp/mutation-report > /tmp/mutation.log 2>&1; then
                 cd - >/dev/null || exit 1
                 
                 # Parse mutation score from JSON report
@@ -167,7 +167,7 @@ else
 fi
 
 # Test Domain layer (critical)
-if dotnet test tests/Anchor.Domain.Tests --configuration Release --logger "console;verbosity=minimal" > /tmp/domain_tests.log 2>&1; then
+if dotnet test tests/WorkFlo.Domain.Tests --configuration Release --logger "console;verbosity=minimal" > /tmp/domain_tests.log 2>&1; then
     PASSED=$(grep "Passed:" /tmp/domain_tests.log | grep -o "[0-9]\+" | head -1)
     FAILED=$(grep "Failed:" /tmp/domain_tests.log | grep -o "[0-9]\+" | head -1)
     
@@ -206,9 +206,9 @@ check_project_quality() {
     fi
 }
 
-check_project_quality "src/Anchor.Application" "Application"
-check_project_quality "src/Anchor.Domain" "Domain"
-check_project_quality "src/Anchor.Infrastructure" "Infrastructure"
+check_project_quality "src/WorkFlo.Application" "Application"
+check_project_quality "src/WorkFlo.Domain" "Domain"
+check_project_quality "src/WorkFlo.Infrastructure" "Infrastructure"
 
 # 4. Security and Privacy Validation
 echo
@@ -233,14 +233,14 @@ if [ "$SECURITY_ISSUES" = false ]; then
     log_status 0 "No obvious security issues detected"
 fi
 
-# 5. Anchor Project Standards Validation
+# 5. WorkFlo Project Standards Validation
 echo
-echo "⚓ Anchor Project Standards"
+echo "⚓ WorkFlo Project Standards"
 echo "=========================="
 
 # Check CQRS naming conventions
 CQRS_VIOLATIONS=0
-for file in src/Anchor.Application/**/*.cs; do
+for file in src/WorkFlo.Application/**/*.cs; do
     if [[ -f "$file" && "$file" =~ (Command|Query|Handler) ]]; then
         filename=$(basename "$file" .cs)
         if [[ "$filename" =~ Handler$ ]] && [[ ! "$filename" =~ ^H[A-Z] ]]; then
@@ -260,7 +260,7 @@ else
 fi
 
 # Check for proper ConfigureAwait usage in Infrastructure
-CONFIGUREAWAIT_MISSING=$(grep -r "await " src/Anchor.Infrastructure/ --include="*.cs" | grep -v "ConfigureAwait" | grep -v "using" | wc -l)
+CONFIGUREAWAIT_MISSING=$(grep -r "await " src/WorkFlo.Infrastructure/ --include="*.cs" | grep -v "ConfigureAwait" | grep -v "using" | wc -l)
 if [ "$CONFIGUREAWAIT_MISSING" -gt 5 ]; then
     log_warning "Multiple await calls without ConfigureAwait detected: $CONFIGUREAWAIT_MISSING"
 else

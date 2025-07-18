@@ -4,14 +4,16 @@ Strict integration between your development workflow and GitHub project board fo
 
 ## 🔗 Board Configuration
 
-**Primary Project Board**: [Anchor Board](https://github.com/users/DanMarshall909/projects/2)
+**Primary Project Board**: [WorkFlo Board](https://github.com/users/DanMarshall909/projects/2)
+
 - **Project ID**: `PVT_kwHOAjuTnM4A91Jy`
-- **Repository**: `DanMarshall909/Anchor`
+- **Repository**: `DanMarshall909/WorkFlo`
 - **Status Columns**: Todo → In Progress → Done
 
 ## 🚀 Quick Start
 
 ### Session Workflow
+
 ```bash
 # 1. Start work session (shows available issues)
 ./scripts/enhanced-start-work.sh
@@ -28,11 +30,11 @@ Strict integration between your development workflow and GitHub project board fo
 
 ### Issue & Board Management
 
-| Script | Purpose | Board Integration |
-|--------|---------|------------------|
+| Script                   | Purpose                                  | Board Integration         |
+| ------------------------ | ---------------------------------------- | ------------------------- |
 | `enhanced-start-work.sh` | Interactive issue selection & work start | ✅ Moves to "In Progress" |
-| `gh-board-sync.sh` | Direct board operations | ✅ Full CRUD operations |
-| `tdd-phase-4-commit.sh` | Enhanced TDD workflow | ✅ Completion detection |
+| `gh-board-sync.sh`       | Direct board operations                  | ✅ Full CRUD operations   |
+| `tdd-phase-4-commit.sh`  | Enhanced TDD workflow                    | ✅ Completion detection   |
 
 ## 🔄 Workflow Diagram
 
@@ -48,7 +50,7 @@ graph TD
     H --> I[Update PROGRESS.md]
     D --> I
     I --> J[Development Cycle]
-    
+
     J --> K[TDD Development]
     K --> L[tdd-phase-4-commit.sh]
     L --> M[Run Tests & Coverage]
@@ -60,7 +62,7 @@ graph TD
     Q --> R[Update Board: Done]
     R --> S[Update PROGRESS.md]
     S --> T[Suggest Next Issue]
-    
+
     style A fill:#e1f5fe
     style B fill:#f3e5f5
     style H fill:#e8f5e8
@@ -71,10 +73,13 @@ graph TD
 ## 📊 Board Operations
 
 ### View Board Status
+
 ```bash
 ./scripts/gh-board-sync.sh show
 ```
+
 **Output:**
+
 ```
 📋 IN PROGRESS:
   - #73: Bug: Backend Database Configuration and Registration API Errors
@@ -87,6 +92,7 @@ graph TD
 ```
 
 ### Direct Board Management
+
 ```bash
 # Start working on an issue
 ./scripts/gh-board-sync.sh start 73
@@ -104,6 +110,7 @@ graph TD
 ## 🔄 Automated Workflow Details
 
 ### 1. Session Initialization
+
 **Script:** `enhanced-start-work.sh`
 
 ```mermaid
@@ -113,7 +120,7 @@ sequenceDiagram
     participant G as GitHub API
     participant B as Project Board
     participant P as PROGRESS.md
-    
+
     U->>S: Start session
     S->>P: Check current progress
     alt Has current work
@@ -132,6 +139,7 @@ sequenceDiagram
 ```
 
 **Automatically:**
+
 - ✅ Checks existing progress in PROGRESS.md
 - ✅ Lists available GitHub issues with labels
 - ✅ Updates project board to "In Progress"
@@ -139,6 +147,7 @@ sequenceDiagram
 - ✅ Updates PROGRESS.md with current issue
 
 ### 2. TDD Development Cycle
+
 **Scripts:** `tdd-phase-4-commit.sh`, `tdd-hooks-commit.sh`
 
 ```mermaid
@@ -155,7 +164,7 @@ flowchart LR
     J -->|No| A
     J -->|Yes| K[Update Board: Done]
     K --> L[Close GitHub Issue]
-    
+
     style C fill:#ffebee
     style E fill:#e8f5e8
     style G fill:#e8f5e8
@@ -164,6 +173,7 @@ flowchart LR
 ```
 
 **Integration Points:**
+
 - ✅ Tracks current issue from PROGRESS.md
 - ✅ Enforces 95% test coverage requirement
 - ✅ Creates standardized commit messages
@@ -171,6 +181,7 @@ flowchart LR
 - ✅ Auto-updates board and closes issues
 
 ### 3. Issue Completion Flow
+
 **Script:** `gh-board-sync.sh complete`
 
 ```mermaid
@@ -180,7 +191,7 @@ sequenceDiagram
     participant B as Board Sync
     participant G as GitHub API
     participant P as PROGRESS.md
-    
+
     D->>T: Complete development
     T->>T: Run quality checks
     T->>D: Issue complete?
@@ -196,13 +207,16 @@ sequenceDiagram
 ## 📈 Quality Integration
 
 ### Coverage & Board Synchronization
+
 Every TDD commit includes:
+
 - **Test count tracking**
 - **Coverage percentages** (Statement, Branch, Function)
 - **Quality metrics** in commit messages
 - **Board status verification**
 
 ### Example Commit Message
+
 ```
 feat(components)(SessionTimer): implement timer with pause/resume
 
@@ -210,7 +224,7 @@ feat(components)(SessionTimer): implement timer with pause/resume
 - Implement SessionTimer component with TDD approach
 - Create comprehensive test suite with 12 tests
 - Achieve 98% statement coverage
-- Achieve 95% branch coverage  
+- Achieve 95% branch coverage
 - Achieve 100% function coverage
 - Red-Green-Refactor-Cover-Commit cycle completed
 
@@ -226,19 +240,22 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 The workflow fully supports continuing previous work:
 
 **Automatic Detection:**
+
 ```bash
 # Always start with this - it detects existing work
 ./scripts/enhanced-start-work.sh
 ```
 
 **What happens when you have existing work:**
+
 1. ✅ Reads current issue from PROGRESS.md
-2. ✅ Shows issue details and current status  
+2. ✅ Shows issue details and current status
 3. ✅ Asks: "Continue current work? (y/n)"
 4. ✅ If yes: maintains current board status and continues
 5. ✅ If no: offers new issue selection
 
 **Manual Progress Check:**
+
 ```bash
 # Check what you were working on
 cat PROGRESS.md
@@ -251,12 +268,14 @@ cat PROGRESS.md
 ```
 
 **Session Continuity Features:**
+
 - ✅ **PROGRESS.md tracking** - Always knows current issue
 - ✅ **Board state preservation** - Issue stays "In Progress"
 - ✅ **Context restoration** - Shows issue details when continuing
 - ✅ **Seamless resumption** - No board updates needed when continuing
 
 ### Batch Operations
+
 ```bash
 # View all board status
 ./scripts/gh-board-sync.sh show
@@ -270,6 +289,7 @@ done
 ## 🎯 Best Practices
 
 ### Workflow Discipline
+
 1. **Always start** with `enhanced-start-work.sh`
 2. **Use TDD scripts** for automatic board integration
 3. **Complete issues promptly** to maintain board accuracy
@@ -277,6 +297,7 @@ done
 5. **Maintain PROGRESS.md** for session continuity
 
 ### Issue Management
+
 - **One issue active** at a time (enforced by scripts)
 - **Complete before switching** to maintain board accuracy
 - **Use descriptive titles** for better board readability
@@ -287,22 +308,26 @@ done
 ### Common Issues
 
 **GitHub CLI not authenticated:**
+
 ```bash
 gh auth login
 ```
 
 **Issue not on board:**
+
 ```bash
 ./scripts/gh-board-sync.sh add <issue_number>
 ```
 
 **Board state out of sync:**
+
 ```bash
 ./scripts/gh-board-sync.sh show
 # Review and manually correct as needed
 ```
 
 **PROGRESS.md corruption:**
+
 ```bash
 # Reset progress tracking
 ./scripts/enhanced-start-work.sh  # Will rebuild PROGRESS.md
@@ -311,12 +336,14 @@ gh auth login
 ## 📝 Integration Benefits
 
 ### Automatic Tracking
+
 - ✅ **Zero manual board updates** during normal workflow
 - ✅ **Accurate progress tracking** in PROGRESS.md
 - ✅ **Quality metrics** tied to specific issues
 - ✅ **Session continuity** across Claude sessions
 
 ### Workflow Enforcement
+
 - ✅ **Issue-driven development** (no orphaned work)
 - ✅ **TDD compliance** with quality gates
 - ✅ **Board state accuracy** through automation

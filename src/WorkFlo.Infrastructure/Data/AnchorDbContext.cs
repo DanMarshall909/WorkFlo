@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 namespace WorkFlo.Infrastructure.Data;
 
 /// <summary>
-/// Main Entity Framework DbContext for Anchor application
+/// Main Entity Framework DbContext for WorkFlo application
 /// Minimal configuration matching actual model properties
 /// </summary>
-public class AnchorDbContext : DbContext
+public class WorkFloDbContext : DbContext
 {
-    public AnchorDbContext(DbContextOptions<AnchorDbContext> options) : base(options)
+    public WorkFloDbContext(DbContextOptions<WorkFloDbContext> options) : base(options)
     {
     }
 
@@ -25,7 +25,7 @@ public class AnchorDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.ToTable("users", "anchor_identity");
+            entity.ToTable("users", "workflo_identity");
 
             // Performance indexes
             entity.HasIndex(e => e.EmailHash).HasDatabaseName("idx_users_email_hash");
@@ -37,7 +37,7 @@ public class AnchorDbContext : DbContext
         modelBuilder.Entity<UserPreferences>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.ToTable("user_preferences", "anchor_identity");
+            entity.ToTable("user_preferences", "workflo_identity");
             entity.HasOne(up => up.User)
                 .WithOne(u => u.Preferences)
                 .HasForeignKey<UserPreferences>(up => up.UserId);

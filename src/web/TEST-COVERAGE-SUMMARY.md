@@ -1,4 +1,4 @@
-# Anchor Application - Test Coverage Summary
+# WorkFlo Application - Test Coverage Summary
 
 ## ✅ Authentication Testing - COMPLETE
 
@@ -109,7 +109,7 @@ npm test -- --testPathPattern="auth" --watch
 ### Backend Tests
 ```bash
 # Core domain and application tests (44 tests passing)
-dotnet test tests/Anchor.Domain.Tests/ tests/Anchor.Application.Tests/
+dotnet test tests/WorkFlo.Domain.Tests/ tests/WorkFlo.Application.Tests/
 
 # All backend tests
 dotnet test

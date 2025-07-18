@@ -110,7 +110,7 @@ public class ServiceConfigurationTests : IClassFixture<WebApplicationFactory<Pro
         // Assert
         response.IsSuccessStatusCode.Should().BeTrue("Root endpoint should return success");
         string content = await response.Content.ReadAsStringAsync();
-        content.Should().Contain("Anchor API is running", "Root should contain API info");
+        content.Should().Contain("WorkFlo API is running", "Root should contain API info");
         content.Should().Contain("1.0.0", "Root should contain version info");
     }
 }

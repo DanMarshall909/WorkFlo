@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Anchor Development Progress Tracker Startup Script
+# WorkFlo Development Progress Tracker Startup Script
 # Automatically opens the progress tracker when starting Claude sessions
 # Handles encrypted API key setup and management
 
@@ -13,18 +13,18 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-PROJECT_DIR="/home/dan/code/Anchor"
+PROJECT_DIR="/home/dan/code/WorkFlo"
 SCRIPTS_DIR="$PROJECT_DIR/scripts"
 PROGRESS_HTML="$PROJECT_DIR/progress.html"
 PROGRESS_MD="$PROJECT_DIR/PROGRESS.md"
 KEY_MANAGER="$SCRIPTS_DIR/key-manager.js"
 GH_API_SERVER="$PROJECT_DIR/gh-api-server.js"
 
-echo -e "${BLUE}🚀 Starting Anchor Development Environment...${NC}"
+echo -e "${BLUE}🚀 Starting WorkFlo Development Environment...${NC}"
 
 # Check if we're in the right directory
 if [ ! -f "$PROGRESS_HTML" ]; then
-    echo -e "${YELLOW}⚠️  Progress tracker not found. Make sure you're in the Anchor project directory.${NC}"
+    echo -e "${YELLOW}⚠️  Progress tracker not found. Make sure you're in the WorkFlo project directory.${NC}"
     exit 1
 fi
 
@@ -158,7 +158,7 @@ echo -e "${BLUE}🔄 Starting automatic progress updates...${NC}"
 "$SCRIPTS_DIR/start-auto-progress.sh"
 
 echo ""
-echo -e "${GREEN}✅ Anchor Development Environment started successfully!${NC}"
+echo -e "${GREEN}✅ WorkFlo Development Environment started successfully!${NC}"
 echo -e "${BLUE}📊 Progress tracker: $PROGRESS_URL${NC}"
 echo -e "${BLUE}🔧 GitHub CLI API: http://localhost:3002/health${NC}"
 echo -e "${YELLOW}💡 The tracker will auto-refresh every 5 seconds${NC}"

@@ -1,5 +1,5 @@
 -- =====================================================
--- Anchor PostgreSQL Seed Data Script
+-- WorkFlo PostgreSQL Seed Data Script
 -- Development and testing data with privacy-first examples
 -- =====================================================
 
@@ -7,7 +7,7 @@
 -- FEATURE FLAGS
 -- =====================================================
 
-INSERT INTO anchor_config.feature_flags (flag_name, is_enabled, description, rollout_percentage) VALUES
+INSERT INTO workflo_config.feature_flags (flag_name, is_enabled, description, rollout_percentage) VALUES
 ('task-management', true, 'Enable task creation and management features', 100),
 ('session-management', true, 'Enable focus session tracking', 100),
 ('progressive-nudging', false, 'Enable progressive nudging system for focus', 0),
@@ -28,7 +28,7 @@ ON CONFLICT (flag_name) DO UPDATE SET
 -- APPLICATION SETTINGS
 -- =====================================================
 
-INSERT INTO anchor_config.app_settings (setting_key, setting_value, setting_type, description, is_public) VALUES
+INSERT INTO workflo_config.app_settings (setting_key, setting_value, setting_type, description, is_public) VALUES
 ('default_session_duration', '25', 'number', 'Default Pomodoro session duration in minutes', true),
 ('default_break_duration', '5', 'number', 'Default break duration in minutes', true),
 ('max_session_duration', '120', 'number', 'Maximum allowed session duration in minutes', true),
@@ -55,25 +55,25 @@ ON CONFLICT (setting_key) DO UPDATE SET
 -- =====================================================
 
 -- Create demo users (using hashed emails for privacy)
-INSERT INTO anchor_identity.users (
+INSERT INTO workflo_identity.users (
     id, 
     email_hash, 
     password_hash, 
     email_verified, 
     created_at
 ) VALUES
--- Demo user 1 (email: demo1@anchor.local)
+-- Demo user 1 (email: demo1@workflo.local)
 (
     '550e8400-e29b-41d4-a716-446655440001',
-    encode(digest('demo1@anchor.local', 'sha256'), 'hex'),
+    encode(digest('demo1@workflo.local', 'sha256'), 'hex'),
     '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewifMtUztkKIop22', -- password: "demo123!"
     true,
     NOW() - INTERVAL '7 days'
 ),
--- Demo user 2 (email: demo2@anchor.local)
+-- Demo user 2 (email: demo2@workflo.local)
 (
     '550e8400-e29b-41d4-a716-446655440002',
-    encode(digest('demo2@anchor.local', 'sha256'), 'hex'),
+    encode(digest('demo2@workflo.local', 'sha256'), 'hex'),
     '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewifMtUztkKIop22', -- password: "demo123!"
     true,
     NOW() - INTERVAL '14 days'
@@ -81,7 +81,7 @@ INSERT INTO anchor_identity.users (
 ON CONFLICT (id) DO NOTHING;
 
 -- Create user preferences for demo users
-INSERT INTO anchor_identity.user_preferences (
+INSERT INTO workflo_identity.user_preferences (
     user_id,
     default_session_duration,
     break_reminder_interval,
@@ -120,7 +120,7 @@ ON CONFLICT (user_id) DO NOTHING;
 -- DEMO TASKS
 -- =====================================================
 
-INSERT INTO anchor.tasks (
+INSERT INTO workflo.tasks (
     id,
     user_id,
     title,
@@ -209,7 +209,7 @@ INSERT INTO anchor.tasks (
 ON CONFLICT (id) DO NOTHING;
 
 -- Update completed task
-UPDATE anchor.tasks 
+UPDATE workflo.tasks 
 SET completed_at = NOW() - INTERVAL '2 hours',
     actual_duration = 35
 WHERE id = '660e8400-e29b-41d4-a716-446655440003';
@@ -218,7 +218,7 @@ WHERE id = '660e8400-e29b-41d4-a716-446655440003';
 -- DEMO TASK BREAKDOWNS
 -- =====================================================
 
-INSERT INTO anchor.task_breakdowns (
+INSERT INTO workflo.task_breakdowns (
     task_id,
     step_title,
     step_description,
@@ -296,7 +296,7 @@ ON CONFLICT DO NOTHING;
 -- DEMO FOCUS SESSIONS
 -- =====================================================
 
-INSERT INTO anchor.focus_sessions (
+INSERT INTO workflo.focus_sessions (
     id,
     user_id,
     task_id,
@@ -380,7 +380,7 @@ ON CONFLICT (id) DO NOTHING;
 -- DEMO SESSION INTERRUPTIONS
 -- =====================================================
 
-INSERT INTO anchor.session_interruptions (
+INSERT INTO workflo.session_interruptions (
     session_id,
     interruption_type,
     interruption_source,
@@ -423,9 +423,9 @@ ON CONFLICT DO NOTHING;
 -- =====================================================
 
 -- Generate analytics for the past few days
-SELECT anchor_analytics.generate_daily_metrics(CURRENT_DATE);
-SELECT anchor_analytics.generate_daily_metrics(CURRENT_DATE - INTERVAL '1 day');
-SELECT anchor_analytics.generate_daily_metrics(CURRENT_DATE - INTERVAL '2 days');
+SELECT workflo_analytics.generate_daily_metrics(CURRENT_DATE);
+SELECT workflo_analytics.generate_daily_metrics(CURRENT_DATE - INTERVAL '1 day');
+SELECT workflo_analytics.generate_daily_metrics(CURRENT_DATE - INTERVAL '2 days');
 
 -- =====================================================
 -- COMPLETION LOG
@@ -433,7 +433,7 @@ SELECT anchor_analytics.generate_daily_metrics(CURRENT_DATE - INTERVAL '2 days')
 
 DO $$
 BEGIN
-    RAISE NOTICE 'Anchor PostgreSQL seed data inserted successfully';
+    RAISE NOTICE 'WorkFlo PostgreSQL seed data inserted successfully';
     RAISE NOTICE 'Demo users, tasks, sessions, and analytics created';
     RAISE NOTICE 'Feature flags and application settings configured';
     RAISE NOTICE 'Ready for development and testing';

@@ -66,7 +66,7 @@
     
     // Accessibility rules
     "jsx-a11y/alt-text": "error",
-    "jsx-a11y/anchor-has-content": "error",
+    "jsx-a11y/workflo-has-content": "error",
     "jsx-a11y/aria-props": "error",
     "jsx-a11y/aria-proptypes": "error",
     "jsx-a11y/aria-unsupported-elements": "error",
