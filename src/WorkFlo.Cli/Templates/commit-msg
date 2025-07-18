@@ -1,0 +1,19 @@
+#!/bin/sh
+# WorkFlo commit-msg hook
+# Validates commit message format
+
+# Check if workflo CLI is installed
+if ! command -v workflo &> /dev/null; then
+    echo "Error: WorkFlo CLI is not installed or not in PATH"
+    echo "Please install WorkFlo CLI: dotnet tool install -g WorkFlo.Cli"
+    exit 1
+fi
+
+# Get the commit message file path
+COMMIT_MSG_FILE="$1"
+
+# Run WorkFlo validation for commit message
+workflo validate commit-msg "$COMMIT_MSG_FILE"
+
+# Exit with the validation result
+exit $?

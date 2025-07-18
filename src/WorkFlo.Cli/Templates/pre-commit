@@ -1,0 +1,16 @@
+#!/bin/sh
+# WorkFlo pre-commit hook
+# Validates staged files before commit
+
+# Check if workflo CLI is installed
+if ! command -v workflo &> /dev/null; then
+    echo "Error: WorkFlo CLI is not installed or not in PATH"
+    echo "Please install WorkFlo CLI: dotnet tool install -g WorkFlo.Cli"
+    exit 1
+fi
+
+# Run WorkFlo validation for pre-commit
+workflo validate pre-commit
+
+# Exit with the validation result
+exit $?
