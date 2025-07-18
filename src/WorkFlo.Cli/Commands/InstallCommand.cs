@@ -1,6 +1,6 @@
 using System.CommandLine;
-using Microsoft.Extensions.Logging;
 using WorkFlo.Application.Services;
+using WorkFlo.Cli.Services;
 using WorkFlo.Domain.Common;
 using WorkFlo.Infrastructure.Services;
 
@@ -9,10 +9,12 @@ namespace WorkFlo.Cli.Commands;
 public class InstallCommand
 {
     private readonly IHookInstallationService _hookInstallationService;
+    private readonly IConsoleService _console;
     
-    public InstallCommand()
+    public InstallCommand(IHookInstallationService? hookInstallationService = null, IConsoleService? console = null)
     {
-        _hookInstallationService = new HookInstallationService();
+        _hookInstallationService = hookInstallationService ?? new HookInstallationService();
+        _console = console ?? new ConsoleService();
     }
     
     public Command Build()
@@ -34,22 +36,22 @@ public class InstallCommand
 
     private async Task HandleAsync(bool force)
     {
-        Console.WriteLine("Installing WorkFlo git hooks...");
+        _console.WriteLine("Installing WorkFlo git hooks...");
         
         var result = await _hookInstallationService.InstallHooksAsync(force).ConfigureAwait(false);
         
         if (result.IsFailure())
         {
-            Console.WriteLine($"✗ Installation failed: {result.Error}");
+            _console.WriteError($"✗ Installation failed: {result.Error}");
             Environment.Exit(1);
             return;
         }
         
-        Console.WriteLine("✓ Git hooks installed successfully!");
-        Console.WriteLine();
-        Console.WriteLine("WorkFlo will now enforce:");
-        Console.WriteLine("  • Maximum 3 files per commit");
-        Console.WriteLine("  • Commits only on 'dev' branch");
-        Console.WriteLine("  • Conventional commit messages");
+        _console.WriteLine("✓ Git hooks installed successfully!");
+        _console.WriteLine(string.Empty);
+        _console.WriteLine("WorkFlo will now enforce:");
+        _console.WriteLine("  • Maximum 3 files per commit");
+        _console.WriteLine("  • Commits only on 'dev' branch");
+        _console.WriteLine("  • Conventional commit messages");
     }
 }

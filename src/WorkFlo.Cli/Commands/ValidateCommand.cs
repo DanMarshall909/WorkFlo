@@ -1,17 +1,27 @@
 using System.CommandLine;
-using System.Diagnostics;
 using WorkFlo.Application.Services;
+using WorkFlo.Cli.Services;
 using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Cli.Commands;
 
 public class ValidateCommand
 {
-    private readonly ICommitValidationService _validationService;
+    private const string PreCommitHookType = "pre-commit";
+    private const string CommitMsgHookType = "commit-msg";
     
-    public ValidateCommand()
+    private readonly ICommitValidationService _validationService;
+    private readonly IConsoleService _console;
+    private readonly IGitService _gitService;
+    
+    public ValidateCommand(
+        ICommitValidationService? validationService = null, 
+        IConsoleService? console = null,
+        IGitService? gitService = null)
     {
-        _validationService = new CommitValidationService();
+        _validationService = validationService ?? new CommitValidationService();
+        _console = console ?? new ConsoleService();
+        _gitService = gitService ?? new GitService();
     }
     
     public Command Build()
@@ -30,62 +40,68 @@ public class ValidateCommand
         commitMsgFileArg.Arity = ArgumentArity.ZeroOrOne;
         command.AddArgument(commitMsgFileArg);
 
-        command.SetHandler(async (string hookType, string? commitMsgFile) =>
-        {
-            var exitCode = await HandleAsync(hookType, commitMsgFile).ConfigureAwait(false);
-            Environment.Exit(exitCode);
-        }, hookTypeArg, commitMsgFileArg);
+        command.SetHandler(HandleAsync, hookTypeArg, commitMsgFileArg);
 
         return command;
     }
 
-    private async Task<int> HandleAsync(string hookType, string? commitMsgFile)
+    private async Task HandleAsync(string hookType, string? commitMsgFile)
     {
+        int exitCode;
         try
         {
             switch (hookType.ToLowerInvariant())
             {
-                case "pre-commit":
-                    return await ValidatePreCommit().ConfigureAwait(false);
+                case PreCommitHookType:
+                    exitCode = await ValidatePreCommit().ConfigureAwait(false);
+                    break;
                     
-                case "commit-msg":
+                case CommitMsgHookType:
                     if (string.IsNullOrEmpty(commitMsgFile))
                     {
-                        await Console.Error.WriteLineAsync("Error: Commit message file is required for commit-msg validation").ConfigureAwait(false);
-                        return 1;
+                        await _console.WriteErrorAsync("Error: Commit message file is required for commit-msg validation").ConfigureAwait(false);
+                        exitCode = 1;
+                        break;
                     }
-                    return await ValidateCommitMessage(commitMsgFile).ConfigureAwait(false);
+                    exitCode = await ValidateCommitMessage(commitMsgFile).ConfigureAwait(false);
+                    break;
                     
                 default:
-                    await Console.Error.WriteLineAsync($"Error: Unknown hook type '{hookType}'").ConfigureAwait(false);
-                    return 1;
+                    await _console.WriteErrorAsync($"Error: Unknown hook type '{hookType}'").ConfigureAwait(false);
+                    exitCode = 1;
+                    break;
             }
         }
         catch (Exception ex)
         {
-            await Console.Error.WriteLineAsync($"Error: {ex.Message}").ConfigureAwait(false);
-            return 1;
+            await _console.WriteErrorAsync($"Error: {ex.Message}").ConfigureAwait(false);
+            exitCode = 1;
+        }
+        
+        if (exitCode != 0)
+        {
+            Environment.Exit(exitCode);
         }
     }
 
     private async Task<int> ValidatePreCommit()
     {
         // Get staged files
-        var stagedFiles = await GetStagedFilesAsync().ConfigureAwait(false);
+        var stagedFiles = await _gitService.GetStagedFilesAsync().ConfigureAwait(false);
         
         // Get current branch
-        var currentBranch = await GetCurrentBranchAsync().ConfigureAwait(false);
+        var currentBranch = await _gitService.GetCurrentBranchAsync().ConfigureAwait(false);
         
         // Validate
         var result = await _validationService.ValidatePreCommitAsync(stagedFiles, currentBranch).ConfigureAwait(false);
         
         if (result.IsFailure())
         {
-            await Console.Error.WriteLineAsync($"Validation failed: {result.Error}").ConfigureAwait(false);
+            await _console.WriteErrorAsync($"Validation failed: {result.Error}").ConfigureAwait(false);
             return 1;
         }
         
-        Console.WriteLine("✓ Pre-commit validation passed");
+        _console.WriteLine("✓ Pre-commit validation passed");
         return 0;
     }
 
@@ -99,43 +115,11 @@ public class ValidateCommand
         
         if (result.IsFailure())
         {
-            await Console.Error.WriteLineAsync($"Validation failed: {result.Error}").ConfigureAwait(false);
+            await _console.WriteErrorAsync($"Validation failed: {result.Error}").ConfigureAwait(false);
             return 1;
         }
         
-        Console.WriteLine("✓ Commit message validation passed");
+        _console.WriteLine("✓ Commit message validation passed");
         return 0;
-    }
-    
-    private static async Task<string[]> GetStagedFilesAsync()
-    {
-        using var process = new Process();
-        process.StartInfo.FileName = "git";
-        process.StartInfo.Arguments = "diff --cached --name-only";
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.CreateNoWindow = true;
-        process.Start();
-        
-        var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-        await process.WaitForExitAsync().ConfigureAwait(false);
-        
-        return output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-    }
-    
-    private static async Task<string> GetCurrentBranchAsync()
-    {
-        using var process = new Process();
-        process.StartInfo.FileName = "git";
-        process.StartInfo.Arguments = "branch --show-current";
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.CreateNoWindow = true;
-        process.Start();
-        
-        var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-        await process.WaitForExitAsync().ConfigureAwait(false);
-        
-        return output.Trim();
     }
 }

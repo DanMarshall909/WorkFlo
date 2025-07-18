@@ -38,15 +38,18 @@ public class PreCommitValidationTests : IDisposable
         exitCode.Should().Be(1);
     }
     
-    private static async Task<int> RunWorkFloValidation(string hookType)
+    private async Task<int> RunWorkFloValidation(string hookType)
     {
-        var workfloPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../src/WorkFlo.Cli/bin/Debug/net9.0/WorkFlo.Cli");
+        var currentDirectory = Directory.GetCurrentDirectory();
+        var workfloPath = Path.GetFullPath(Path.Combine(currentDirectory, "../../../../../src/WorkFlo.Cli/bin/Debug/net9.0/WorkFlo.Cli.dll"));
+        
         using var process = new Process();
         process.StartInfo.FileName = "dotnet";
-        process.StartInfo.Arguments = $"{workfloPath}.dll validate {hookType}";
+        process.StartInfo.Arguments = $"\"{workfloPath}\" validate {hookType}";
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.WorkingDirectory = _testDirectory;
         process.Start();
         await process.WaitForExitAsync();
         return process.ExitCode;

@@ -1,5 +1,4 @@
 using System.CommandLine;
-using Microsoft.Extensions.Logging;
 using WorkFlo.Cli.Commands;
 
 var rootCommand = new RootCommand("WorkFlo - AI-powered workflow enforcement for development teams");
