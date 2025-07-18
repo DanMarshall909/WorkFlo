@@ -1,6 +1,7 @@
+using WorkFlo.Api.Tests.Helpers;
 using Xunit;
 
-namespace WorkFlo.Api.Tests.Helpers;
+namespace WorkFlo.Tests.Common.Helpers;
 
 /// <summary>
 /// Collection fixture to ensure test classes don't share application instances

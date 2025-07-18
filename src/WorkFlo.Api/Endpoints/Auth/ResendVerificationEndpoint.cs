@@ -48,7 +48,7 @@ public sealed class ResendVerificationEndpoint : Endpoint<ResendVerificationRequ
         });
     }
 
-    public override async Task HandleAsync(ResendVerificationRequest request, CancellationToken cancellationToken)
+    public override async Task HandleAsync(ResendVerificationRequest request, CancellationToken ct)
     {
         // Map request to command
         var command = new CResendVerification
@@ -57,7 +57,7 @@ public sealed class ResendVerificationEndpoint : Endpoint<ResendVerificationRequ
         };
 
         // Execute command
-        Result<string> result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+        Result<string> result = await _mediator.Send(command, ct).ConfigureAwait(false);
 
         // Return response
         if (result.IsSuccess)
@@ -66,7 +66,7 @@ public sealed class ResendVerificationEndpoint : Endpoint<ResendVerificationRequ
             {
                 Message = result.Value!,
                 Success = true
-            }, cancellationToken).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
         }
         else
         {
@@ -74,7 +74,7 @@ public sealed class ResendVerificationEndpoint : Endpoint<ResendVerificationRequ
             {
                 Message = result.Error!,
                 Success = false
-            }, 400, cancellationToken).ConfigureAwait(false);
+            }, 400, ct).ConfigureAwait(false);
         }
     }
 }
