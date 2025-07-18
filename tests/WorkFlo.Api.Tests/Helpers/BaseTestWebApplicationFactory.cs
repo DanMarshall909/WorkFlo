@@ -1,6 +1,10 @@
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using FastEndpoints;
+using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 
 namespace WorkFlo.Api.Tests.Helpers;
 
@@ -41,6 +45,10 @@ public abstract class BaseTestWebApplicationFactory : WebApplicationFactory<Prog
         {
             ConfigureTestServices(services);
 
+            // Configure a test authentication scheme that allows anonymous access
+            services.AddAuthentication(TestAuthHandler.AuthenticationScheme)
+                    .AddScheme<TestAuthHandlerOptions, TestAuthHandler>(TestAuthHandler.AuthenticationScheme, options => { });
+
             if (_enableDebugLogging)
             {
                 LogServiceConfiguration(services);
@@ -63,6 +71,9 @@ public abstract class BaseTestWebApplicationFactory : WebApplicationFactory<Prog
     {
         var databaseName = $"TestDb_{GetHashCode()}_{_instanceId}";
         TestServiceConfigurator.ConfigureTestServices(services, databaseName);
+
+        // Add FastEndpoints to scan the WorkFlo.Api assembly for endpoints
+        services.AddFastEndpoints(options => options.Assemblies = new[] { typeof(Program).Assembly });
     }
 
     /// <summary>

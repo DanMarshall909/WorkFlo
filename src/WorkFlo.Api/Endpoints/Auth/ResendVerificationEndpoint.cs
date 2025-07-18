@@ -50,6 +50,8 @@ public sealed class ResendVerificationEndpoint : Endpoint<ResendVerificationRequ
 
     public override async Task HandleAsync(ResendVerificationRequest request, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         // Map request to command
         var command = new CResendVerification
         {

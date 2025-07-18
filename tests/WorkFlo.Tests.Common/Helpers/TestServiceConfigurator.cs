@@ -53,7 +53,7 @@ internal static class TestServiceConfigurator
         ReplaceService<IPasswordBreachService, TestPasswordBreachService>(services);
 
         // Remove problematic authentication services
-        var authTypesToRemove = new[]
+        string[] authTypesToRemove = new[]
         {
             "IAuthenticationService",
             "IAuthenticationSchemeProvider",
@@ -116,7 +116,7 @@ internal static class TestServiceConfigurator
     /// </summary>
     private static void RemoveServices<T>(IServiceCollection services)
     {
-        var descriptors = services.Where(d => d.ServiceType == typeof(T)).ToList();
+        List<ServiceDescriptor> descriptors = services.Where(d => d.ServiceType == typeof(T)).ToList();
         foreach (var descriptor in descriptors)
         {
             services.Remove(descriptor);
@@ -128,7 +128,7 @@ internal static class TestServiceConfigurator
     /// </summary>
     private static void RemoveServicesByName(IServiceCollection services, string[] typeNames)
     {
-        var descriptors = services
+        List<ServiceDescriptor> descriptors = services
             .Where(d => typeNames.Any(name => d.ServiceType.Name.Contains(name)))
             .ToList();
 
@@ -145,7 +145,7 @@ internal static class TestServiceConfigurator
     {
         preserveTypes ??= Array.Empty<Type>();
 
-        var descriptors = services
+        List<ServiceDescriptor> descriptors = services
             .Where(d => d.ServiceType.FullName?.Contains(contains, StringComparison.OrdinalIgnoreCase) == true)
             .Where(d => !preserveTypes.Contains(d.ServiceType))
             .ToList();

@@ -50,6 +50,8 @@ public sealed class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, Verificat
 
     public override async Task HandleAsync(VerifyEmailRequest request, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         // Map request to command
         var command = new CVerifyEmail
         {
