@@ -137,3 +137,4 @@ exit $?",
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
     }
+}
