@@ -1,0 +1,118 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using FluentAssertions;
+
+namespace WorkFlo.Api.Tests.Helpers;
+
+/// <summary>
+/// HTTP client test extension methods inspired by Ardalis Clean Architecture patterns
+/// Provides simplified methods for common integration test scenarios
+/// </summary>
+internal static class HttpClientTestExtensions
+{
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    /// <summary>
+    /// POST request with JSON body and deserialize response
+    /// </summary>
+    public static async Task<(HttpResponseMessage Response, T? Result)> PostAndDeserializeAsync<T>(
+        this HttpClient client,
+        string url,
+        object request) where T : class
+    {
+        var response = await client.PostAsJsonAsync(url, request);
+        var result = default(T);
+
+        if (response.IsSuccessStatusCode && response.Content.Headers.ContentLength > 0)
+        {
+            result = await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+        }
+
+        return (response, result);
+    }
+
+    /// <summary>
+    /// POST request expecting specific status code
+    /// </summary>
+    public static async Task<HttpResponseMessage> PostAndEnsureStatusAsync(
+        this HttpClient client,
+        string url,
+        object request,
+        HttpStatusCode expectedStatus)
+    {
+        var response = await client.PostAsJsonAsync(url, request);
+        response.StatusCode.Should().Be(expectedStatus,
+            $"Expected {expectedStatus} but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
+        return response;
+    }
+
+    /// <summary>
+    /// POST request expecting BadRequest (400)
+    /// </summary>
+    public static Task<HttpResponseMessage> PostAndEnsureBadRequestAsync(
+        this HttpClient client,
+        string url,
+        object request)
+    {
+        return client.PostAndEnsureStatusAsync(url, request, HttpStatusCode.BadRequest);
+    }
+
+    /// <summary>
+    /// POST request expecting OK (200) with response deserialization
+    /// </summary>
+    public static async Task<T> PostAndEnsureSuccessAsync<T>(
+        this HttpClient client,
+        string url,
+        object request) where T : class
+    {
+        var (response, result) = await client.PostAndDeserializeAsync<T>(url, request);
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            $"Expected OK but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
+        result.Should().NotBeNull("Response should contain valid data");
+        return result!;
+    }
+
+    /// <summary>
+    /// GET request with response deserialization
+    /// </summary>
+    public static async Task<T?> GetAndDeserializeAsync<T>(
+        this HttpClient client,
+        string url) where T : class
+    {
+        var response = await client.GetAsync(url);
+        if (!response.IsSuccessStatusCode || response.Content.Headers.ContentLength == 0)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+    }
+
+    /// <summary>
+    /// GET request expecting specific status code
+    /// </summary>
+    public static async Task<HttpResponseMessage> GetAndEnsureStatusAsync(
+        this HttpClient client,
+        string url,
+        HttpStatusCode expectedStatus)
+    {
+        var response = await client.GetAsync(url);
+        response.StatusCode.Should().Be(expectedStatus,
+            $"Expected {expectedStatus} but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
+        return response;
+    }
+
+    /// <summary>
+    /// GET request expecting NotFound (404)
+    /// </summary>
+    public static Task<HttpResponseMessage> GetAndEnsureNotFoundAsync(
+        this HttpClient client,
+        string url)
+    {
+        return client.GetAndEnsureStatusAsync(url, HttpStatusCode.NotFound);
+    }
+}

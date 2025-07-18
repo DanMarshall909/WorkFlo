@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ADHD-friendly global styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .text-calm-600 {
+      @apply text-calm-800;
+    }
+
+    .border-calm-200 {
+      @apply border-calm-400;
+    }
+  }
+
+  /* Focus styles for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-focus-500 ring-offset-2;
+  }
+
+  /* Typography improvements for readability */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer components {
+  /* Semantic component styles - theme-aware */
+  
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center px-4 py-2 font-medium rounded-lg transition-all duration-300 
+           focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary text-on-primary hover:opacity-90;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary text-on-secondary hover:opacity-90;
+  }
+
+  .btn-outline {
+    @apply btn border border-border text-on-surface hover:bg-surface-variant;
+  }
+
+  .btn-back {
+    @apply text-primary hover:text-secondary font-medium transition-colors;
+  }
+
+  /* New gradient button styles with soft edges */
+  .btn-gradient-primary {
+    background: linear-gradient(135deg, rgb(var(--color-primary) / 1) 0%, rgb(var(--color-secondary) / 0.9) 100%);
+    @apply inline-flex items-center px-4 py-2 text-white font-medium 
+           rounded-xl shadow-sm hover:shadow transition-all duration-300 
+           focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:scale-[1.005];
+  }
+
+  .btn-gradient-secondary {
+    background: linear-gradient(135deg, rgb(var(--color-secondary) / 1) 0%, rgb(var(--color-tertiary) / 0.8) 100%);
+    @apply inline-flex items-center px-4 py-2 text-white font-medium 
+           rounded-xl shadow-sm hover:shadow transition-all duration-300 
+           focus:ring-2 focus:ring-secondary focus:ring-offset-2 hover:scale-[1.005];
+  }
+
+  .btn-gradient-soft {
+    background: linear-gradient(135deg, rgb(var(--color-primary) / 0.8) 0%, rgb(var(--color-secondary) / 0.6) 100%);
+    @apply inline-flex items-center px-6 py-3 text-white font-medium 
+           rounded-2xl shadow-sm hover:shadow transition-all duration-300 
+           focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:scale-[1.005] backdrop-blur-sm;
+  }
+
+  /* Layout components */
+  .card {
+    @apply bg-surface rounded-lg border border-border shadow-sm;
+  }
+
+  .card-padding {
+    @apply p-4 sm:p-6;
+  }
+
+  .page-container {
+    @apply max-w-4xl mx-auto p-6;
+  }
+
+  .page-header {
+    @apply flex justify-between items-center mb-8;
+  }
+
+  /* Typography */
+  .heading-primary {
+    @apply text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-pulse-subtle;
+  }
+
+  .heading-secondary {
+    @apply text-xl font-semibold bg-gradient-to-r from-tertiary to-primary bg-clip-text text-transparent animate-glow-subtle;
+  }
+
+  .text-description {
+    @apply text-on-surface-variant;
+  }
+
+  .text-muted {
+    @apply text-on-surface-variant;
+  }
+
+  /* Form components */
+  .form-input {
+    @apply w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary 
+           bg-surface text-on-surface border-border;
+  }
+
+  .form-input-error {
+    @apply form-input border-error;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-on-surface mb-1;
+  }
+
+  .form-error {
+    @apply mt-1 text-sm text-error;
+  }
+
+  .form-help {
+    @apply mt-1 text-sm text-on-surface-variant;
+  }
+
+  /* Status indicators */
+  .alert {
+    @apply p-3 rounded-md border;
+  }
+
+  .alert-success {
+    @apply alert;
+    background-color: rgb(var(--color-success) / 0.1);
+    border-color: rgb(var(--color-success));
+    color: rgb(var(--color-success));
+  }
+
+  .alert-warning {
+    @apply alert;
+    background-color: rgb(var(--color-warning) / 0.1);
+    border-color: rgb(var(--color-warning));
+    color: rgb(var(--color-warning));
+  }
+
+  .alert-error {
+    @apply alert;
+    background-color: rgb(var(--color-error) / 0.1);
+    border-color: rgb(var(--color-error));
+    color: rgb(var(--color-error));
+  }
+
+  /* Progress indicators */
+  .progress-bar {
+    @apply bg-calm-200 rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply bg-focus-500 h-full transition-all duration-300 ease-out;
+  }
+}
+
+@layer utilities {
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Animation utilities for ADHD-friendly motion */
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  .animate-pulse-gentle {
+    animation: pulse-gentle 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 4s ease-in-out infinite;
+  }
+
+  .animate-glow-subtle {
+    animation: glow-subtle 3s ease-in-out infinite;
+  }
+
+  /* Theme selector specific focus styles */
+  .theme-button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .theme-button-active:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgb(var(--color-primary) / 0.5) !important;
+  }
+
+  .theme-button-inactive:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgb(var(--color-primary) / 0.3) !important;
+  }
+}
+
+/* Keyframe animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.002);
+  }
+}
+
+@keyframes glow-subtle {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.05);
+  }
+}
