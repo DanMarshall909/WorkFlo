@@ -60,3 +60,4 @@ public class CommitValidationService : ICommitValidationService
         
         return await Task.FromResult(Result.Success()).ConfigureAwait(false);
     }
+}
