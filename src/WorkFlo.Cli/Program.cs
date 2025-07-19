@@ -29,9 +29,6 @@ rootCommand.AddCommand(completeCommand.Build());
 var qualityCommand = new QualityCommand();
 rootCommand.AddCommand(qualityCommand.Build());
 
-var tddCommand = new TddCommand();
-rootCommand.AddCommand(tddCommand.Build());
-
 var statusCommand = new StatusCommand();
 rootCommand.AddCommand(statusCommand.Build());
 
