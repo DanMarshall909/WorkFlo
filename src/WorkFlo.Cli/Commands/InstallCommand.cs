@@ -54,3 +54,4 @@ public class InstallCommand
         await _console.WriteLineAsync("  • Commits only on 'dev' branch").ConfigureAwait(false);
         await _console.WriteLineAsync("  • Conventional commit messages").ConfigureAwait(false);
     }
+}

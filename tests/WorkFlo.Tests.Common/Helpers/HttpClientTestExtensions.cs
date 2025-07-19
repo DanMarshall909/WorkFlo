@@ -71,7 +71,7 @@ internal static class HttpClientTestExtensions
     {
         (HttpResponseMessage response, T? result) = await client.PostAndDeserializeAsync<T>(url, request).ConfigureAwait(false);
         response.StatusCode.Should().Be(HttpStatusCode.OK,
-            $"Expected OK but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
+            $"Expected OK but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
         result.Should().NotBeNull("Response should contain valid data");
         return result!;
     }

@@ -122,3 +122,4 @@ public class ValidateCommand
         await _console.WriteLineAsync("✓ Commit message validation passed").ConfigureAwait(false);
         return 0;
     }
+}
