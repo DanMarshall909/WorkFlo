@@ -17,6 +17,45 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+call_pre_commit_api() {
+    print_info "Calling pre-commit validation API..."
+
+    # Ensure API is running
+    "$SCRIPT_DIR/start-api-if-needed.sh"
+
+    # Get staged files
+    local staged_files_json
+    staged_files_json=$(git diff --cached --name-only --diff-filter=ACM | jq -R . | jq -s .)
+
+    # Construct JSON payload
+    local payload
+    payload=$(jq -n --argjson files "$staged_files_json" '{"stagedFiles": $files}')
+
+    # Make API call
+    local api_response
+    api_response=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -d "$payload" \
+        http://localhost:5000/api/validation/pre-commit)
+
+    # Parse API response
+    local is_valid
+    is_valid=$(echo "$api_response" | jq -r '.isValid')
+    local errors
+    errors=$(echo "$api_response" | jq -r '.errors[]')
+
+    if [[ "$is_valid" == "true" ]]; then
+        print_success "Pre-commit validation passed!"
+    else
+        print_error "Pre-commit validation failed!"
+        echo -e "${RED}Errors:${NC}"
+        echo "$errors" | while IFS= read -r line; do
+            echo -e "${RED}- $line${NC}"
+        done
+        exit 1
+    fi
+}
+
 print_header() {
     echo -e "${BLUE}🔒 Pre-Commit Quality Gate${NC}"
     echo -e "${BLUE}============================${NC}"
@@ -204,12 +243,8 @@ check_code_formatting() {
 run_quality_gate() {
     print_header
     
-    # Exit on first failure
-    check_required_tools
-    check_reports_freshness
-    check_resharper_analysis  
-    check_test_results
-    check_code_formatting
+    # Call the pre-commit validation API
+    call_pre_commit_api
     
     print_success "All quality gates passed! ✨"
     print_info "Proceeding with commit..."

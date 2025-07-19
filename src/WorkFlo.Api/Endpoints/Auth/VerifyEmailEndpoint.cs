@@ -48,8 +48,10 @@ public sealed class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, Verificat
         });
     }
 
-    public override async Task HandleAsync(VerifyEmailRequest request, CancellationToken cancellationToken)
+    public override async Task HandleAsync(VerifyEmailRequest request, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         // Map request to command
         var command = new CVerifyEmail
         {
@@ -57,7 +59,7 @@ public sealed class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, Verificat
         };
 
         // Execute command
-        Result<string> result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+        Result<string> result = await _mediator.Send(command, ct).ConfigureAwait(false);
 
         // Return response
         if (result.IsSuccess)
@@ -66,7 +68,7 @@ public sealed class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, Verificat
             {
                 Message = result.Value!,
                 Success = true
-            }, cancellationToken).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
         }
         else
         {
@@ -74,7 +76,7 @@ public sealed class VerifyEmailEndpoint : Endpoint<VerifyEmailRequest, Verificat
             {
                 Message = result.Error!,
                 Success = false
-            }, 400, cancellationToken).ConfigureAwait(false);
+            }, 400, ct).ConfigureAwait(false);
         }
     }
 }

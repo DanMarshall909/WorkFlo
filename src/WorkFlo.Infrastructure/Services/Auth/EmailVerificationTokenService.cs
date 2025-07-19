@@ -24,8 +24,8 @@ public class EmailVerificationTokenService : IEmailVerificationTokenService
     {
         _jwtSecret = configuration["JWT:Secret"] ??
                     throw new InvalidOperationException("JWT:Secret is not configured");
-        _jwtIssuer = configuration["JWT:Issuer"] ?? "Anchor";
-        _jwtAudience = configuration["JWT:Audience"] ?? "Anchor";
+        _jwtIssuer = configuration["JWT:Issuer"] ?? "WorkFlo";
+        _jwtAudience = configuration["JWT:Audience"] ?? "WorkFlo";
         _tokenExpiryHours = configuration.GetValue<int>("EmailVerification:TokenExpiryHours", 24);
     }
 

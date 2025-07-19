@@ -1,10 +1,10 @@
 import { IApiService } from '../container';
 
 /**
- * Real API Service connecting to Anchor backend
+ * Real API Service connecting to WorkFlo backend
  * Provides HTTP client functionality with proper error handling and authentication
  */
-export class AnchorApiService implements IApiService {
+export class WorkFloApiService implements IApiService {
   private readonly baseUrl: string;
   private tokenProvider?: () => string | null;
 

@@ -1,4 +1,4 @@
-# Anchor Project Scripts
+# WorkFlo Project Scripts
 
 This directory contains automation scripts to ensure code quality, enforce branch strategy, and streamline development workflows.
 
@@ -7,6 +7,7 @@ This directory contains automation scripts to ensure code quality, enforce branc
 The repository enforces a strict dev branch strategy with comprehensive push rules. See [Push Rules Setup Guide](./README-push-rules.md) for complete installation and configuration.
 
 ### Quick Setup
+
 ```bash
 # Install pre-push hook (recommended)
 cp scripts/pre-push-hook .git/hooks/pre-push
@@ -14,6 +15,7 @@ chmod +x .git/hooks/pre-push
 ```
 
 ### Available Files
+
 - `pre-push-hook` - Local git hook to catch violations before push
 - `README-push-rules.md` - Complete setup and troubleshooting guide
 - `pr-quality-check.sh --pre-push` - Lightweight quality checks for pre-push
@@ -25,6 +27,7 @@ The PR Quality Check script runs comprehensive quality checks before submitting 
 ### Prerequisites
 
 1. **Install .NET SDK 8.0+**
+
    ```bash
    # Windows (via winget)
    winget install Microsoft.DotNet.SDK.8
@@ -39,11 +42,13 @@ The PR Quality Check script runs comprehensive quality checks before submitting 
    ```
 
 2. **Install ReSharper Command Line Tools** (Required for comprehensive analysis)
+
    ```bash
    dotnet tool install -g JetBrains.ReSharper.GlobalTools
    ```
-   
+
    Verify installation:
+
    ```bash
    jb --version
    ```
@@ -56,6 +61,7 @@ The PR Quality Check script runs comprehensive quality checks before submitting 
 ### Usage
 
 #### PowerShell (Windows/Cross-platform)
+
 ```powershell
 # Run all checks
 ./scripts/pr-quality-check.ps1
@@ -74,6 +80,7 @@ The PR Quality Check script runs comprehensive quality checks before submitting 
 ```
 
 #### Bash (Linux/macOS/WSL)
+
 ```bash
 # Make script executable (first time only)
 chmod +x scripts/pr-quality-check.sh
@@ -96,22 +103,23 @@ chmod +x scripts/pr-quality-check.sh
 
 ### Quality Checks Performed
 
-| Check | Description | Failure Criteria | Tools Used |
-|-------|-------------|------------------|------------|
-| **Tool Verification** | Ensures required tools are installed | Missing .NET SDK or ReSharper CLI | `dotnet --version`, `jb --version` |
-| **Clean & Restore** | Cleans and restores NuGet packages | Restore failures | `dotnet clean`, `dotnet restore` |
-| **Build Verification** | Compiles the entire solution | Build errors | `dotnet build` |
-| **Code Formatting** | Verifies code formatting standards | Unformatted code | `dotnet format --verify-no-changes` |
-| **ReSharper Analysis** | Comprehensive code quality analysis | >10 code issues | `jb inspectcode` |
-| **Security Scan** | Scans for potential secrets/credentials | Hardcoded secrets found | Custom regex patterns |
-| **Unit Tests** | Runs all unit tests | Any test failures | `dotnet test` |
-| **Code Coverage** | Measures test coverage | <60% line coverage | `dotnet test --collect:"XPlat Code Coverage"` |
-| **Documentation** | Checks required documentation files | Missing critical docs | File existence checks |
-| **Git Status** | Reports working directory status | Information only | `git status` |
+| Check                  | Description                             | Failure Criteria                  | Tools Used                                    |
+| ---------------------- | --------------------------------------- | --------------------------------- | --------------------------------------------- |
+| **Tool Verification**  | Ensures required tools are installed    | Missing .NET SDK or ReSharper CLI | `dotnet --version`, `jb --version`            |
+| **Clean & Restore**    | Cleans and restores NuGet packages      | Restore failures                  | `dotnet clean`, `dotnet restore`              |
+| **Build Verification** | Compiles the entire solution            | Build errors                      | `dotnet build`                                |
+| **Code Formatting**    | Verifies code formatting standards      | Unformatted code                  | `dotnet format --verify-no-changes`           |
+| **ReSharper Analysis** | Comprehensive code quality analysis     | >10 code issues                   | `jb inspectcode`                              |
+| **Security Scan**      | Scans for potential secrets/credentials | Hardcoded secrets found           | Custom regex patterns                         |
+| **Unit Tests**         | Runs all unit tests                     | Any test failures                 | `dotnet test`                                 |
+| **Code Coverage**      | Measures test coverage                  | <60% line coverage                | `dotnet test --collect:"XPlat Code Coverage"` |
+| **Documentation**      | Checks required documentation files     | Missing critical docs             | File existence checks                         |
+| **Git Status**         | Reports working directory status        | Information only                  | `git status`                                  |
 
 ### Quality Thresholds
 
 #### ✅ Pass Criteria
+
 - **Build**: No compilation errors
 - **Code Formatting**: All files properly formatted
 - **ReSharper**: ≤10 code issues
@@ -120,6 +128,7 @@ chmod +x scripts/pr-quality-check.sh
 - **Security**: No hardcoded secrets detected
 
 #### ⚠️ Warning Criteria
+
 - **Build**: Build warnings present
 - **ReSharper**: 1-10 code issues
 - **Code Coverage**: 60-79% line coverage
@@ -127,6 +136,7 @@ chmod +x scripts/pr-quality-check.sh
 - **Documentation**: Non-critical documentation missing
 
 #### ❌ Fail Criteria
+
 - **Build**: Compilation errors
 - **Code Formatting**: Unformatted code
 - **ReSharper**: >10 code issues
@@ -145,6 +155,7 @@ The script generates a comprehensive HTML report with:
 - **Output Files**: Links to detailed tool outputs
 
 Report includes:
+
 - ✅ Visual status indicators
 - 📊 Summary statistics
 - 🔗 Direct links to tool outputs
@@ -153,6 +164,7 @@ Report includes:
 ### Integration with Development Workflow
 
 #### Local Development
+
 ```bash
 # Before committing changes
 ./scripts/pr-quality-check.sh
@@ -162,13 +174,14 @@ Report includes:
 ```
 
 #### CI/CD Integration
+
 ```yaml
 # GitHub Actions example
 - name: Run Quality Checks
   run: |
     chmod +x scripts/pr-quality-check.sh
     ./scripts/pr-quality-check.sh
-  
+
 - name: Upload Quality Report
   uses: actions/upload-artifact@v3
   if: always()
@@ -178,6 +191,7 @@ Report includes:
 ```
 
 #### Pre-commit Hook
+
 ```bash
 # .git/hooks/pre-commit
 #!/bin/bash
@@ -190,26 +204,30 @@ exit $?
 #### Common Issues
 
 1. **ReSharper CLI Not Found**
+
    ```bash
    # Reinstall ReSharper CLI tools
    dotnet tool uninstall -g JetBrains.ReSharper.GlobalTools
    dotnet tool install -g JetBrains.ReSharper.GlobalTools
-   
+
    # Verify installation
    jb --version
    ```
 
 2. **Permission Denied (Linux/macOS)**
+
    ```bash
    chmod +x scripts/pr-quality-check.sh
    ```
 
 3. **PowerShell Execution Policy (Windows)**
+
    ```powershell
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
 
 4. **Coverage Report Not Generated**
+
    ```bash
    # Install coverage tools
    dotnet add package coverlet.msbuild
@@ -233,18 +251,22 @@ exit $?
 ### Customization
 
 #### Adding Custom Checks
+
 1. Create new check function in script
 2. Add to check execution sequence
 3. Update quality thresholds
 4. Add documentation
 
 #### Modifying Thresholds
+
 Edit the following variables in the script:
+
 - `RESHARPER_ISSUE_THRESHOLD=10`
 - `COVERAGE_MINIMUM=60`
 - `COVERAGE_TARGET=80`
 
 #### Custom Report Templates
+
 Modify the HTML generation section to customize report appearance and content.
 
 ### Performance Tips
@@ -257,6 +279,7 @@ Modify the HTML generation section to customize report appearance and content.
 ### Support
 
 For issues with the quality check script:
+
 1. Check prerequisites are installed
 2. Review troubleshooting section
 3. Check script permissions
@@ -264,6 +287,7 @@ For issues with the quality check script:
 5. Create issue in project repository
 
 **Tool Versions:**
+
 - .NET SDK: 8.0+
 - ReSharper CLI: Latest stable
 - PowerShell: 7.0+ (for PS script)

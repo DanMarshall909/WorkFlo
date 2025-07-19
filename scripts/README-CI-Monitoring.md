@@ -7,14 +7,16 @@ This directory contains git hooks that automatically monitor CI status to ensure
 After experiencing the issue where local tests passed but CI failed, these hooks ensure:
 
 1. **Pre-push awareness**: Check existing CI status before pushing
-2. **Post-push monitoring**: Automatically track CI progress after pushing  
+2. **Post-push monitoring**: Automatically track CI progress after pushing
 3. **Work completion enforcement**: CI must pass before work is considered done
 4. **Quality gates**: Run local checks before allowing push
 
 ## 📦 Components
 
 ### `pre-push-hook-enhanced`
+
 Enhanced pre-push hook that:
+
 - ✅ Enforces dev-branch-only workflow (blocks pushes to main)
 - ✅ Checks existing PR CI status before allowing new pushes
 - ✅ Runs quality checks (build, test, format)
@@ -22,7 +24,9 @@ Enhanced pre-push hook that:
 - ✅ Sets up post-push CI monitoring
 
 ### `post-push-ci-monitor.sh`
+
 Standalone CI monitoring script that:
+
 - 🔄 Monitors CI progress in real-time
 - ⏱️ Waits up to 5 minutes for CI completion
 - 📊 Shows pass/fail/pending status summary
@@ -30,7 +34,9 @@ Standalone CI monitoring script that:
 - 🌐 Opens PR in browser for detailed review
 
 ### `install-ci-monitoring-hooks.sh`
+
 One-command installation script that:
+
 - 🔧 Installs both hooks with proper permissions
 - 💾 Backs up existing hooks
 - ✅ Verifies dependencies (GitHub CLI, .NET)
@@ -68,34 +74,34 @@ git push origin dev
 
 # Output:
 # 🔍 Pre-push hook: Checking push rules for branch 'dev'
-# ✅ ALLOWED: Pushing to dev branch  
+# ✅ ALLOWED: Pushing to dev branch
 # ℹ️ Found existing PR #39
 # ⚠️ Previous CI run has 8 failing check(s)
 # Are you pushing fixes for these failures? (y/N) y
 # ✅ Pre-push checks completed successfully
-# 
+#
 # [Push completes]
-# 
+#
 # 🔄 Post-Push CI Monitoring
 # ℹ️ Branch: dev
-# ℹ️ Repository: DanMarshall909/Anchor
+# ℹ️ Repository: DanMarshall909/WorkFlo
 # ✅ Found PR #39
 # ℹ️ Monitoring CI status for PR #39...
-# 
+#
 # ℹ️ CI Status Summary:
 #   🔴 Failing: 8
 #   🟡 Pending: 2
 #   🟢 Passing: 25
 #   📊 Total: 35
-# 
+#
 # ⏳ Checking CI... Failing: 3, Pending: 0, Passing: 32/35
-# 
+#
 # ❌ CI checks failed!
 # ❌ CI Failures detected. Details:
 #   ❌ build-and-test	fail	1m4s
-#   ❌ Code Formatting Check	fail	1m15s  
+#   ❌ Code Formatting Check	fail	1m15s
 #   ❌ .NET Code Analysis	fail	53s
-# 
+#
 # ❌ Work is NOT complete until CI passes
 # ℹ️ Fix the issues above and push again
 ```
@@ -111,7 +117,7 @@ MAX_WAIT_TIME=300
 # Check interval for CI status (seconds)
 CHECK_INTERVAL=30
 
-# Require CI success before considering work complete  
+# Require CI success before considering work complete
 REQUIRE_CI_SUCCESS=true
 
 # Branches to monitor
@@ -143,6 +149,7 @@ gh pr list --head dev
 ## 🔍 Troubleshooting
 
 ### GitHub CLI Issues
+
 ```bash
 # Check if authenticated
 gh auth status
@@ -155,6 +162,7 @@ gh pr list
 ```
 
 ### Hook Not Running
+
 ```bash
 # Check hook is installed and executable
 ls -la .git/hooks/pre-push
@@ -165,6 +173,7 @@ ls -la .git/hooks/post-commit
 ```
 
 ### Quality Checks Failing
+
 ```bash
 # Run quality checks manually
 ./scripts/pr-quality-check.sh
@@ -198,7 +207,7 @@ This system enforces several rules from CLAUDE.md:
 ## 📚 Related Scripts
 
 - `pr-quality-check.sh`: Comprehensive quality analysis
-- `pre-push-hook`: Original push rules enforcement  
+- `pre-push-hook`: Original push rules enforcement
 - `start-dev.sh`: Development environment setup
 - GitHub Actions workflows: `.github/workflows/`
 

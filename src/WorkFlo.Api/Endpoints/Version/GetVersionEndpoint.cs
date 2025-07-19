@@ -34,7 +34,7 @@ internal sealed class GetVersionEndpoint : EndpointWithoutRequest<VersionRespons
             BuildDate = versionInfo.BuildDate,
             GitCommit = versionInfo.GitCommit,
             Environment = versionInfo.Environment,
-            ApiName = "Anchor API",
+            ApiName = "WorkFlo API",
             Message = "Privacy-first ADHD task management API"
         };
 

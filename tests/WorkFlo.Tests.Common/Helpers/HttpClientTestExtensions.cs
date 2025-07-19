@@ -24,12 +24,12 @@ internal static class HttpClientTestExtensions
         string url,
         object request) where T : class
     {
-        var response = await client.PostAsJsonAsync(url, request);
-        var result = default(T);
+        HttpResponseMessage response = await client.PostAsJsonAsync(url, request).ConfigureAwait(false);
+        T? result = default(T);
 
         if (response.IsSuccessStatusCode && response.Content.Headers.ContentLength > 0)
         {
-            result = await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+            result = await response.Content.ReadFromJsonAsync<T>(JsonOptions).ConfigureAwait(false);
         }
 
         return (response, result);
@@ -44,9 +44,9 @@ internal static class HttpClientTestExtensions
         object request,
         HttpStatusCode expectedStatus)
     {
-        var response = await client.PostAsJsonAsync(url, request);
+        HttpResponseMessage response = await client.PostAsJsonAsync(url, request).ConfigureAwait(false);
         response.StatusCode.Should().Be(expectedStatus,
-            $"Expected {expectedStatus} but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
+            $"Expected {expectedStatus} but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
         return response;
     }
 
@@ -69,9 +69,9 @@ internal static class HttpClientTestExtensions
         string url,
         object request) where T : class
     {
-        var (response, result) = await client.PostAndDeserializeAsync<T>(url, request);
+        (HttpResponseMessage response, T? result) = await client.PostAndDeserializeAsync<T>(url, request).ConfigureAwait(false);
         response.StatusCode.Should().Be(HttpStatusCode.OK,
-            $"Expected OK but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
+            $"Expected OK but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
         result.Should().NotBeNull("Response should contain valid data");
         return result!;
     }
@@ -83,13 +83,13 @@ internal static class HttpClientTestExtensions
         this HttpClient client,
         string url) where T : class
     {
-        var response = await client.GetAsync(url);
+        HttpResponseMessage response = await client.GetAsync(url).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode || response.Content.Headers.ContentLength == 0)
         {
             return null;
         }
 
-        return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+        return await response.Content.ReadFromJsonAsync<T>(JsonOptions).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -100,9 +100,9 @@ internal static class HttpClientTestExtensions
         string url,
         HttpStatusCode expectedStatus)
     {
-        var response = await client.GetAsync(url);
+        HttpResponseMessage response = await client.GetAsync(url).ConfigureAwait(false);
         response.StatusCode.Should().Be(expectedStatus,
-            $"Expected {expectedStatus} but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync()}");
+            $"Expected {expectedStatus} but got {response.StatusCode}. Response: {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
         return response;
     }
 

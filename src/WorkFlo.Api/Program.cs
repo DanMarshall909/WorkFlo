@@ -24,12 +24,12 @@ public class Program
         WebApplicationExtensions.ConfigureLogging();
         try
         {
-            Log.Information("Starting Anchor API");
+            Log.Information("Starting WorkFlo API");
 
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
             // Configure all services
-            builder.ConfigureAnchorServices()
+            builder.ConfigureWorkFloServices()
                    .ConfigureApiDocumentation()
                    .ConfigureHealthChecks();
 
@@ -42,12 +42,12 @@ public class Program
                .ConfigureRequestPipeline()
                .ConfigureEndpoints();
 
-            Log.Information("Anchor API started successfully");
+            Log.Information("WorkFlo API started successfully");
             await app.RunAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Anchor API failed to start");
+            Log.Fatal(ex, "WorkFlo API failed to start");
             throw;
         }
         finally

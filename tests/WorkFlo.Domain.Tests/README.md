@@ -1,6 +1,6 @@
 # Domain Tests Organization
 
-This document describes the organization and patterns used in the Anchor domain tests, particularly the mutation testing
+This document describes the organization and patterns used in the WorkFlo domain tests, particularly the mutation testing
 improvements.
 
 ## 📁 **Test Structure**
@@ -131,7 +131,7 @@ Tests prioritize business value over pure mutation coverage:
 public void Overwhelming_complexity_provides_breakdown_warning()
 {
     // Tests actual ADHD user needs
-    guidance.Should().Contain("SHOULD BE BROKEN DOWN", 
+    guidance.Should().Contain("SHOULD BE BROKEN DOWN",
         "because overwhelming tasks paralyze ADHD users");
 }
 ```
@@ -195,7 +195,7 @@ result.ShouldBeSuccessWithValue();
 // ✅ Good - Tests domain requirements
 public void Sessions_under_5_minutes_fail_for_ADHD_focus_needs()
 
-// ⚠️ Questionable - Pure mutation targeting  
+// ⚠️ Questionable - Pure mutation targeting
 public void Validates_less_than_operator_exactly()
 ```
 

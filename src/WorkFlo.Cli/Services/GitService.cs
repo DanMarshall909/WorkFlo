@@ -35,3 +35,4 @@ public class GitService : IGitService
         
         return output.Trim();
     }
+}

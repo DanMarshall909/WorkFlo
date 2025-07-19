@@ -1,7 +1,7 @@
 import { IAuthService, IStorageService, IApiService } from '../container';
 
 /**
- * Real Authentication Service for Anchor
+ * Real Authentication Service for WorkFlo
  *
  * This service handles JWT-based authentication with automatic token refresh,
  * secure storage, and proper error handling.
@@ -9,10 +9,10 @@ import { IAuthService, IStorageService, IApiService } from '../container';
 export class AuthService implements IAuthService {
   private storageService: IStorageService;
   private apiService: IApiService;
-  private readonly TOKEN_KEY = 'anchor-auth-token';
-  private readonly REFRESH_TOKEN_KEY = 'anchor-refresh-token';
-  private readonly USER_KEY = 'anchor-user';
-  private readonly TOKEN_EXPIRY_KEY = 'anchor-token-expiry';
+  private readonly TOKEN_KEY = 'workflo-auth-token';
+  private readonly REFRESH_TOKEN_KEY = 'workflo-refresh-token';
+  private readonly USER_KEY = 'workflo-user';
+  private readonly TOKEN_EXPIRY_KEY = 'workflo-token-expiry';
   private refreshPromise: Promise<void> | null = null;
 
   constructor(storageService: IStorageService, apiService: IApiService) {

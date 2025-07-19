@@ -17,14 +17,14 @@ public static class DatabaseServiceExtensions
         IConfiguration configuration)
     {
         // Main application database context
-        services.AddDbContext<AnchorDbContext>(options =>
+        services.AddDbContext<WorkFloDbContext>(options =>
         {
             // Check if we should use in-memory database for development
             bool useInMemory = configuration.GetValue<bool>("Database:UseInMemory");
 
             if (useInMemory)
             {
-                options.UseInMemoryDatabase("AnchorDb");
+                options.UseInMemoryDatabase("WorkFloDb");
             }
             else
             {
@@ -74,9 +74,9 @@ public static class DatabaseServiceExtensions
     public static async Task<IServiceProvider> EnsureDatabaseAsync(this IServiceProvider serviceProvider)
     {
 #pragma warning disable MA0004, CA2007 // ConfigureAwait not supported with await using
-        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope().ConfigureAwait(false);
+        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
 #pragma warning restore MA0004, CA2007
-        AnchorDbContext context = scope.ServiceProvider.GetRequiredService<AnchorDbContext>();
+        WorkFloDbContext context = scope.ServiceProvider.GetRequiredService<WorkFloDbContext>();
         IConfiguration configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         try
@@ -96,7 +96,7 @@ public static class DatabaseServiceExtensions
         catch (Exception ex)
         {
             // Log error but don't crash the application
-            ILogger<AnchorDbContext>? logger = scope.ServiceProvider.GetService<ILogger<AnchorDbContext>>();
+            ILogger<WorkFloDbContext>? logger = scope.ServiceProvider.GetService<ILogger<WorkFloDbContext>>();
             logger?.LogError(ex, "An error occurred while setting up the database");
             throw;
         }

@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WorkFlo.Infrastructure.Configuration;
 
-public class UserRepository(AnchorDbContext context) : IUserRepository
+public class UserRepository(WorkFloDbContext context) : IUserRepository
 {
-    private readonly AnchorDbContext _context = context;
+    private readonly WorkFloDbContext _context = context;
 
     public async Task<WorkFlo.Domain.Users.User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

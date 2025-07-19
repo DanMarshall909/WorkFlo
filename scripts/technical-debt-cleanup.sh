@@ -69,14 +69,14 @@ CHANGES_MADE=true
 
 commit_if_changed "chore: add TestResults to .gitignore and clean up existing results"
 
-# 4. Rename frontend package from anchor-web to workflo-web
+# 4. Rename frontend package from workflo-web to workflo-web
 print_info "Checking frontend package name"
 if [ -f "src/web/package.json" ]; then
-    if grep -q '"name": "anchor-web"' src/web/package.json; then
-        print_info "Renaming frontend package from anchor-web to workflo-web"
-        sed -i 's/"name": "anchor-web"/"name": "workflo-web"/g' src/web/package.json
+    if grep -q '"name": "workflo-web"' src/web/package.json; then
+        print_info "Renaming frontend package from workflo-web to workflo-web"
+        sed -i 's/"name": "workflo-web"/"name": "workflo-web"/g' src/web/package.json
         CHANGES_MADE=true
-        commit_if_changed "fix: rename frontend package from anchor-web to workflo-web"
+        commit_if_changed "fix: rename frontend package from workflo-web to workflo-web"
     else
         print_status "Frontend package already named correctly"
     fi

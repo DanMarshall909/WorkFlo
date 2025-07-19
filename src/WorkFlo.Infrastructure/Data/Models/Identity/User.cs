@@ -7,7 +7,7 @@ using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Infrastructure.Data.Models.Identity;
 
-[Table("users", Schema = "anchor_identity")]
+[Table("users", Schema = "workflo_identity")]
 public class User : IMappableToDomain<WorkFlo.Domain.Users.User>
 {
     [Key][Column("id")] public Guid Id { get; set; } = Guid.NewGuid();

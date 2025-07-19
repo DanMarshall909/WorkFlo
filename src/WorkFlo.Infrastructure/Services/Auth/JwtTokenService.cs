@@ -24,8 +24,8 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
         _jwtSecret = _configuration["JWT:Secret"] ??
                      throw new InvalidOperationException("JWT:Secret is not configured");
-        _jwtIssuer = _configuration["JWT:Issuer"] ?? "Anchor";
-        _jwtAudience = _configuration["JWT:Audience"] ?? "Anchor";
+        _jwtIssuer = _configuration["JWT:Issuer"] ?? "WorkFlo";
+        _jwtAudience = _configuration["JWT:Audience"] ?? "WorkFlo";
     }
 
     public Task<string> GenerateAccessTokenAsync(Guid userId, string emailHash,

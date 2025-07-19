@@ -21,3 +21,4 @@ public class ConsoleService : IConsoleService
     {
         await Console.Error.WriteLineAsync(message).ConfigureAwait(false);
     }
+}

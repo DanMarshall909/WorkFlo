@@ -1,4 +1,4 @@
-# Anchor Development Server Startup Script (PowerShell)
+# WorkFlo Development Server Startup Script (PowerShell)
 # This script starts both the API server and web application in development mode
 
 param(
@@ -10,7 +10,7 @@ param(
 # Show help if requested
 if ($Help) {
     Write-Host @"
-Anchor Development Server Startup Script
+WorkFlo Development Server Startup Script
 
 Usage: .\scripts\start-dev.ps1 [OPTIONS]
 
@@ -89,10 +89,10 @@ function Stop-Services {
     
     # Stop Seq container if it was started by this script
     if (Get-Command docker -ErrorAction SilentlyContinue) {
-        $existingSeq = docker ps --filter "name=anchor-seq" --format "table {{.Names}}" 2>$null
-        if ($existingSeq -and $existingSeq -match "anchor-seq") {
+        $existingSeq = docker ps --filter "name=workflo-seq" --format "table {{.Names}}" 2>$null
+        if ($existingSeq -and $existingSeq -match "workflo-seq") {
             Write-Status "Stopping Seq logging container..."
-            docker stop anchor-seq 2>$null
+            docker stop workflo-seq 2>$null
         }
     }
     
@@ -104,7 +104,7 @@ $null = Register-ObjectEvent -InputObject ([System.Console]) -EventName CancelKe
     Stop-Services
 }
 
-Write-Status "Starting Anchor Development Environment..."
+Write-Status "Starting WorkFlo Development Environment..."
 
 # Get the script directory and project root
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -115,11 +115,11 @@ if (Get-Command docker -ErrorAction SilentlyContinue) {
     Write-Status "Starting Seq logging container..."
     
     # Check if Seq container is already running
-    $existingSeq = docker ps --filter "name=anchor-seq" --format "table {{.Names}}" 2>$null
-    if (-not $existingSeq -or $existingSeq -notmatch "anchor-seq") {
+    $existingSeq = docker ps --filter "name=workflo-seq" --format "table {{.Names}}" 2>$null
+    if (-not $existingSeq -or $existingSeq -notmatch "workflo-seq") {
         try {
             $null = docker run -d `
-                --name anchor-seq `
+                --name workflo-seq `
                 --rm `
                 -e ACCEPT_EULA=Y `
                 -e SEQ_FIRSTRUN_ADMINPASSWORD=admin123! `
@@ -147,8 +147,8 @@ else {
 }
 
 # Check if we're in the right directory
-if (!(Test-Path "$ProjectRoot\Anchor.sln")) {
-    Write-Error "Could not find Anchor.sln. Make sure you're running this script from the project root or scripts directory."
+if (!(Test-Path "$ProjectRoot\WorkFlo.sln")) {
+    Write-Error "Could not find WorkFlo.sln. Make sure you're running this script from the project root or scripts directory."
     exit 1
 }
 
@@ -166,10 +166,10 @@ if ($FinalWebPort -ne $WebPort) {
 
 # Start API server
 Write-Status "Starting API server on port $FinalApiPort..."
-$ApiPath = Join-Path $ProjectRoot "src\Anchor.Api"
+$ApiPath = Join-Path $ProjectRoot "src\WorkFlo.Api"
 
-if (!(Test-Path "$ApiPath\Anchor.Api.csproj")) {
-    Write-Error "Could not find Anchor.Api.csproj in src\Anchor.Api\"
+if (!(Test-Path "$ApiPath\WorkFlo.Api.csproj")) {
+    Write-Error "Could not find WorkFlo.Api.csproj in src\WorkFlo.Api\"
     exit 1
 }
 
@@ -237,7 +237,7 @@ catch {
 # Display summary
 Write-Host ""
 Write-Host "======================================" -ForegroundColor Cyan
-Write-Host "🚀 Anchor Development Environment Ready" -ForegroundColor Cyan
+Write-Host "🚀 WorkFlo Development Environment Ready" -ForegroundColor Cyan
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "📱 Web Application: http://localhost:$FinalWebPort" -ForegroundColor White

@@ -1,4 +1,4 @@
--- PostgreSQL extensions setup for Anchor application
+-- PostgreSQL extensions setup for WorkFlo application
 -- This script runs during container initialization
 
 -- Enable pg_cron extension for scheduled data cleanup
@@ -14,12 +14,12 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS btree_gin;
 
 -- Grant necessary permissions for pg_cron
-GRANT USAGE ON SCHEMA cron TO anchor_app;
+GRANT USAGE ON SCHEMA cron TO workflo_app;
 
 -- Log successful extension initialization
 DO $$
 BEGIN
-    RAISE NOTICE 'Anchor PostgreSQL extensions initialized successfully:';
+    RAISE NOTICE 'WorkFlo PostgreSQL extensions initialized successfully:';
     RAISE NOTICE '  - pg_cron: Enabled for automatic data cleanup';
     RAISE NOTICE '  - pgcrypto: Enabled for privacy-compliant hashing';
     RAISE NOTICE '  - uuid-ossp: Enabled for UUID generation';

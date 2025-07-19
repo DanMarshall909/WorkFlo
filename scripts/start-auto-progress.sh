@@ -5,7 +5,7 @@
 
 set -e
 
-PROJECT_DIR="/home/dan/code/Anchor"
+PROJECT_DIR="/home/dan/code/WorkFlo"
 SCRIPTS_DIR="$PROJECT_DIR/scripts"
 PID_FILE="$PROJECT_DIR/.auto-progress.pid"
 

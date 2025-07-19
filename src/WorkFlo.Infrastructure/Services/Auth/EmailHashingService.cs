@@ -9,7 +9,7 @@ namespace WorkFlo.Infrastructure.Services.Auth;
 /// </summary>
 public class EmailHashingService : IEmailHashingService
 {
-    private const string Salt = "Anchor_EmailSalt_2024"; // In production, use a configurable salt
+    private const string Salt = "WorkFlo_EmailSalt_2024"; // In production, use a configurable salt
 
     public string HashEmail(string email)
     {

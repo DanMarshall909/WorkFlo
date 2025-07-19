@@ -15,7 +15,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto p-6">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="heading-primary mb-2">Welcome back to Anchor</h1>
+              <h1 className="heading-primary mb-2">Welcome back to WorkFlo</h1>
               <p className="text-description">Ready to focus and get things done?</p>
             </div>
             <UserMenu />
@@ -61,7 +61,7 @@ export default function HomePage() {
               <div className="w-8 h-8 bg-focus-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">A</span>
               </div>
-              <h1 className="text-xl font-semibold text-calm-900">Anchor</h1>
+              <h1 className="text-xl font-semibold text-calm-900">WorkFlo</h1>
             </div>
             <nav className="flex space-x-4">
               <Link
@@ -166,9 +166,9 @@ export default function HomePage() {
         {/* CTA Section */}
         <section className="py-20 bg-calm-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 className="text-3xl font-bold text-calm-900 mb-4">Ready to Stay Anchored?</h3>
+            <h3 className="text-3xl font-bold text-calm-900 mb-4">Ready to Stay WorkFloed?</h3>
             <p className="text-lg text-calm-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of ADHD minds who have found their focus with Anchor.
+              Join thousands of ADHD minds who have found their focus with WorkFlo.
             </p>
             <Link
               href="/auth/register"
@@ -189,7 +189,7 @@ export default function HomePage() {
               <div className="w-6 h-6 bg-focus-500 rounded-md flex items-center justify-center">
                 <span className="text-white font-bold text-sm">A</span>
               </div>
-              <span className="font-semibold">Anchor</span>
+              <span className="font-semibold">WorkFlo</span>
             </div>
             <p className="text-sm">Made with ❤️ for neurodivergent minds. Privacy-first, always.</p>
           </div>

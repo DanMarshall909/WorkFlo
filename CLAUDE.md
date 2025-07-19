@@ -135,6 +135,8 @@ EOF
 - **COVERAGE MANDATORY** - No commits without 95% branch coverage
 - **FULL REVIEW OF ALL CHANGES BEFORE PR** - No PRs without full examination of changes.
 - **MUTATION TESTING MANDATORY** - No PRs without 85% kill rate
+- **AUTOMATED QUALITY ANALYSIS** - Code quality issues auto-detected and tracked in GitHub
+- **DUPLICATE PREVENTION MANDATORY** - All new issues must be checked for duplicates before creation
 - **GH CLEANUP** - Close the task once done, update PROGRESS.MD to the next suggested issue, but only once the ticket has be double checked for completeness. All features in the issue should be reviewed. ALL new code MUST be tested and those test MUST be justified against the issue.
 
 ### 🔴 DISCOVERY & ISSUE CREATION RULES
@@ -151,19 +153,23 @@ EOF
 #### 🔴 Component Completeness Checklist
 
 1. ✅ **Interface Implementations**: Every interface must have a concrete implementation
+
    - Example: `IEmailVerificationTokenService` → `EmailVerificationTokenService`
    - Validate all interfaces in `Application.Common.Interfaces` have implementations
 
 2. ✅ **Dependency Injection Registration**: All services must be registered in DI container
+
    - Check `Configuration/*ServiceExtensions.cs` files
    - Verify all `AddScoped<IInterface, Implementation>()` registrations exist
    - Test DI resolution in integration tests
 
 3. ✅ **Database Dependencies**: All entities must have repository implementations
+
    - Verify `IUserRepository`, `ITaskRepository`, etc. have implementations
    - Check Entity Framework configurations are complete
 
 4. ✅ **API Endpoint Accessibility**: All endpoints must be testable
+
    - Change `internal` to `public` for endpoint classes
    - Verify endpoint tests can instantiate classes
 
@@ -230,6 +236,7 @@ EOF
 #### 🎯 Process Learning Categories
 
 **Document learnings in these areas:**
+
 - **TDD Workflow**: Script effectiveness, test patterns, dependency discovery through tests
 - **Architecture Patterns**: Component design, TDD-driven architecture, integration points
 - **Quality Assurance**: Coverage gaps, testing strategies, review processes
@@ -255,6 +262,7 @@ EOF
 - [ ] User is learning advanced React/TypeScript concepts
 
 **🔧 Dependencies Required:**
+
 - `jq` - JSON processor for GitHub API interactions: `sudo apt-get install jq`
 
 **📊 GitHub Board Integration:** See [Board Integration Guide](scripts/README-github-board-integration.md)
@@ -278,7 +286,7 @@ EOF
 
 ### Developer Experience (MANDATORY)
 
-- **Rationale-first explanations**: Always explain WHY before WHAT  
+- **Rationale-first explanations**: Always explain WHY before WHAT
 - **Workflow transparency**: Help developers understand enforcement decisions
 - **Depth-on-demand**: Provide details only when requested
 
@@ -305,9 +313,10 @@ EOF
 **Enhanced TDD patterns that proved highly effective:**
 
 1. **Test Configuration Management**
+
    - **Problem**: NSubstitute mocking of `IConfiguration.GetValue<T>()` is complex
    - **Solution**: Use `ConfigurationBuilder` with `AddInMemoryCollection()` for cleaner tests
-   - **Example**: 
+   - **Example**:
      ```csharp
      var config = new ConfigurationBuilder()
          .AddInMemoryCollection(new Dictionary<string, string?> { ["Key"] = "Value" })
@@ -315,16 +324,19 @@ EOF
      ```
 
 2. **JWT Token Testing Patterns**
+
    - **Problem**: Testing token expiry is difficult with real-time constraints
    - **Solution**: Create helper methods for expired token generation in tests
    - **Pattern**: Manual JWT creation with past expiry dates for deterministic testing
 
 3. **TDD-Driven Dependency Discovery**
+
    - **Problem**: Building dependencies upfront leads to over-engineering
    - **Solution**: Let failing tests reveal exactly what dependencies are needed
    - **Order**: Business Tests → Handler → Missing Dependency Tests → Implementation → DI Registration
 
 4. **Security Token Validation**
+
    - **Pattern**: Purpose-specific claims in JWT tokens prevent token misuse
    - **Implementation**: Add "purpose" claim to distinguish token types
    - **Validation**: Check purpose claim during token validation
@@ -333,6 +345,7 @@ EOF
    - **Pattern**: Business scenario names instead of technical "should" statements
    - **Example**: `user_can_verify_email_with_valid_token` not `should_verify_email_successfully`
    - **Benefit**: Tests read like business requirements documentation
+
 - **UPFRONT TEST PLANNING**: All tests must be specified in GitHub issue before implementation
   - Every business rule documented with test cases
   - Complete test specification before any code
@@ -370,11 +383,11 @@ EOF
 
 # Manual Start (if needed)
 # 1. Build backend (automatically generates TypeScript API client)
-dotnet build src/Anchor.Api/Anchor.Api.csproj  # Auto-generates TypeScript client
+dotnet build src/WorkFlo.Api/WorkFlo.Api.csproj  # Auto-generates TypeScript client
 
 # 2. Start both services together
 # Terminal 1: Backend API
-dotnet run --project src/Anchor.Api/Anchor.Api.csproj
+dotnet run --project src/WorkFlo.Api/WorkFlo.Api.csproj
 # Terminal 2: Frontend
 cd src/web && npm run dev
 
@@ -420,12 +433,14 @@ dotnet format        # Format code
 #### Test Architecture Excellence
 
 1. **Comprehensive Test Coverage Strategy**
+
    - **Business Logic Tests**: 12 tests covering all CQRS command scenarios
    - **Infrastructure Tests**: 11 tests covering JWT token service security
    - **API Tests**: 6 tests covering endpoint construction and validation
    - **Total**: 29 tests with 95%+ branch coverage
 
 2. **Security-Focused Testing**
+
    - **Token Validation**: Test expired tokens, invalid signatures, wrong purposes
    - **Rate Limiting**: Test endpoint throttling and abuse prevention
    - **Input Validation**: Test malformed requests and edge cases
@@ -440,12 +455,14 @@ dotnet format        # Format code
 #### PR Review Quality Gates
 
 1. **Component Completeness Review**
+
    - **Interface Implementations**: Verify all interfaces have concrete implementations
    - **DI Registration**: Check all services are properly registered
    - **Configuration**: Validate all required configuration sections exist
    - **Testing**: Ensure all components are thoroughly tested
 
 2. **Security Review Checklist**
+
    - **Token Security**: Verify JWT implementation follows security best practices
    - **Input Validation**: Check all user inputs are properly validated
    - **Error Handling**: Ensure errors don't leak sensitive information
@@ -466,7 +483,7 @@ dotnet format        # Format code
 ./generate-client.sh
 
 # Automatic generation happens during:
-dotnet build src/Anchor.Api/Anchor.Api.csproj
+dotnet build src/WorkFlo.Api/WorkFlo.Api.csproj
 ```
 
 ### Git Workflow (AUTOMATED + GITHUB BOARD INTEGRATED)
@@ -514,12 +531,18 @@ dotnet build src/Anchor.Api/Anchor.Api.csproj
 ./tdd start feature-name                 # Start new TDD cycle with auto-detection
 ./tdd status                             # Check current TDD phase with smart analysis
 ./tdd red                                # Mark RED phase complete
-./tdd green                              # Mark GREEN phase complete  
+./tdd green                              # Mark GREEN phase complete
 ./tdd refactor                           # Mark REFACTOR phase complete
 ./tdd cover                              # Mark COVER phase complete
 ./tdd commit                             # Complete TDD cycle and commit
 ./scripts/tdd-auto-cycle.sh              # Intelligent TDD phase detection & advancement
+./scripts/tdd-enhanced-cycle.sh          # Enhanced TDD with integrated quality analysis
 ./scripts/tdd-test-watcher.sh watch      # Continuous test monitoring with change detection
+
+# Quality Analysis & Issue Management
+./scripts/analyze-code-context.sh        # Analyze code quality and suggest improvements
+./scripts/check-duplicate-issues.sh      # Check for duplicate issues before creation
+./scripts/create-quality-issue.sh        # Create quality/technical debt issues (with duplicate prevention)
 ./qc                                     # Quality Check - comprehensive pre-PR validation
 ```
 
@@ -541,7 +564,7 @@ dotnet build src/Anchor.Api/Anchor.Api.csproj
 ./scripts/tdd-test-watcher.sh once                          # Single test run with smart analysis
 ./scripts/tdd-test-watcher.sh watch [INTERVAL]              # Continuous monitoring with change detection
 ./scripts/tdd-hooks-commit.sh HOOK_NAME "description"        # React hooks with full TDD cycle
-./scripts/tdd-phase-4-commit.sh FEATURE_NAME "description"   # Features with full TDD cycle  
+./scripts/tdd-phase-4-commit.sh FEATURE_NAME "description"   # Features with full TDD cycle
 ./scripts/tdd-complete-cycle.sh FEATURE_NAME "description"   # Complete TDD workflow
 ./scripts/safe-commit.sh "message"                          # Basic commit with quality checks
 
@@ -556,6 +579,48 @@ dotnet build src/Anchor.Api/Anchor.Api.csproj
 ./scripts/local-ci.sh                   # Local continuous integration
 ```
 
+## 🤖 AUTOMATED QUALITY ANALYSIS WORKFLOW
+
+### Enhanced Code Quality Detection
+
+**AUTOMATIC QUALITY ISSUE CREATION:**
+- **Security Issues**: Hardcoded secrets, SQL injection risks, XSS vulnerabilities
+- **Performance Issues**: N+1 queries, inefficient algorithms, blocking operations  
+- **Architecture Issues**: Tight coupling, SOLID violations, God classes
+- **Code Quality**: Dead code, magic numbers, inconsistent patterns
+
+**DUPLICATE PREVENTION SYSTEM:**
+- **Mandatory Check**: All new issues checked for duplicates before creation
+- **Smart Similarity**: Fuzzy matching on titles, keywords, and semantic content
+- **Auto-Update**: Similar issues updated with new context instead of creating duplicates
+- **Forced Creation**: `--force` flag available with explicit justification required
+
+### Quality Analysis Integration Points
+
+**During TDD Phases:**
+- **RED Phase**: Quick quality check on new test code
+- **GREEN Phase**: Analysis of implementation code  
+- **REFACTOR Phase**: Comprehensive refactoring opportunity detection
+- **COVER Phase**: Coverage gap analysis with automatic spike development
+- **COMMIT Phase**: Final quality validation and mutation testing
+
+**Usage Examples:**
+```bash
+# Manual quality analysis
+./scripts/analyze-code-context.sh                    # Analyze changed files, report only
+./scripts/analyze-code-context.sh --auto-create-issues # Auto-create GitHub issues
+
+# Check for duplicates before manual issue creation  
+./scripts/check-duplicate-issues.sh "Fix memory leak" "performance,memory,technical-debt"
+
+# Create quality issue with duplicate prevention
+./scripts/create-quality-issue.sh "Remove hardcoded connections" "Found hardcoded DB strings" "security,technical-debt"
+
+# Enhanced TDD with integrated quality analysis
+./scripts/tdd-enhanced-cycle.sh RED "feature-name" "Add failing test"
+./scripts/tdd-enhanced-cycle.sh COVER "feature-name" "Validate coverage and quality"
+```
+
 ### 🔧 TDD Script Configuration
 
 The enhanced TDD scripts support configuration via environment variables for optimal workflow customization:
@@ -567,7 +632,7 @@ The enhanced TDD scripts support configuration via environment variables for opt
 export PROGRESS_FILE="PROGRESS.md"        # Override progress file location
 export TEST_TIMEOUT=30                     # Test execution timeout in seconds
 
-# TDD Test Watcher Configuration  
+# TDD Test Watcher Configuration
 export WATCH_INTERVAL=10                   # Watch interval in seconds (default: 10)
 export PROGRESS_FILE="PROGRESS.md"        # Progress file location
 
@@ -605,7 +670,6 @@ TEST_TIMEOUT=60 ./scripts/tdd-auto-cycle.sh feature-name  # 60s test timeout
 - **Comprehensive Error Handling**: Clear error messages and recovery guidance
 - **Progress Tracking**: Integrates with PROGRESS.md for session continuity
 
-
 ## Architecture Guidelines
 
 ### CQRS + FastEndpoints (Backend)
@@ -626,18 +690,21 @@ TEST_TIMEOUT=60 ./scripts/tdd-auto-cycle.sh feature-name  # 60s test timeout
 #### JWT Token Security Best Practices
 
 1. **Purpose-Specific Tokens**
+
    - **Pattern**: Add "purpose" claim to distinguish token types
    - **Implementation**: `new Claim("purpose", "email_verification")`
    - **Validation**: Check purpose claim during token validation
    - **Benefit**: Prevents token misuse across different authentication flows
 
 2. **Configurable Token Expiry**
+
    - **Pattern**: Use configuration for different token lifetimes
    - **Implementation**: `configuration.GetValue<int>("EmailVerification:TokenExpiryHours", 24)`
    - **Security**: Email verification tokens expire faster than access tokens
    - **Flexibility**: Different expiry times for different token purposes
 
 3. **Comprehensive Token Validation**
+
    - **Signature**: Validate JWT signature to prevent tampering
    - **Expiry**: Check token expiry with zero clock skew
    - **Issuer/Audience**: Validate token source and destination
@@ -652,11 +719,13 @@ TEST_TIMEOUT=60 ./scripts/tdd-auto-cycle.sh feature-name  # 60s test timeout
 #### Privacy-First Implementation Patterns
 
 1. **Email Hashing for Privacy**
+
    - **Pattern**: Hash emails before database storage
    - **Implementation**: Use `IEmailHashingService` for consistent hashing
    - **Benefit**: Protects PII even if database is compromised
 
 2. **Null Reference Safety**
+
    - **Pattern**: Use null coalescing for error handling
    - **Implementation**: `tokenResult.Error ?? "Invalid token"`
    - **Benefit**: Prevents null reference exceptions in production
@@ -675,7 +744,7 @@ TEST_TIMEOUT=60 ./scripts/tdd-auto-cycle.sh feature-name  # 60s test timeout
 ## Domain Terms
 
 - **Workflow Hook**: Git hooks that enforce development standards
-- **Validation Rule**: Specific checks (file count, branch, commit format)  
+- **Validation Rule**: Specific checks (file count, branch, commit format)
 - **Enforcement Point**: Where validation occurs (pre-commit, commit-msg, pre-push)
 - **Workflow Event**: Logged action for analysis and improvement
 - **CLI Tool**: Command-line interface for managing workflow enforcement

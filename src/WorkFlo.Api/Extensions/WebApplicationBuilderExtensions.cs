@@ -13,10 +13,10 @@ namespace WorkFlo.Api.Extensions;
 internal static class WebApplicationBuilderExtensions
 {
     /// <summary>
-    /// Configures all services for the Anchor API
+    /// Configures all services for the WorkFlo API
     /// </summary>
     [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Extension method, builder is not null")]
-    public static WebApplicationBuilder ConfigureAnchorServices(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder ConfigureWorkFloServices(this WebApplicationBuilder builder)
     {
         // Use Serilog for logging
         builder.Host.UseSerilog();
@@ -63,8 +63,8 @@ internal static class WebApplicationBuilderExtensions
         // Use only NSwag for OpenAPI/Swagger and TypeScript client generation
         builder.Services.AddOpenApiDocument(config =>
         {
-            config.DocumentName = "anchor-api";
-            config.Title = "Anchor API";
+            config.DocumentName = "workflo-api";
+            config.Title = "WorkFlo API";
             config.Version = "v1";
             config.Description = "Privacy-first ADHD task management API with TypeScript client generation";
         });
