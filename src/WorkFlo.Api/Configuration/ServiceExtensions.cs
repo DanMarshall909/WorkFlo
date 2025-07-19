@@ -87,8 +87,8 @@ internal static class ServiceExtensions
     /// <returns>The service collection for chaining</returns>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Currently no application-specific services beyond auth
-        // This method is kept for future extensibility
+        // Register application services
+        services.AddScoped<WorkFlo.Application.Services.ICommitValidationService, WorkFlo.Application.Services.CommitValidationService>();
 
         return services;
     }
