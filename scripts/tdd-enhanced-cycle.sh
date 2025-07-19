@@ -183,6 +183,22 @@ execute_cover_phase() {
     log "Running comprehensive code quality analysis..."
     "$SCRIPT_DIR/analyze-code-context.sh" --auto-create-issues
     
+    # Coverage gap analysis with spike development
+    log "Analyzing coverage gaps for potential improvements..."
+    if [[ -n "$FEATURE_NAME" ]]; then
+        # Extract issue number from feature name if available
+        local issue_num=""
+        if [[ "$FEATURE_NAME" =~ ^[0-9]+ ]]; then
+            issue_num=$(echo "$FEATURE_NAME" | grep -o '^[0-9]*')
+        fi
+        
+        if [[ -n "$issue_num" ]]; then
+            "$SCRIPT_DIR/analyze-coverage-gaps.sh" "$issue_num" || warn "Coverage gap analysis failed"
+        else
+            warn "Could not extract issue number for coverage gap analysis"
+        fi
+    fi
+    
     # Standard COVER phase commit
     if [[ -n "$FEATURE_NAME" && -n "$DESCRIPTION" ]]; then
         local current_branch

@@ -128,7 +128,7 @@ EOF
 ### 🔴 CRITICAL ENFORCEMENT RULES
 
 - **ALWAYS prioritize fixing existing PRs over new features**
-- **ONLY work on `master` branch - NO feature branches**
+- **FEATURE-BASED BRANCHING** - Each GitHub issue gets its own feature branch with subissue tracking
 - **WORKFLOW-FIRST DEVELOPMENT** - CLI tools and git hooks must be developed together with API backend
 - **HOOK VALIDATION MANDATORY** - All git hooks must be tested in real git repositories
 - **TEST-FIRST development - write failing tests before implementation. ONE AT A TIME!**
@@ -539,8 +539,15 @@ dotnet build src/WorkFlo.Api/WorkFlo.Api.csproj
 ./scripts/tdd-enhanced-cycle.sh          # Enhanced TDD with integrated quality analysis
 ./scripts/tdd-test-watcher.sh watch      # Continuous test monitoring with change detection
 
+# Enhanced Feature Branch Workflow
+./scripts/create-feature-branches.sh     # Create feature branch with AI-driven parallel analysis
+./scripts/ai-parallel-analysis.sh        # AI-driven parallel development analysis (standalone)
+./scripts/start-subissue-work.sh         # Start work on specific subissue with GitHub integration
+./scripts/complete-subissue.sh           # Complete subissue and merge test→feature→master
+
 # Quality Analysis & Issue Management
 ./scripts/analyze-code-context.sh        # Analyze code quality and suggest improvements
+./scripts/analyze-coverage-gaps.sh       # Coverage gap analysis with automated spike development
 ./scripts/check-duplicate-issues.sh      # Check for duplicate issues before creation
 ./scripts/create-quality-issue.sh        # Create quality/technical debt issues (with duplicate prevention)
 ./qc                                     # Quality Check - comprehensive pre-PR validation
@@ -620,6 +627,56 @@ dotnet build src/WorkFlo.Api/WorkFlo.Api.csproj
 ./scripts/tdd-enhanced-cycle.sh RED "feature-name" "Add failing test"
 ./scripts/tdd-enhanced-cycle.sh COVER "feature-name" "Validate coverage and quality"
 ```
+
+## 🤖 AI-DRIVEN PARALLEL DEVELOPMENT
+
+### Intelligent Multi-Agent Workflow
+
+**AUTOMATIC PARALLEL ANALYSIS:**
+- **AI-Driven Assessment**: Context-aware analysis of subissue isolation potential
+- **Component Boundary Detection**: Frontend/backend, service layers, file separation
+- **Dependency Mapping**: Identifies sequential requirements and blocking relationships
+- **Conflict Risk Scoring**: Predicts merge conflict probability for parallel groups
+- **Optimal Agent Allocation**: Recommends ideal number of agents and grouping strategy
+
+**CASE-BY-CASE INTELLIGENCE:**
+- **Contextual Analysis**: Each issue analyzed individually based on specific requirements
+- **Codebase Awareness**: Considers existing architecture and recent changes
+- **Dynamic Grouping**: Adapts to issue complexity and component relationships
+- **Risk-Based Prioritization**: Balances development speed with conflict avoidance
+
+### AI-Enhanced Workflow Integration
+
+**Automatic Analysis:**
+```bash
+# AI analysis runs automatically during feature branch creation
+./scripts/create-feature-branches.sh 123
+
+# Standalone AI analysis for existing issues
+./scripts/ai-parallel-analysis.sh 123
+```
+
+**Multi-Agent Coordination:**
+```bash
+# AI determines optimal parallel groups (example output)
+# Group 1 (Frontend - Low Risk): Agents can work simultaneously
+./scripts/start-subissue-work.sh 123 1  # Agent 1: UI Components
+./scripts/start-subissue-work.sh 123 2  # Agent 2: Styling & UX
+
+# Group 2 (Backend - Low Risk): Parallel API development  
+./scripts/start-subissue-work.sh 123 3  # Agent 3: Database Layer
+./scripts/start-subissue-work.sh 123 4  # Agent 4: Business Logic
+
+# Sequential (High Risk): Integration must wait
+./scripts/start-subissue-work.sh 123 5  # Agent 5: Integration Tests (after 1-4)
+```
+
+**AI Analysis Output:**
+- **Parallel Groups**: Which subissues can develop simultaneously
+- **Conflict Risk Assessment**: LOW/MEDIUM/HIGH risk scoring
+- **Shared Component Identification**: Components that need coordination
+- **Development Strategy**: Optimal agent count and time savings estimation
+- **Key Considerations**: Issue-specific factors for successful parallel development
 
 ### 🔧 TDD Script Configuration
 
