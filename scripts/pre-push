@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Commit-Msg Quality Gate Hook
-# Ensures commit messages adhere to Conventional Commits specification
+# Pre-Push Quality Gate Hook
+# Ensures all local commits are valid before pushing to remote
 
 set -e
 
@@ -16,8 +16,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 print_header() {
-    echo -e "${BLUE}📝 Commit-Msg Quality Gate${NC}"
-    echo -e "${BLUE}=============================${NC}"
+    echo -e "${BLUE}⬆️ Pre-Push Quality Gate${NC}"
+    echo -e "${BLUE}===========================${NC}"
 }
 
 print_success() {
@@ -36,36 +36,43 @@ print_info() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
 
-call_commit_msg_api() {
-    print_info "Calling commit-msg validation API..."
+call_pre_push_api() {
+    print_info "Calling pre-push validation API..."
 
     # Ensure API is running
     "$SCRIPT_DIR/start-api-if-needed.sh"
 
-    local commit_message
-    commit_message=$(cat "$1")
+    local local_ref="$1"
+    local local_sha="$2"
+    local remote_ref="$3"
+    local remote_sha="$4"
 
     # Construct JSON payload
     local payload
-    payload=$(jq -n --arg msg "$commit_message" '{"commitMessage": $msg}')
+    payload=$(jq -n \
+        --arg lr "$local_ref" \
+        --arg ls "$local_sha" \
+        --arg rr "$remote_ref" \
+        --arg rs "$remote_sha" \
+        '{"localRef": $lr, "localSha": $ls, "remoteRef": $rr, "remoteSha": $rs}')
 
     # Make API call
     local api_response
     api_response=$(curl -s -X POST \
         -H "Content-Type: application/json" \
         -d "$payload" \
-        http://localhost:5000/api/validation/commit-msg)
+        http://localhost:5000/api/validation/pre-push)
 
     # Parse API response
     local is_valid
-is_valid=$(echo "$api_response" | jq -r '.isValid')
+    is_valid=$(echo "$api_response" | jq -r '.isValid')
     local errors
     errors=$(echo "$api_response" | jq -r '.errors[]')
 
     if [[ "$is_valid" == "true" ]]; then
-        print_success "Commit message validation passed!"
+        print_success "Pre-push validation passed!"
     else
-        print_error "Commit message validation failed!"
+        print_error "Pre-push validation failed!"
         echo -e "${RED}Errors:${NC}"
         echo "$errors" | while IFS= read -r line; do
             echo -e "${RED}- $line${NC}"
@@ -77,18 +84,18 @@ is_valid=$(echo "$api_response" | jq -r '.isValid')
 run_quality_gate() {
     print_header
     
-    # Call the commit-msg validation API
-    call_commit_msg_api "$1"
+    # Call the pre-push validation API
+    call_pre_push_api "$@"
     
     print_success "All quality gates passed! ✨"
-    print_info "Proceeding with commit..."
+    print_info "Proceeding with push..."
 }
 
 # Allow bypassing quality gate with environment variable
 if [[ "$SKIP_QUALITY_GATE" == "true" ]]; then
     print_warning "Quality gate bypassed via SKIP_QUALITY_GATE environment variable"
     exit 0
-fi
+}
 
 # Run quality gate
-run_quality_gate "$1"
+run_quality_gate "$@"

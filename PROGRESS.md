@@ -8,3 +8,5 @@ TDD Feature: green
 - REFACTOR: ✅ Completed
 - COVER: ✅ Completed
 - COMMIT: ✅ Completed
+
+API Auto-Start Testing: Note that API auto-start requires a separate process test, not an in-memory integration test.
