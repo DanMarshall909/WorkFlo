@@ -135,6 +135,8 @@ EOF
 - **COVERAGE MANDATORY** - No commits without 95% branch coverage
 - **FULL REVIEW OF ALL CHANGES BEFORE PR** - No PRs without full examination of changes.
 - **MUTATION TESTING MANDATORY** - No PRs without 85% kill rate
+- **AUTOMATED QUALITY ANALYSIS** - Code quality issues auto-detected and tracked in GitHub
+- **DUPLICATE PREVENTION MANDATORY** - All new issues must be checked for duplicates before creation
 - **GH CLEANUP** - Close the task once done, update PROGRESS.MD to the next suggested issue, but only once the ticket has be double checked for completeness. All features in the issue should be reviewed. ALL new code MUST be tested and those test MUST be justified against the issue.
 
 ### 🔴 DISCOVERY & ISSUE CREATION RULES
@@ -534,7 +536,13 @@ dotnet build src/WorkFlo.Api/WorkFlo.Api.csproj
 ./tdd cover                              # Mark COVER phase complete
 ./tdd commit                             # Complete TDD cycle and commit
 ./scripts/tdd-auto-cycle.sh              # Intelligent TDD phase detection & advancement
+./scripts/tdd-enhanced-cycle.sh          # Enhanced TDD with integrated quality analysis
 ./scripts/tdd-test-watcher.sh watch      # Continuous test monitoring with change detection
+
+# Quality Analysis & Issue Management
+./scripts/analyze-code-context.sh        # Analyze code quality and suggest improvements
+./scripts/check-duplicate-issues.sh      # Check for duplicate issues before creation
+./scripts/create-quality-issue.sh        # Create quality/technical debt issues (with duplicate prevention)
 ./qc                                     # Quality Check - comprehensive pre-PR validation
 ```
 
@@ -569,6 +577,48 @@ dotnet build src/WorkFlo.Api/WorkFlo.Api.csproj
 ./scripts/start-dev.sh                   # Start full-stack development environment
 ./scripts/dev-workflow.sh               # Automated development workflow
 ./scripts/local-ci.sh                   # Local continuous integration
+```
+
+## 🤖 AUTOMATED QUALITY ANALYSIS WORKFLOW
+
+### Enhanced Code Quality Detection
+
+**AUTOMATIC QUALITY ISSUE CREATION:**
+- **Security Issues**: Hardcoded secrets, SQL injection risks, XSS vulnerabilities
+- **Performance Issues**: N+1 queries, inefficient algorithms, blocking operations  
+- **Architecture Issues**: Tight coupling, SOLID violations, God classes
+- **Code Quality**: Dead code, magic numbers, inconsistent patterns
+
+**DUPLICATE PREVENTION SYSTEM:**
+- **Mandatory Check**: All new issues checked for duplicates before creation
+- **Smart Similarity**: Fuzzy matching on titles, keywords, and semantic content
+- **Auto-Update**: Similar issues updated with new context instead of creating duplicates
+- **Forced Creation**: `--force` flag available with explicit justification required
+
+### Quality Analysis Integration Points
+
+**During TDD Phases:**
+- **RED Phase**: Quick quality check on new test code
+- **GREEN Phase**: Analysis of implementation code  
+- **REFACTOR Phase**: Comprehensive refactoring opportunity detection
+- **COVER Phase**: Coverage gap analysis with automatic spike development
+- **COMMIT Phase**: Final quality validation and mutation testing
+
+**Usage Examples:**
+```bash
+# Manual quality analysis
+./scripts/analyze-code-context.sh                    # Analyze changed files, report only
+./scripts/analyze-code-context.sh --auto-create-issues # Auto-create GitHub issues
+
+# Check for duplicates before manual issue creation  
+./scripts/check-duplicate-issues.sh "Fix memory leak" "performance,memory,technical-debt"
+
+# Create quality issue with duplicate prevention
+./scripts/create-quality-issue.sh "Remove hardcoded connections" "Found hardcoded DB strings" "security,technical-debt"
+
+# Enhanced TDD with integrated quality analysis
+./scripts/tdd-enhanced-cycle.sh RED "feature-name" "Add failing test"
+./scripts/tdd-enhanced-cycle.sh COVER "feature-name" "Validate coverage and quality"
 ```
 
 ### 🔧 TDD Script Configuration
