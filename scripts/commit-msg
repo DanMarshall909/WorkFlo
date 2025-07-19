@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# Commit-Msg Quality Gate Hook
+# Ensures commit messages adhere to Conventional Commits specification
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# ANSI color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+print_header() {
+    echo -e "${BLUE}📝 Commit-Msg Quality Gate${NC}"
+    echo -e "${BLUE}=============================${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+call_commit_msg_api() {
+    print_info "Calling commit-msg validation API..."
+
+    local commit_message
+    commit_message=$(cat "$1")
+
+    # Construct JSON payload
+    local payload
+    payload=$(jq -n --arg msg "$commit_message" '{"commitMessage": $msg}')
+
+    # Make API call
+    local api_response
+    api_response=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -d "$payload" \
+        http://localhost:5000/api/validation/commit-msg)
+
+    # Parse API response
+    local is_valid
+is_valid=$(echo "$api_response" | jq -r '.isValid')
+    local errors
+    errors=$(echo "$api_response" | jq -r '.errors[]')
+
+    if [[ "$is_valid" == "true" ]]; then
+        print_success "Commit message validation passed!"
+    else
+        print_error "Commit message validation failed!"
+        echo -e "${RED}Errors:${NC}"
+        echo "$errors" | while IFS= read -r line; do
+            echo -e "${RED}- $line${NC}"
+        done
+        exit 1
+    fi
+}
+
+run_quality_gate() {
+    print_header
+    
+    # Call the commit-msg validation API
+    call_commit_msg_api "$1"
+    
+    print_success "All quality gates passed! ✨"
+    print_info "Proceeding with commit..."
+}
+
+# Allow bypassing quality gate with environment variable
+if [[ "$SKIP_QUALITY_GATE" == "true" ]]; then
+    print_warning "Quality gate bypassed via SKIP_QUALITY_GATE environment variable"
+    exit 0
+fi
+
+# Run quality gate
+run_quality_gate "$1"
