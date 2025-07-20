@@ -1,9 +1,9 @@
 using System.Net;
 using System.Text.Json;
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Infrastructure.Services.Auth;
 using FluentAssertions;
 using NSubstitute;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Infrastructure.Services.Auth;
 using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Infrastructure.Tests.Services.Auth;

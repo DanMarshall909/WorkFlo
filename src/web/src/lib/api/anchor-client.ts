@@ -8,30 +8,30 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-export interface IAnchorApiClient {
+export interface IWorkFloApiClient {
 
-    anchorApiEndpointsVersionGetVersionEndpoint(): Promise<VersionResponse>;
+    workfloApiEndpointsVersionGetVersionEndpoint(): Promise<VersionResponse>;
 
-    anchorApiEndpointsAuthCurrentUserEndpoint(): Promise<CurrentUserResponse>;
+    workfloApiEndpointsAuthCurrentUserEndpoint(): Promise<CurrentUserResponse>;
 
-    anchorApiEndpointsAuthLoginEndpoint(loginRequest: LoginRequest): Promise<AuthResponse>;
+    workfloApiEndpointsAuthLoginEndpoint(loginRequest: LoginRequest): Promise<AuthResponse>;
 
-    anchorApiEndpointsAuthLogoutEndpoint(logoutRequest: LogoutRequest): Promise<void>;
+    workfloApiEndpointsAuthLogoutEndpoint(logoutRequest: LogoutRequest): Promise<void>;
 
-    anchorApiEndpointsAuthOAuthLoginEndpoint(oAuthLoginRequest: OAuthLoginRequest): Promise<OAuthLoginResponse>;
+    workfloApiEndpointsAuthOAuthLoginEndpoint(oAuthLoginRequest: OAuthLoginRequest): Promise<OAuthLoginResponse>;
 
-    anchorApiEndpointsAuthRefreshTokenEndpoint(refreshTokenRequest: RefreshTokenRequest): Promise<RefreshTokenResponse>;
+    workfloApiEndpointsAuthRefreshTokenEndpoint(refreshTokenRequest: RefreshTokenRequest): Promise<RefreshTokenResponse>;
 
-    anchorApiEndpointsAuthRegisterEndpoint(registerRequest: RegisterRequest): Promise<AuthResponse>;
+    workfloApiEndpointsAuthRegisterEndpoint(registerRequest: RegisterRequest): Promise<AuthResponse>;
 
-    anchorApiEndpointsAuthResendVerificationEndpoint(resendVerificationRequest: ResendVerificationRequest): Promise<VerificationResponse>;
+    workfloApiEndpointsAuthResendVerificationEndpoint(resendVerificationRequest: ResendVerificationRequest): Promise<VerificationResponse>;
 
-    anchorApiEndpointsAuthVerifyEmailEndpoint(verifyEmailRequest: VerifyEmailRequest): Promise<VerificationResponse>;
+    workfloApiEndpointsAuthVerifyEmailEndpoint(verifyEmailRequest: VerifyEmailRequest): Promise<VerificationResponse>;
 
     getRoot(): Promise<void>;
 }
 
-export class AnchorApiClient implements IAnchorApiClient {
+export class WorkFloApiClient implements IWorkFloApiClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -41,7 +41,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         this.baseUrl = baseUrl ?? "http://localhost:5000";
     }
 
-    anchorApiEndpointsVersionGetVersionEndpoint(): Promise<VersionResponse> {
+    workfloApiEndpointsVersionGetVersionEndpoint(): Promise<VersionResponse> {
         let url_ = this.baseUrl + "/api/version";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -53,11 +53,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsVersionGetVersionEndpoint(_response);
+            return this.processWorkFloApiEndpointsVersionGetVersionEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsVersionGetVersionEndpoint(response: Response): Promise<VersionResponse> {
+    protected processWorkFloApiEndpointsVersionGetVersionEndpoint(response: Response): Promise<VersionResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -75,7 +75,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<VersionResponse>(null as any);
     }
 
-    anchorApiEndpointsAuthCurrentUserEndpoint(): Promise<CurrentUserResponse> {
+    workfloApiEndpointsAuthCurrentUserEndpoint(): Promise<CurrentUserResponse> {
         let url_ = this.baseUrl + "/api/auth/me";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -87,11 +87,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthCurrentUserEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthCurrentUserEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthCurrentUserEndpoint(response: Response): Promise<CurrentUserResponse> {
+    protected processWorkFloApiEndpointsAuthCurrentUserEndpoint(response: Response): Promise<CurrentUserResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -117,7 +117,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<CurrentUserResponse>(null as any);
     }
 
-    anchorApiEndpointsAuthLoginEndpoint(loginRequest: LoginRequest): Promise<AuthResponse> {
+    workfloApiEndpointsAuthLoginEndpoint(loginRequest: LoginRequest): Promise<AuthResponse> {
         let url_ = this.baseUrl + "/api/auth/login";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -133,11 +133,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthLoginEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthLoginEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthLoginEndpoint(response: Response): Promise<AuthResponse> {
+    protected processWorkFloApiEndpointsAuthLoginEndpoint(response: Response): Promise<AuthResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -155,7 +155,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<AuthResponse>(null as any);
     }
 
-    anchorApiEndpointsAuthLogoutEndpoint(logoutRequest: LogoutRequest): Promise<void> {
+    workfloApiEndpointsAuthLogoutEndpoint(logoutRequest: LogoutRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/auth/logout";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -170,11 +170,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthLogoutEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthLogoutEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthLogoutEndpoint(response: Response): Promise<void> {
+    protected processWorkFloApiEndpointsAuthLogoutEndpoint(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 204) {
@@ -197,7 +197,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    anchorApiEndpointsAuthOAuthLoginEndpoint(oAuthLoginRequest: OAuthLoginRequest): Promise<OAuthLoginResponse> {
+    workfloApiEndpointsAuthOAuthLoginEndpoint(oAuthLoginRequest: OAuthLoginRequest): Promise<OAuthLoginResponse> {
         let url_ = this.baseUrl + "/api/auth/oauth/login";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -213,11 +213,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthOAuthLoginEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthOAuthLoginEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthOAuthLoginEndpoint(response: Response): Promise<OAuthLoginResponse> {
+    protected processWorkFloApiEndpointsAuthOAuthLoginEndpoint(response: Response): Promise<OAuthLoginResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -235,7 +235,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<OAuthLoginResponse>(null as any);
     }
 
-    anchorApiEndpointsAuthRefreshTokenEndpoint(refreshTokenRequest: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+    workfloApiEndpointsAuthRefreshTokenEndpoint(refreshTokenRequest: RefreshTokenRequest): Promise<RefreshTokenResponse> {
         let url_ = this.baseUrl + "/api/auth/refresh";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -251,11 +251,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthRefreshTokenEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthRefreshTokenEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthRefreshTokenEndpoint(response: Response): Promise<RefreshTokenResponse> {
+    protected processWorkFloApiEndpointsAuthRefreshTokenEndpoint(response: Response): Promise<RefreshTokenResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -273,7 +273,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<RefreshTokenResponse>(null as any);
     }
 
-    anchorApiEndpointsAuthRegisterEndpoint(registerRequest: RegisterRequest): Promise<AuthResponse> {
+    workfloApiEndpointsAuthRegisterEndpoint(registerRequest: RegisterRequest): Promise<AuthResponse> {
         let url_ = this.baseUrl + "/api/auth/register";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -289,11 +289,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthRegisterEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthRegisterEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthRegisterEndpoint(response: Response): Promise<AuthResponse> {
+    protected processWorkFloApiEndpointsAuthRegisterEndpoint(response: Response): Promise<AuthResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -311,7 +311,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<AuthResponse>(null as any);
     }
 
-    anchorApiEndpointsAuthResendVerificationEndpoint(resendVerificationRequest: ResendVerificationRequest): Promise<VerificationResponse> {
+    workfloApiEndpointsAuthResendVerificationEndpoint(resendVerificationRequest: ResendVerificationRequest): Promise<VerificationResponse> {
         let url_ = this.baseUrl + "/api/auth/resend-verification";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -327,11 +327,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthResendVerificationEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthResendVerificationEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthResendVerificationEndpoint(response: Response): Promise<VerificationResponse> {
+    protected processWorkFloApiEndpointsAuthResendVerificationEndpoint(response: Response): Promise<VerificationResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -349,7 +349,7 @@ export class AnchorApiClient implements IAnchorApiClient {
         return Promise.resolve<VerificationResponse>(null as any);
     }
 
-    anchorApiEndpointsAuthVerifyEmailEndpoint(verifyEmailRequest: VerifyEmailRequest): Promise<VerificationResponse> {
+    workfloApiEndpointsAuthVerifyEmailEndpoint(verifyEmailRequest: VerifyEmailRequest): Promise<VerificationResponse> {
         let url_ = this.baseUrl + "/api/auth/verify-email";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -365,11 +365,11 @@ export class AnchorApiClient implements IAnchorApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAnchorApiEndpointsAuthVerifyEmailEndpoint(_response);
+            return this.processWorkFloApiEndpointsAuthVerifyEmailEndpoint(_response);
         });
     }
 
-    protected processAnchorApiEndpointsAuthVerifyEmailEndpoint(response: Response): Promise<VerificationResponse> {
+    protected processWorkFloApiEndpointsAuthVerifyEmailEndpoint(response: Response): Promise<VerificationResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

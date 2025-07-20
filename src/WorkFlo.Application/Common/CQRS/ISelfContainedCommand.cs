@@ -1,5 +1,5 @@
-using WorkFlo.Domain.Common;
 using MediatR;
+using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Application.Common.CQRS;
 

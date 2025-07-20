@@ -1,14 +1,14 @@
 -- =====================================================
--- Anchor PostgreSQL Table Creation Script
+-- WorkFlo PostgreSQL Table Creation Script
 -- Privacy-first table structure with schema separation
 -- =====================================================
 
 -- =====================================================
--- ANCHOR_IDENTITY SCHEMA - User Management
+-- WORKFLO_IDENTITY SCHEMA - User Management
 -- =====================================================
 
 -- Users table (minimal PII, privacy-first)
-CREATE TABLE IF NOT EXISTS anchor_identity.users (
+CREATE TABLE IF NOT EXISTS workflo_identity.users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email_hash TEXT NOT NULL UNIQUE, -- Hashed email for privacy
     password_hash TEXT NOT NULL,
@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS anchor_identity.users (
 );
 
 -- User preferences (non-PII)
-CREATE TABLE IF NOT EXISTS anchor_identity.user_preferences (
+CREATE TABLE IF NOT EXISTS workflo_identity.user_preferences (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES anchor_identity.users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES workflo_identity.users(id) ON DELETE CASCADE,
     
     -- ADHD-specific preferences
     default_session_duration INTEGER DEFAULT 25, -- minutes
@@ -68,13 +68,13 @@ CREATE TABLE IF NOT EXISTS anchor_identity.user_preferences (
 );
 
 -- =====================================================
--- ANCHOR SCHEMA - Core Application Data
+-- WORKFLO SCHEMA - Core Application Data
 -- =====================================================
 
 -- Tasks (privacy-safe, no PII in content)
-CREATE TABLE IF NOT EXISTS anchor.tasks (
+CREATE TABLE IF NOT EXISTS workflo.tasks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES anchor_identity.users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES workflo_identity.users(id) ON DELETE CASCADE,
     
     -- Task details
     title TEXT NOT NULL,
@@ -118,10 +118,10 @@ CREATE TABLE IF NOT EXISTS anchor.tasks (
 );
 
 -- Task breakdown (for complex tasks)
-CREATE TABLE IF NOT EXISTS anchor.task_breakdowns (
+CREATE TABLE IF NOT EXISTS workflo.task_breakdowns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    task_id UUID NOT NULL REFERENCES anchor.tasks(id) ON DELETE CASCADE,
-    parent_step_id UUID REFERENCES anchor.task_breakdowns(id), -- For nested steps
+    task_id UUID NOT NULL REFERENCES workflo.tasks(id) ON DELETE CASCADE,
+    parent_step_id UUID REFERENCES workflo.task_breakdowns(id), -- For nested steps
     
     -- Step details
     step_title TEXT NOT NULL,
@@ -149,10 +149,10 @@ CREATE TABLE IF NOT EXISTS anchor.task_breakdowns (
 );
 
 -- Focus sessions
-CREATE TABLE IF NOT EXISTS anchor.focus_sessions (
+CREATE TABLE IF NOT EXISTS workflo.focus_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES anchor_identity.users(id) ON DELETE CASCADE,
-    task_id UUID REFERENCES anchor.tasks(id) ON DELETE SET NULL,
+    user_id UUID NOT NULL REFERENCES workflo_identity.users(id) ON DELETE CASCADE,
+    task_id UUID REFERENCES workflo.tasks(id) ON DELETE SET NULL,
     
     -- Session details
     planned_duration INTEGER NOT NULL, -- minutes
@@ -202,9 +202,9 @@ CREATE TABLE IF NOT EXISTS anchor.focus_sessions (
 );
 
 -- Session interruptions (for ADHD pattern analysis)
-CREATE TABLE IF NOT EXISTS anchor.session_interruptions (
+CREATE TABLE IF NOT EXISTS workflo.session_interruptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    session_id UUID NOT NULL REFERENCES anchor.focus_sessions(id) ON DELETE CASCADE,
+    session_id UUID NOT NULL REFERENCES workflo.focus_sessions(id) ON DELETE CASCADE,
     
     -- Interruption details
     interruption_type TEXT NOT NULL, -- 'external', 'internal', 'system'
@@ -226,11 +226,11 @@ CREATE TABLE IF NOT EXISTS anchor.session_interruptions (
 );
 
 -- =====================================================
--- ANCHOR_ANALYTICS SCHEMA - Privacy-Safe Analytics
+-- WORKFLO_ANALYTICS SCHEMA - Privacy-Safe Analytics
 -- =====================================================
 
 -- Daily aggregated metrics (no direct user PII)
-CREATE TABLE IF NOT EXISTS anchor_analytics.daily_user_metrics (
+CREATE TABLE IF NOT EXISTS workflo_analytics.daily_user_metrics (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_hash TEXT NOT NULL, -- Generated from user_id + date
     metric_date DATE NOT NULL,
@@ -268,11 +268,11 @@ CREATE TABLE IF NOT EXISTS anchor_analytics.daily_user_metrics (
 );
 
 -- =====================================================
--- ANCHOR_AUDIT SCHEMA - Audit and Compliance
+-- WORKFLO_AUDIT SCHEMA - Audit and Compliance
 -- =====================================================
 
 -- Operation audit log
-CREATE TABLE IF NOT EXISTS anchor_audit.operation_logs (
+CREATE TABLE IF NOT EXISTS workflo_audit.operation_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     
     -- Operation details
@@ -300,11 +300,11 @@ CREATE TABLE IF NOT EXISTS anchor_audit.operation_logs (
 );
 
 -- =====================================================
--- ANCHOR_CONFIG SCHEMA - Configuration
+-- WORKFLO_CONFIG SCHEMA - Configuration
 -- =====================================================
 
 -- Feature flags
-CREATE TABLE IF NOT EXISTS anchor_config.feature_flags (
+CREATE TABLE IF NOT EXISTS workflo_config.feature_flags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     flag_name TEXT UNIQUE NOT NULL,
     is_enabled BOOLEAN DEFAULT FALSE,
@@ -324,7 +324,7 @@ CREATE TABLE IF NOT EXISTS anchor_config.feature_flags (
 );
 
 -- Application configuration
-CREATE TABLE IF NOT EXISTS anchor_config.app_settings (
+CREATE TABLE IF NOT EXISTS workflo_config.app_settings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     setting_key TEXT UNIQUE NOT NULL,
     setting_value JSONB NOT NULL,
@@ -346,7 +346,7 @@ CREATE TABLE IF NOT EXISTS anchor_config.app_settings (
 
 DO $$
 BEGIN
-    RAISE NOTICE 'Anchor PostgreSQL tables created successfully';
+    RAISE NOTICE 'WorkFlo PostgreSQL tables created successfully';
     RAISE NOTICE 'Tables created across 5 schemas with privacy-first design';
     RAISE NOTICE 'ADHD-specific features and metrics included';
 END

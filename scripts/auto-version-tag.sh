@@ -35,7 +35,7 @@ if [[ "$current_branch" != "main" ]]; then
 fi
 
 # Get current version from backend csproj
-CSPROJ_FILE="src/Anchor.Api/Anchor.Api.csproj"
+CSPROJ_FILE="src/WorkFlo.Api/WorkFlo.Api.csproj"
 if [[ ! -f "$CSPROJ_FILE" ]]; then
     print_error "Backend project file not found: $CSPROJ_FILE"
     exit 1

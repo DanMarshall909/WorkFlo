@@ -1,11 +1,11 @@
+using FluentAssertions;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using WorkFlo.Application.Auth.Commands;
 using WorkFlo.Application.Auth.Services;
 using WorkFlo.Application.Common.Interfaces;
 using WorkFlo.Domain.Common;
 using WorkFlo.Domain.Users;
-using FluentAssertions;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Application.Tests.Auth.Commands;

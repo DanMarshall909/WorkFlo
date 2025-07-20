@@ -1,6 +1,6 @@
+using MediatR;
 using WorkFlo.Application.Common.Interfaces;
 using WorkFlo.Domain.Users;
-using MediatR;
 
 namespace WorkFlo.Application.Auth.Queries;
 

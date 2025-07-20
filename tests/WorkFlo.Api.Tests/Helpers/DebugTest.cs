@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
-using WorkFlo.Contracts.Auth;
 using FluentAssertions;
+using WorkFlo.Contracts.Auth;
 using Xunit.Abstractions;
 
 namespace WorkFlo.Api.Tests.Helpers;

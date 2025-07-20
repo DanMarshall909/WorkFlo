@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using WorkFlo.Application.Auth.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using WorkFlo.Application.Auth.Services;
 
 namespace WorkFlo.Infrastructure.Services.Auth;
 
@@ -24,8 +24,8 @@ public class JwtTokenService : IJwtTokenService
         _configuration = configuration;
         _jwtSecret = _configuration["JWT:Secret"] ??
                      throw new InvalidOperationException("JWT:Secret is not configured");
-        _jwtIssuer = _configuration["JWT:Issuer"] ?? "Anchor";
-        _jwtAudience = _configuration["JWT:Audience"] ?? "Anchor";
+        _jwtIssuer = _configuration["JWT:Issuer"] ?? "WorkFlo";
+        _jwtAudience = _configuration["JWT:Audience"] ?? "WorkFlo";
     }
 
     public Task<string> GenerateAccessTokenAsync(Guid userId, string emailHash,

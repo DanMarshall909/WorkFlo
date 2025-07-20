@@ -1,6 +1,6 @@
+using MediatR;
 using WorkFlo.Application.Common.Validation;
 using WorkFlo.Domain.Common;
-using MediatR;
 using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Application.Common.Behaviors;

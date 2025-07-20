@@ -33,7 +33,7 @@ import {
  */
 export const createSessionStore = (config: SessionStoreConfig = {}) => {
   const {
-    persistenceKey = 'anchor-session-store',
+    persistenceKey = 'workflo-session-store',
     enablePersistence = true,
     tickInterval = 1000,
     onSessionStart,

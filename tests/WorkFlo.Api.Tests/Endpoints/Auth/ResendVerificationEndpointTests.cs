@@ -1,9 +1,9 @@
-using WorkFlo.Api.Endpoints.Auth;
-using WorkFlo.Application.Auth.Commands;
-using WorkFlo.Contracts.Auth;
 using FluentAssertions;
 using MediatR;
 using NSubstitute;
+using WorkFlo.Api.Endpoints.Auth;
+using WorkFlo.Application.Auth.Commands;
+using WorkFlo.Contracts.Auth;
 
 namespace WorkFlo.Api.Tests.Endpoints.Auth;
 

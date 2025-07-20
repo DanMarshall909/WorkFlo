@@ -9,11 +9,11 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Anchor - ADHD-Friendly Task Management',
+  title: 'WorkFlo - ADHD-Friendly Task Management',
   description: 'Privacy-first productivity tool designed specifically for ADHD minds',
   keywords: ['ADHD', 'productivity', 'task management', 'privacy', 'focus'],
-  authors: [{ name: 'Anchor Team' }],
-  generator: `Anchor v${VERSION_INFO.version}`,
+  authors: [{ name: 'WorkFlo Team' }],
+  generator: `WorkFlo v${VERSION_INFO.version}`,
   robots: {
     index: false, // Privacy-first: no indexing
     follow: false,
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Anchor',
+    title: 'WorkFlo',
   },
   formatDetection: {
     telephone: false, // Prevent auto-linking phone numbers

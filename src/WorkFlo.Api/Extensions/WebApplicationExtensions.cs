@@ -1,9 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
-using WorkFlo.Api.Services;
-using WorkFlo.Infrastructure.Configuration;
+using System.Net;
 using FastEndpoints;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Serilog;
 using Serilog.Events;
+using WorkFlo.Api.Services;
+using WorkFlo.Infrastructure.Configuration;
 
 namespace WorkFlo.Api.Extensions;
 
@@ -39,7 +42,7 @@ internal static class WebApplicationExtensions
             app.UseOpenApi();
             app.UseSwaggerUi(config =>
             {
-                config.DocumentTitle = "Anchor API";
+                config.DocumentTitle = "WorkFlo API";
                 config.Path = "/swagger-ui";
                 config.DocumentPath = "/swagger/{documentName}/swagger.json";
             });
@@ -54,6 +57,27 @@ internal static class WebApplicationExtensions
     public static WebApplication ConfigureRequestPipeline(this WebApplication app)
     {
         app.UseHttpsRedirection();
+
+        // Add global exception handling
+        app.UseExceptionHandler(errorApp =>
+        {
+            errorApp.Run(async context =>
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/json";
+
+                IExceptionHandlerPathFeature? exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                Exception? exception = exceptionHandlerPathFeature?.Error;
+
+                var errorResponse = new
+                {
+                    Message = "An unexpected error occurred.",
+                    Detailed = exception?.Message // Only include detailed message in development
+                };
+
+                await context.Response.WriteAsJsonAsync(errorResponse).ConfigureAwait(false);
+            });
+        });
 
         // Add CORS middleware
         app.UseCors("AllowLocalhost");
@@ -89,7 +113,7 @@ internal static class WebApplicationExtensions
                 VersionInfo version = versionService.GetVersionInfo();
                 return Results.Ok(new
                 {
-                    message = "Anchor API is running",
+                    message = "WorkFlo API is running",
                     version = version.Version,
                     build = version.BuildDate,
                     commit = version.GitCommit,

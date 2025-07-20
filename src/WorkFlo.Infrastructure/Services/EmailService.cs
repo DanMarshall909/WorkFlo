@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using WorkFlo.Application.Services;
 using WorkFlo.Domain.Common;
-using Microsoft.Extensions.Logging;
 
 namespace WorkFlo.Infrastructure.Services;
 

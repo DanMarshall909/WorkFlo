@@ -1,0 +1,84 @@
+using System.CommandLine;
+using WorkFlo.Application.Services;
+using WorkFlo.Cli.Services;
+
+namespace WorkFlo.Cli.Commands;
+
+internal class ServeCommand
+{
+    private readonly IConsoleService _console;
+    private readonly IProcessService _process;
+
+    public ServeCommand(IConsoleService? console = null, IProcessService? process = null)
+    {
+        _console = console ?? new ConsoleService();
+        _process = process ?? new ProcessService();
+    }
+
+    public Command Build()
+    {
+        var command = new Command("serve", "Start the WorkFlo API server");
+
+        var portOption = new Option<int>(
+            aliases: new[] { "--port", "-p" },
+            getDefaultValue: () => 5000,
+            description: "The port to run the API server on");
+        command.AddOption(portOption);
+
+        command.SetHandler(HandleAsync, portOption);
+
+        return command;
+    }
+
+    private async Task HandleAsync(int port)
+    {
+        // If port is default value (5000), try to get from configuration
+        int actualPort = port;
+        if (port == 5000)
+        {
+            try
+            {
+                using var configService = new ConfigurationService();
+                Domain.Common.Result<ApiSettings> apiConfigResult = await configService.GetApiSettingsAsync().ConfigureAwait(false);
+                if (apiConfigResult.IsSuccess)
+                {
+                    actualPort = apiConfigResult.Value!.Port;
+                    await _console.WriteLineAsync($"Using port {actualPort} from configuration").ConfigureAwait(false);
+                }
+                else
+                {
+                    await _console.WriteLineAsync($"Configuration error: {apiConfigResult.Error}. Using default port {port}").ConfigureAwait(false);
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                await _console.WriteLineAsync($"Configuration file access denied: {ex.Message}. Using default port {port}").ConfigureAwait(false);
+            }
+            catch (IOException ex)
+            {
+                await _console.WriteLineAsync($"Configuration file I/O error: {ex.Message}. Using default port {port}").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await _console.WriteLineAsync($"Unexpected configuration error: {ex.Message}. Using default port {port}").ConfigureAwait(false);
+            }
+        }
+
+        await _console.WriteLineAsync($"Starting WorkFlo API server on port {actualPort}...").ConfigureAwait(false);
+
+        string apiPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "WorkFlo.Api", "bin", "Debug", "net9.0", "WorkFlo.Api.dll");
+        if (!File.Exists(apiPath))
+        {
+            apiPath = Path.Combine(AppContext.BaseDirectory, "WorkFlo.Api.dll");
+        }
+
+        string args = $"exec \"{apiPath}\" --urls=http://localhost:{actualPort}";
+
+        ProcessResult result = await _process.RunAsync("dotnet", args).ConfigureAwait(false);
+
+        if (result.ExitCode != 0)
+        {
+            await _console.WriteLineAsync($"Failed to start API server: {result.Error}").ConfigureAwait(false);
+        }
+    }
+}

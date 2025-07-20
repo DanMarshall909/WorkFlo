@@ -1,5 +1,5 @@
-using WorkFlo.Infrastructure.Services;
 using FluentAssertions;
+using WorkFlo.Infrastructure.Services;
 
 namespace WorkFlo.Infrastructure.Tests.Services;
 

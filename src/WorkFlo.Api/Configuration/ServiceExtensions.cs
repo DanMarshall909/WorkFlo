@@ -1,11 +1,11 @@
+using FastEndpoints;
+using FluentValidation;
+using MediatR;
 using WorkFlo.Application.Common.Behaviors;
 using WorkFlo.Application.Common.Messaging;
 using WorkFlo.Application.Common.Messaging.Adapters;
 using WorkFlo.Application.Common.Validation;
 using WorkFlo.Application.Common.Validation.Adapters;
-using FastEndpoints;
-using FluentValidation;
-using MediatR;
 
 namespace WorkFlo.Api.Configuration;
 
@@ -87,8 +87,10 @@ internal static class ServiceExtensions
     /// <returns>The service collection for chaining</returns>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Currently no application-specific services beyond auth
-        // This method is kept for future extensibility
+        // Register application services
+        services.AddScoped<WorkFlo.Application.Services.ICommitValidationService, WorkFlo.Application.Services.CommitValidationService>();
+        services.AddSingleton<WorkFlo.Application.Services.ITddStateService, WorkFlo.Application.Services.TddStateService>();
+        services.AddSingleton<WorkFlo.Application.Services.IConfigurationService, WorkFlo.Application.Services.ConfigurationService>();
 
         return services;
     }

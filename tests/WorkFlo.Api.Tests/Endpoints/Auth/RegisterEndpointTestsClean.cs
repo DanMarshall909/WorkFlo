@@ -1,7 +1,7 @@
 using System.Net;
+using FluentAssertions;
 using WorkFlo.Api.Tests.Helpers;
 using WorkFlo.Contracts.Auth;
-using FluentAssertions;
 
 namespace WorkFlo.Api.Tests.Endpoints.Auth;
 

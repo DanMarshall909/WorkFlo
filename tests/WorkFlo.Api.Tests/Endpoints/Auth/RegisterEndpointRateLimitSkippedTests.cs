@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using FluentAssertions;
 using WorkFlo.Api.Tests.Helpers;
 using WorkFlo.Contracts.Auth;
-using FluentAssertions;
 
 namespace WorkFlo.Api.Tests.Endpoints.Auth;
 

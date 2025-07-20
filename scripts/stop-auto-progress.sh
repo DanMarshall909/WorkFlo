@@ -2,7 +2,7 @@
 
 # Stop Auto Progress Update Service
 
-PROJECT_DIR="/home/dan/code/Anchor"
+PROJECT_DIR="/home/dan/code/WorkFlo"
 PID_FILE="$PROJECT_DIR/.auto-progress.pid"
 
 if [ -f "$PID_FILE" ]; then

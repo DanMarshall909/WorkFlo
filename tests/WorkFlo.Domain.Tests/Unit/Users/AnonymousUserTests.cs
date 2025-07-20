@@ -1,6 +1,6 @@
+using FluentAssertions;
 using WorkFlo.Domain.Common.Errors;
 using WorkFlo.Domain.Users;
-using FluentAssertions;
 using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Domain.Tests.Unit.Users;

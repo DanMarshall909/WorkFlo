@@ -1,8 +1,8 @@
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Infrastructure.Data;
 
 namespace WorkFlo.Tests.Common.Helpers;
 
@@ -29,12 +29,12 @@ internal static class TestServiceConfigurator
     private static void ConfigureDatabase(IServiceCollection services, string databaseName)
     {
         // Remove existing DbContext registrations
-        RemoveServices<AnchorDbContext>(services);
-        RemoveServices<DbContextOptions<AnchorDbContext>>(services);
+        RemoveServices<WorkFloDbContext>(services);
+        RemoveServices<DbContextOptions<WorkFloDbContext>>(services);
         RemoveServices<DbContextOptions>(services);
 
         // Add in-memory database
-        services.AddDbContext<AnchorDbContext>(options =>
+        services.AddDbContext<WorkFloDbContext>(options =>
         {
             options.UseInMemoryDatabase(databaseName);
             options.EnableSensitiveDataLogging();
@@ -53,7 +53,7 @@ internal static class TestServiceConfigurator
         ReplaceService<IPasswordBreachService, TestPasswordBreachService>(services);
 
         // Remove problematic authentication services
-        var authTypesToRemove = new[]
+        string[] authTypesToRemove = new[]
         {
             "IAuthenticationService",
             "IAuthenticationSchemeProvider",
@@ -117,7 +117,7 @@ internal static class TestServiceConfigurator
     private static void RemoveServices<T>(IServiceCollection services)
     {
         var descriptors = services.Where(d => d.ServiceType == typeof(T)).ToList();
-        foreach (var descriptor in descriptors)
+        foreach (ServiceDescriptor? descriptor in descriptors)
         {
             services.Remove(descriptor);
         }
@@ -132,7 +132,7 @@ internal static class TestServiceConfigurator
             .Where(d => typeNames.Any(name => d.ServiceType.Name.Contains(name)))
             .ToList();
 
-        foreach (var descriptor in descriptors)
+        foreach (ServiceDescriptor? descriptor in descriptors)
         {
             services.Remove(descriptor);
         }
@@ -150,7 +150,7 @@ internal static class TestServiceConfigurator
             .Where(d => !preserveTypes.Contains(d.ServiceType))
             .ToList();
 
-        foreach (var descriptor in descriptors)
+        foreach (ServiceDescriptor? descriptor in descriptors)
         {
             services.Remove(descriptor);
         }

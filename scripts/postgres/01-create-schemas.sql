@@ -1,5 +1,5 @@
 -- =====================================================
--- Anchor PostgreSQL Schema Creation Script
+-- WorkFlo PostgreSQL Schema Creation Script
 -- Privacy-first, ADHD-focused task management schemas
 -- =====================================================
 
@@ -13,19 +13,19 @@ CREATE EXTENSION IF NOT EXISTS "btree_gin";
 -- =====================================================
 
 -- Core application data (tasks, sessions)
-CREATE SCHEMA IF NOT EXISTS anchor;
+CREATE SCHEMA IF NOT EXISTS workflo;
 
 -- User management and authentication 
-CREATE SCHEMA IF NOT EXISTS anchor_identity;
+CREATE SCHEMA IF NOT EXISTS workflo_identity;
 
 -- Analytics and metrics (privacy-aware)
-CREATE SCHEMA IF NOT EXISTS anchor_analytics;
+CREATE SCHEMA IF NOT EXISTS workflo_analytics;
 
 -- Audit and operational logs
-CREATE SCHEMA IF NOT EXISTS anchor_audit;
+CREATE SCHEMA IF NOT EXISTS workflo_audit;
 
 -- Configuration and system settings
-CREATE SCHEMA IF NOT EXISTS anchor_config;
+CREATE SCHEMA IF NOT EXISTS workflo_config;
 
 -- =====================================================
 -- USER ROLES AND PERMISSIONS
@@ -34,8 +34,8 @@ CREATE SCHEMA IF NOT EXISTS anchor_config;
 -- Application service account
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anchor_app') THEN
-        CREATE ROLE anchor_app WITH LOGIN PASSWORD 'anchor_app_secure_password_2024!';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'workflo_app') THEN
+        CREATE ROLE workflo_app WITH LOGIN PASSWORD 'workflo_app_secure_password_2024!';
     END IF;
 END
 $$;
@@ -43,8 +43,8 @@ $$;
 -- Read-only analytics account
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anchor_analytics') THEN
-        CREATE ROLE anchor_analytics WITH LOGIN PASSWORD 'anchor_analytics_read_2024!';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'workflo_analytics') THEN
+        CREATE ROLE workflo_analytics WITH LOGIN PASSWORD 'workflo_analytics_read_2024!';
     END IF;
 END
 $$;
@@ -52,8 +52,8 @@ $$;
 -- Backup account
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anchor_backup') THEN
-        CREATE ROLE anchor_backup WITH LOGIN PASSWORD 'anchor_backup_secure_2024!';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'workflo_backup') THEN
+        CREATE ROLE workflo_backup WITH LOGIN PASSWORD 'workflo_backup_secure_2024!';
     END IF;
 END
 $$;
@@ -63,35 +63,35 @@ $$;
 -- =====================================================
 
 -- Application account - Full access to core schemas
-GRANT USAGE ON SCHEMA anchor TO anchor_app;
-GRANT USAGE ON SCHEMA anchor_identity TO anchor_app;
-GRANT USAGE ON SCHEMA anchor_analytics TO anchor_app;
-GRANT USAGE ON SCHEMA anchor_audit TO anchor_app;
-GRANT USAGE ON SCHEMA anchor_config TO anchor_app;
+GRANT USAGE ON SCHEMA workflo TO workflo_app;
+GRANT USAGE ON SCHEMA workflo_identity TO workflo_app;
+GRANT USAGE ON SCHEMA workflo_analytics TO workflo_app;
+GRANT USAGE ON SCHEMA workflo_audit TO workflo_app;
+GRANT USAGE ON SCHEMA workflo_config TO workflo_app;
 
-GRANT CREATE ON SCHEMA anchor TO anchor_app;
-GRANT CREATE ON SCHEMA anchor_identity TO anchor_app;
-GRANT CREATE ON SCHEMA anchor_analytics TO anchor_app;
-GRANT CREATE ON SCHEMA anchor_audit TO anchor_app;
-GRANT CREATE ON SCHEMA anchor_config TO anchor_app;
+GRANT CREATE ON SCHEMA workflo TO workflo_app;
+GRANT CREATE ON SCHEMA workflo_identity TO workflo_app;
+GRANT CREATE ON SCHEMA workflo_analytics TO workflo_app;
+GRANT CREATE ON SCHEMA workflo_audit TO workflo_app;
+GRANT CREATE ON SCHEMA workflo_config TO workflo_app;
 
 -- Analytics account - Read-only access
-GRANT USAGE ON SCHEMA anchor_analytics TO anchor_analytics;
-GRANT USAGE ON SCHEMA anchor_audit TO anchor_analytics;
+GRANT USAGE ON SCHEMA workflo_analytics TO workflo_analytics;
+GRANT USAGE ON SCHEMA workflo_audit TO workflo_analytics;
 
 -- Backup account - Read access to all schemas
-GRANT USAGE ON SCHEMA anchor TO anchor_backup;
-GRANT USAGE ON SCHEMA anchor_identity TO anchor_backup;
-GRANT USAGE ON SCHEMA anchor_analytics TO anchor_backup;
-GRANT USAGE ON SCHEMA anchor_audit TO anchor_backup;
-GRANT USAGE ON SCHEMA anchor_config TO anchor_backup;
+GRANT USAGE ON SCHEMA workflo TO workflo_backup;
+GRANT USAGE ON SCHEMA workflo_identity TO workflo_backup;
+GRANT USAGE ON SCHEMA workflo_analytics TO workflo_backup;
+GRANT USAGE ON SCHEMA workflo_audit TO workflo_backup;
+GRANT USAGE ON SCHEMA workflo_config TO workflo_backup;
 
 -- =====================================================
 -- COMMON FUNCTIONS
 -- =====================================================
 
 -- Function to generate privacy-safe user hashes
-CREATE OR REPLACE FUNCTION anchor.generate_user_hash(user_id UUID)
+CREATE OR REPLACE FUNCTION workflo.generate_user_hash(user_id UUID)
 RETURNS TEXT AS $$
 BEGIN
     RETURN encode(digest(user_id::text || current_date::text, 'sha256'), 'hex');
@@ -99,7 +99,7 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 -- Function to create audit log entries
-CREATE OR REPLACE FUNCTION anchor_audit.log_operation(
+CREATE OR REPLACE FUNCTION workflo_audit.log_operation(
     schema_name TEXT,
     table_name TEXT,
     operation TEXT,
@@ -109,7 +109,7 @@ CREATE OR REPLACE FUNCTION anchor_audit.log_operation(
 )
 RETURNS VOID AS $$
 BEGIN
-    INSERT INTO anchor_audit.operation_logs (
+    INSERT INTO workflo_audit.operation_logs (
         schema_name,
         table_name,
         operation,
@@ -122,7 +122,7 @@ BEGIN
         table_name,
         operation,
         entity_id,
-        CASE WHEN user_id IS NOT NULL THEN anchor.generate_user_hash(user_id) ELSE NULL END,
+        CASE WHEN user_id IS NOT NULL THEN workflo.generate_user_hash(user_id) ELSE NULL END,
         additional_data,
         NOW()
     );
@@ -133,11 +133,11 @@ $$ LANGUAGE plpgsql;
 -- SCHEMA COMMENTS
 -- =====================================================
 
-COMMENT ON SCHEMA anchor IS 'Core application data: tasks, sessions, and focus management';
-COMMENT ON SCHEMA anchor_identity IS 'User identity and authentication data (minimal PII)';
-COMMENT ON SCHEMA anchor_analytics IS 'Privacy-aware analytics and metrics (no direct PII)';
-COMMENT ON SCHEMA anchor_audit IS 'Audit logs and operational tracking';
-COMMENT ON SCHEMA anchor_config IS 'Application configuration and feature flags';
+COMMENT ON SCHEMA workflo IS 'Core application data: tasks, sessions, and focus management';
+COMMENT ON SCHEMA workflo_identity IS 'User identity and authentication data (minimal PII)';
+COMMENT ON SCHEMA workflo_analytics IS 'Privacy-aware analytics and metrics (no direct PII)';
+COMMENT ON SCHEMA workflo_audit IS 'Audit logs and operational tracking';
+COMMENT ON SCHEMA workflo_config IS 'Application configuration and feature flags';
 
 -- =====================================================
 -- COMPLETION LOG
@@ -145,8 +145,8 @@ COMMENT ON SCHEMA anchor_config IS 'Application configuration and feature flags'
 
 DO $$
 BEGIN
-    RAISE NOTICE 'Anchor PostgreSQL schemas created successfully';
-    RAISE NOTICE 'Schemas: anchor, anchor_identity, anchor_analytics, anchor_audit, anchor_config';
-    RAISE NOTICE 'Roles: anchor_app, anchor_analytics, anchor_backup';
+    RAISE NOTICE 'WorkFlo PostgreSQL schemas created successfully';
+    RAISE NOTICE 'Schemas: workflo, workflo_identity, workflo_analytics, workflo_audit, workflo_config';
+    RAISE NOTICE 'Roles: workflo_app, workflo_analytics, workflo_backup';
 END
 $$;

@@ -1,16 +1,55 @@
 #!/bin/sh
 # WorkFlo pre-commit hook
-# Validates staged files before commit
+# Validates staged files before commit using HTTP API
 
-# Check if workflo CLI is installed
-if ! command -v workflo &> /dev/null; then
-    echo "Error: WorkFlo CLI is not installed or not in PATH"
-    echo "Please install WorkFlo CLI: dotnet tool install -g WorkFlo.Cli"
+# Configuration
+API_PORT=${WORKFLO_API_PORT:-5000}
+API_URL="http://localhost:${API_PORT}/api/validation/pre-commit"
+
+# Start API if needed
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "${SCRIPT_DIR}/start-api-if-needed.sh" ]; then
+    bash "${SCRIPT_DIR}/start-api-if-needed.sh"
+    if [ $? -ne 0 ]; then
+        echo "Failed to start WorkFlo API"
+        exit 1
+    fi
+fi
+
+# Get staged files and current branch
+STAGED_FILES=$(git diff --cached --name-only)
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Create JSON payload
+JSON_PAYLOAD=$(cat <<EOF
+{
+  "stagedFiles": [$(echo "$STAGED_FILES" | sed 's/.*/"&"/' | paste -sd, -)],
+  "currentBranch": "$CURRENT_BRANCH"
+}
+EOF
+)
+
+# Make HTTP request to API
+RESPONSE=$(curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -d "$JSON_PAYLOAD" \
+  "$API_URL")
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to connect to WorkFlo API at $API_URL"
+    echo "Please ensure the API server is running or install WorkFlo CLI"
     exit 1
 fi
 
-# Run WorkFlo validation for pre-commit
-workflo validate pre-commit
+# Parse response
+IS_VALID=$(echo "$RESPONSE" | grep -o '"isValid":[^,}]*' | cut -d: -f2 | tr -d ' ')
+ERRORS=$(echo "$RESPONSE" | grep -o '"errors":\[[^]]*\]' | cut -d: -f2-)
 
-# Exit with the validation result
-exit $?
+if [ "$IS_VALID" = "true" ]; then
+    echo "✅ Pre-commit validation passed"
+    exit 0
+else
+    echo "❌ Pre-commit validation failed:"
+    echo "$ERRORS" | sed 's/\[//g; s/\]//g; s/"//g' | tr ',' '\n' | sed 's/^/  - /'
+    exit 1
+fi

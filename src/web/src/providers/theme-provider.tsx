@@ -49,7 +49,7 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
     setMounted(true);
 
     // Load theme from localStorage
-    const savedTheme = localStorage.getItem('anchor-theme') as Theme;
+    const savedTheme = localStorage.getItem('workflo-theme') as Theme;
     if (savedTheme && ['light', 'dark', 'system', 'earth', 'forest', 'desert', 'desert-night', 'ocean', 'stone'].includes(savedTheme)) {
       setThemeState(savedTheme);
     }
@@ -97,7 +97,7 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     if (mounted) {
-      localStorage.setItem('anchor-theme', newTheme);
+      localStorage.setItem('workflo-theme', newTheme);
     }
   };
 

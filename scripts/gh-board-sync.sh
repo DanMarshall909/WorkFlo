@@ -10,7 +10,7 @@ PROJECT_NUMBER="2"
 PROJECT_ID="PVT_kwHOAjuTnM4A91Jy"  # Actual project ID for GraphQL queries
 STATUS_FIELD_ID="PVTSSF_lAHOAjuTnM4A91JyzgxakYU"
 OWNER="DanMarshall909"
-REPO="Anchor"
+REPO="WorkFlo"
 
 # Status option IDs
 TODO_ID="f75ad846"

@@ -1,8 +1,8 @@
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Infrastructure.Services.Auth;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Infrastructure.Services.Auth;
 
 namespace WorkFlo.Api.Tests.Configuration;
 

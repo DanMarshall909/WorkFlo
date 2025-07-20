@@ -1,11 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using WorkFlo.Infrastructure.Services.Auth;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
+using WorkFlo.Infrastructure.Services.Auth;
 
 namespace WorkFlo.Infrastructure.Tests.Services.Auth;
 

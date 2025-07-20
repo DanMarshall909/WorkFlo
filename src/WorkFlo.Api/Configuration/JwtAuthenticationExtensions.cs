@@ -20,8 +20,8 @@ internal static class JwtAuthenticationExtensions
     {
         string jwtSecret = configuration["JWT:Secret"] ??
                            throw new InvalidOperationException("JWT:Secret is not configured");
-        string jwtIssuer = configuration["JWT:Issuer"] ?? "Anchor";
-        string jwtAudience = configuration["JWT:Audience"] ?? "Anchor";
+        string jwtIssuer = configuration["JWT:Issuer"] ?? "WorkFlo";
+        string jwtAudience = configuration["JWT:Audience"] ?? "WorkFlo";
 
         services.AddAuthentication(options =>
             {

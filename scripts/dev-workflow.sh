@@ -12,7 +12,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${BLUE}🏗️  Anchor Development Workflow (Free Tier Optimized)${NC}"
+echo -e "${BLUE}🏗️  WorkFlo Development Workflow (Free Tier Optimized)${NC}"
 echo "=================================================="
 
 # Check if on dev branch

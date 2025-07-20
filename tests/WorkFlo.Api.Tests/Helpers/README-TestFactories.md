@@ -1,10 +1,11 @@
 # Test Factory Refactoring
 
-This directory contains a refactored and simplified approach to test factories for the Anchor API integration tests.
+This directory contains a refactored and simplified approach to test factories for the WorkFlo API integration tests.
 
 ## Overview
 
 The original `TestWebApplicationFactory` was overly complex with:
+
 - 188 lines of complex service removal logic
 - Hard-to-maintain LINQ expressions with string matching
 - Mixed responsibilities (config, services, logging, cleanup)
@@ -24,6 +25,7 @@ The original `TestWebApplicationFactory` was overly complex with:
 ### Key Improvements
 
 #### ✅ **Type-Safe Service Replacement**
+
 ```csharp
 // Before: Fragile string-based matching
 services.Where(d => d.ServiceType.FullName?.Contains("Authentication") == true)
@@ -33,6 +35,7 @@ ReplaceService<IJwtTokenService, TestJwtTokenService>(services);
 ```
 
 #### ✅ **Configurable Factories**
+
 ```csharp
 // Standard factory
 using var factory = new CleanTestWebApplicationFactory();
@@ -45,6 +48,7 @@ using var factory = CleanTestWebApplicationFactory.WithRateLimiting();
 ```
 
 #### ✅ **Fluent Configuration**
+
 ```csharp
 var config = TestConfigurationBuilder.CreateDefault()
     .WithRateLimitingEnabled()
@@ -52,12 +56,14 @@ var config = TestConfigurationBuilder.CreateDefault()
 ```
 
 #### ✅ **Separated Concerns**
+
 - **Configuration**: `TestConfigurationBuilder`
-- **Service Setup**: `TestServiceConfigurator`  
+- **Service Setup**: `TestServiceConfigurator`
 - **Factory Logic**: `BaseTestWebApplicationFactory`
 - **Specific Implementations**: `CleanTestWebApplicationFactory`
 
 #### ✅ **Reduced Complexity**
+
 - Original factory: **188 lines** with complex LINQ
 - New factory: **25 lines** using composition
 - Service configurator: **Clean, focused methods**
@@ -86,10 +92,10 @@ public sealed class MyApiTests : IClassFixture<CleanTestWebApplicationFactory>
 ### For Rate Limiting Tests
 
 ```csharp
-public sealed class RateLimitTests 
+public sealed class RateLimitTests
 {
     private readonly CleanTestWebApplicationFactory _factory;
-    
+
     public RateLimitTests()
     {
         _factory = CleanTestWebApplicationFactory.WithRateLimiting();
@@ -111,18 +117,21 @@ No changes needed - `TestWebApplicationFactory` still works exactly the same way
 ## Benefits
 
 ### For Developers
+
 - **Easier to understand**: Clear separation of concerns
 - **Easier to maintain**: Type-safe, focused components
 - **Easier to extend**: Fluent configuration API
 - **Less noise**: Configurable logging
 
 ### For Tests
+
 - **More reliable**: Type-safe service replacement
 - **Better isolation**: Improved database naming
 - **Cleaner output**: Reduced logging noise
 - **Better performance**: Streamlined service configuration
 
 ### For Debugging
+
 - **Targeted logging**: Enable only when needed
 - **Clear service view**: Simplified service registration display
 - **Better error messages**: Type-safe operations provide clearer errors

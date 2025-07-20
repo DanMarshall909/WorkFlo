@@ -23,7 +23,7 @@ public class FileCountRuleTests
         // Assert
         result.IsSuccess.Should().BeTrue();
     }
-    
+
     [Fact]
     public void commit_blocked_when_more_than_three_files()
     {
@@ -41,7 +41,7 @@ public class FileCountRuleTests
         result.IsFailure().Should().BeTrue();
         result.Error.Should().Contain("3 files");
     }
-    
+
     [Fact]
     public void developer_can_commit_zero_files()
     {

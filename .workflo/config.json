@@ -1,0 +1,16 @@
+{
+  "api": {
+    "port": 5000,
+    "enableHttps": false
+  },
+  "validation": {
+    "enableTdd": true,
+    "enableCommitMsg": true,
+    "enablePrePush": true
+  },
+  "tdd": {
+    "enforceTransitions": true,
+    "allowSkipPhases": false,
+    "requireTestFirst": true
+  }
+}
