@@ -9,11 +9,11 @@ public abstract class BaseCommandHandler<TCommand, TResponse> : IRequestHandler<
 {
     public abstract Task<TResponse> Handle(TCommand request, CancellationToken cancellationToken);
 
-    protected TypeSafeResult<T, TError> Success<T, TError>(T value)
+    protected static TypeSafeResult<T, TError> Success<T, TError>(T value)
         where TError : IError =>
         TypeSafeResult<T, TError>.Success(value);
 
-    protected TypeSafeResult<T, TError> Failure<T, TError>(TError error)
+    protected static TypeSafeResult<T, TError> Failure<T, TError>(TError error)
         where TError : IError =>
         TypeSafeResult<T, TError>.Failure(error);
 }

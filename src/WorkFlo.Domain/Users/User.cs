@@ -35,7 +35,7 @@ public class User : AggregateRoot
 
     // Privacy-first properties for anonymous users
     public bool CanAccessCloudFeatures => !IsAnonymous;
-    public bool CanExportData => true; // All users can export their data
+    public static bool CanExportData => true; // All users can export their data
     public bool HasDataRetentionLimits => IsAnonymous;
 
     public static TypeSafeResult<User, ValidationError> Create(string emailHash, string passwordHash)
