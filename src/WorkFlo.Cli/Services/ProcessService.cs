@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace WorkFlo.Cli.Services;
 
-internal class ProcessService : IProcessService
+internal sealed class ProcessService : IProcessService
 {
     public async Task<ProcessResult> RunAsync(string command, string arguments = "", CancellationToken cancellationToken = default)
     {

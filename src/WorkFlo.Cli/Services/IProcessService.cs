@@ -5,7 +5,7 @@ internal interface IProcessService
     Task<ProcessResult> RunAsync(string command, string arguments = "", CancellationToken cancellationToken = default);
 }
 
-internal class ProcessResult
+internal sealed class ProcessResult
 {
     public int ExitCode { get; init; }
     public string Output { get; init; } = string.Empty;
