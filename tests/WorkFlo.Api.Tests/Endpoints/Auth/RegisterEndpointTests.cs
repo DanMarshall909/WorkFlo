@@ -1,15 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
-using WorkFlo.Api.Tests.Helpers;
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Contracts.Auth;
-using WorkFlo.Infrastructure.Data;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WorkFlo.Api.Tests.Helpers;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Contracts.Auth;
+using WorkFlo.Infrastructure.Data;
 
 namespace WorkFlo.Api.Tests.Endpoints.Auth;
 

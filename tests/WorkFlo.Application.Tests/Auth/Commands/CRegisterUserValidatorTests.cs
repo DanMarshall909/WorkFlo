@@ -1,6 +1,6 @@
-using WorkFlo.Application.Auth.Commands;
 using FluentAssertions;
 using FluentValidation.TestHelper;
+using WorkFlo.Application.Auth.Commands;
 
 namespace WorkFlo.Application.Tests.Auth.Commands;
 

@@ -10,7 +10,7 @@ internal sealed class TestPasswordBreachService : IPasswordBreachService
     public Task<bool> IsPasswordBreachedAsync(string password, CancellationToken cancellationToken = default)
     {
         // For testing, only consider obvious weak passwords as breached
-        var breachedPasswords = new[] { "123456", "password", "admin", "test" };
+        string[] breachedPasswords = new[] { "123456", "password", "admin", "test" };
         return Task.FromResult(breachedPasswords.Contains(password, StringComparer.OrdinalIgnoreCase));
     }
 }

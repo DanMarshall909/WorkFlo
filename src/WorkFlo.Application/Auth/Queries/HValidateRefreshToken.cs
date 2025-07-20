@@ -1,5 +1,5 @@
-using WorkFlo.Application.Auth.Services;
 using MediatR;
+using WorkFlo.Application.Auth.Services;
 
 namespace WorkFlo.Application.Auth.Queries;
 

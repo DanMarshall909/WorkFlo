@@ -13,7 +13,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*', // Proxy to Anchor.Api
+        destination: 'http://localhost:5000/api/:path*', // Proxy to WorkFlo.Api
       },
     ];
   },

@@ -1,5 +1,5 @@
-using WorkFlo.Api.Services;
 using FastEndpoints;
+using WorkFlo.Api.Services;
 
 namespace WorkFlo.Api.Endpoints.Version;
 
@@ -34,7 +34,7 @@ internal sealed class GetVersionEndpoint : EndpointWithoutRequest<VersionRespons
             BuildDate = versionInfo.BuildDate,
             GitCommit = versionInfo.GitCommit,
             Environment = versionInfo.Environment,
-            ApiName = "Anchor API",
+            ApiName = "WorkFlo API",
             Message = "Privacy-first ADHD task management API"
         };
 

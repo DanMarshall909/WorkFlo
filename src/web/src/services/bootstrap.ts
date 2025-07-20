@@ -150,10 +150,10 @@ export function bootstrapServices(
   // Theme Service - integrated with theme provider
   container.register('themeService', c => ({
     getCurrentTheme() {
-      return c.storageService!.get<'light' | 'dark' | 'system'>('anchor-theme') || 'system';
+      return c.storageService!.get<'light' | 'dark' | 'system'>('workflo-theme') || 'system';
     },
     setTheme(theme: 'light' | 'dark' | 'system') {
-      c.storageService!.set('anchor-theme', theme);
+      c.storageService!.set('workflo-theme', theme);
       // Trigger theme change event
       window.dispatchEvent(new CustomEvent('theme-change', { detail: theme }));
     },

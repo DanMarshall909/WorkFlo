@@ -1,9 +1,9 @@
-using WorkFlo.Application.Auth.Commands;
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Domain.Common;
 using FluentAssertions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using WorkFlo.Application.Auth.Commands;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Application.Tests.Auth.Commands;
 

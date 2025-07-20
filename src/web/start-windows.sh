@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Start Anchor Web App for Windows Access
+# Start WorkFlo Web App for Windows Access
 # This script helps Windows users access the app from WSL
 
-echo "🚀 Starting Anchor Web App for Windows access..."
+echo "🚀 Starting WorkFlo Web App for Windows access..."
 echo ""
 
 # Get WSL IP address

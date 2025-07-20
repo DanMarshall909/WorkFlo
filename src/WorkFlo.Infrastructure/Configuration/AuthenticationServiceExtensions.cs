@@ -1,9 +1,9 @@
+using Microsoft.Extensions.DependencyInjection;
 using WorkFlo.Application.Auth.Services;
 using WorkFlo.Application.Common.Interfaces;
 using WorkFlo.Application.Services;
 using WorkFlo.Infrastructure.Services;
 using WorkFlo.Infrastructure.Services.Auth;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace WorkFlo.Infrastructure.Configuration;
 

@@ -1,5 +1,5 @@
 -- =====================================================
--- Anchor PostgreSQL Docker Initialization Script
+-- WorkFlo PostgreSQL Docker Initialization Script
 -- Combines all schema creation scripts for Docker setup
 -- =====================================================
 
@@ -15,10 +15,10 @@
 DO $$
 BEGIN
     RAISE NOTICE '=================================================';
-    RAISE NOTICE 'Anchor PostgreSQL database initialization complete';
+    RAISE NOTICE 'WorkFlo PostgreSQL database initialization complete';
     RAISE NOTICE '=================================================';
-    RAISE NOTICE 'Schemas: anchor, anchor_identity, anchor_analytics, anchor_audit, anchor_config';
-    RAISE NOTICE 'Users: anchor_app, anchor_analytics, anchor_backup';
+    RAISE NOTICE 'Schemas: workflo, workflo_identity, workflo_analytics, workflo_audit, workflo_config';
+    RAISE NOTICE 'Users: workflo_app, workflo_analytics, workflo_backup';
     RAISE NOTICE 'Demo data: 2 users, 5 tasks, 3 sessions with analytics';
     RAISE NOTICE 'Ready for application connection';
     RAISE NOTICE '=================================================';

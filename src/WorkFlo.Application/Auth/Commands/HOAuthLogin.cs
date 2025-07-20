@@ -109,7 +109,7 @@ public sealed class HOAuthLogin : ICommandHandler<COAuthLogin, Result<COAuthLogi
                     EmailHash = user.EmailHash,
                     EmailVerified = user.EmailVerified,
                     CreatedAt = user.CreatedAt,
-                    PreferredName = oauthUserInfo.Name ?? "Anchor User"
+                    PreferredName = oauthUserInfo.Name ?? "WorkFlo User"
                 }
             };
 

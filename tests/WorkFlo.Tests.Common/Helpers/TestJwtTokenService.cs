@@ -26,8 +26,8 @@ internal sealed class TestJwtTokenService : IJwtTokenService
     {
         if (token.StartsWith("test-access-token-", StringComparison.Ordinal))
         {
-            var guidPart = token.Replace("test-access-token-", "");
-            if (Guid.TryParse(guidPart, out var userId))
+            string guidPart = token.Replace("test-access-token-", "");
+            if (Guid.TryParse(guidPart, out Guid userId))
             {
                 return Task.FromResult<Guid?>(userId);
             }

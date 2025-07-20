@@ -1,8 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using WorkFlo.Infrastructure.Services.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using WorkFlo.Infrastructure.Services.Auth;
 using Xunit;
 
 namespace WorkFlo.Infrastructure.Tests.Services.Auth;

@@ -1,6 +1,6 @@
 namespace WorkFlo.Cli.Services;
 
-public interface IGitService
+internal interface IGitService
 {
     Task<string[]> GetStagedFilesAsync();
     Task<string> GetCurrentBranchAsync();

@@ -1,8 +1,8 @@
 using System.Security.Claims;
+using FastEndpoints;
 using WorkFlo.Application.Auth.Queries;
 using WorkFlo.Application.Common.Messaging;
 using WorkFlo.Contracts.Auth;
-using FastEndpoints;
 
 namespace WorkFlo.Api.Endpoints.Auth;
 

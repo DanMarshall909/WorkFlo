@@ -1,8 +1,8 @@
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Infrastructure.Data;
 
 namespace WorkFlo.Api.Tests.Helpers;
 
@@ -29,12 +29,12 @@ internal static class TestServiceConfigurator
     private static void ConfigureDatabase(IServiceCollection services, string databaseName)
     {
         // Remove existing DbContext registrations
-        RemoveServices<AnchorDbContext>(services);
-        RemoveServices<DbContextOptions<AnchorDbContext>>(services);
+        RemoveServices<WorkFloDbContext>(services);
+        RemoveServices<DbContextOptions<WorkFloDbContext>>(services);
         RemoveServices<DbContextOptions>(services);
 
         // Add in-memory database
-        services.AddDbContext<AnchorDbContext>(options =>
+        services.AddDbContext<WorkFloDbContext>(options =>
         {
             options.UseInMemoryDatabase(databaseName);
             options.EnableSensitiveDataLogging();

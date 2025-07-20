@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Anchor Development Progress Tracker Stop Script
+# WorkFlo Development Progress Tracker Stop Script
 # Cleanly stops all services started by the progress tracker
 
 set -e
@@ -12,9 +12,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-PROJECT_DIR="/home/dan/code/Anchor"
+PROJECT_DIR="/home/dan/code/WorkFlo"
 
-echo -e "${BLUE}🛑 Stopping Anchor Development Environment...${NC}"
+echo -e "${BLUE}🛑 Stopping WorkFlo Development Environment...${NC}"
 
 # Stop progress tracker HTTP server
 echo -e "${YELLOW}🌐 Stopping progress tracker HTTP server...${NC}"

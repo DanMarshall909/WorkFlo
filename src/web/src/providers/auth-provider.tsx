@@ -66,7 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { user: newUser } = await authService.login(email, password);
       setUser(newUser);
-      notificationService.showSuccess('Login successful! Welcome back to Anchor.');
+      notificationService.showSuccess('Login successful! Welcome back to WorkFlo.');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       notificationService.showError(errorMessage);
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { user: newUser } = await authService.register(email, password);
       setUser(newUser);
-      notificationService.showSuccess('Account created successfully! Welcome to Anchor.');
+      notificationService.showSuccess('Account created successfully! Welcome to WorkFlo.');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       notificationService.showError(errorMessage);

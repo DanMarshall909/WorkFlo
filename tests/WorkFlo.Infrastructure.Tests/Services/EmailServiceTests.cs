@@ -1,8 +1,8 @@
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using WorkFlo.Application.Services;
 using WorkFlo.Domain.Common;
 using WorkFlo.Infrastructure.Services;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
 using Xunit;
 
 namespace WorkFlo.Infrastructure.Tests.Services;

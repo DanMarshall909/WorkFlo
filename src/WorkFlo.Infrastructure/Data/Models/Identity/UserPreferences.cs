@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WorkFlo.Infrastructure.Data.Models.Identity;
 
-[Table("user_preferences", Schema = "anchor_identity")]
+[Table("user_preferences", Schema = "workflo_identity")]
 public class UserPreferences
 {
     [Key][Column("id")] public Guid Id { get; set; } = Guid.NewGuid();

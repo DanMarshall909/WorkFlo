@@ -1,5 +1,5 @@
 /**
- * Dependency Injection Container for Anchor Web Application
+ * Dependency Injection Container for WorkFlo Web Application
  *
  * This container manages all service dependencies and provides a clean
  * interface for injecting behaviors into React components.
@@ -177,7 +177,7 @@ export function useServices(): IServiceContainer {
 }
 
 // Service registration
-import { AnchorApiService } from './implementations/anchor-api.service';
+import { WorkFloApiService } from './implementations/workflo-api.service';
 import { TaskService } from './implementations/task.service';
 import { AuthService } from './implementations/auth.service';
 import { BrowserStorageService } from './implementations/browser-storage.service';
@@ -185,7 +185,7 @@ import { NotificationService } from './implementations/notification.service';
 
 // Register default services
 container.register('storageService', () => new BrowserStorageService());
-container.register('apiService', () => new AnchorApiService(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5016'));
+container.register('apiService', () => new WorkFloApiService(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5016'));
 container.register('taskService', (container) => new TaskService(container.apiService!));
 container.register('authService', (container) => new AuthService(container.storageService!, container.apiService!));
 container.register('notificationService', () => new NotificationService());

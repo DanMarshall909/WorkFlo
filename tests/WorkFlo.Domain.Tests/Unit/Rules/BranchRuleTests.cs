@@ -23,7 +23,7 @@ public class BranchRuleTests
         // Assert
         result.IsSuccess.Should().BeTrue();
     }
-    
+
     [Fact]
     public void commit_blocked_on_main_branch()
     {

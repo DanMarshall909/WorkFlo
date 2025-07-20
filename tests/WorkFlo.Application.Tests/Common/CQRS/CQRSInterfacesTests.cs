@@ -1,7 +1,7 @@
-using WorkFlo.Application.Common.CQRS;
-using WorkFlo.Domain.Common;
 using FluentAssertions;
 using MediatR;
+using WorkFlo.Application.Common.CQRS;
+using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Application.Tests.Common.CQRS;
 

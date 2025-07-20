@@ -5,6 +5,7 @@ This directory contains scripts and tools to enforce the dev branch strategy and
 ## 🚀 Quick Setup
 
 ### 1. Install Pre-Push Hook (Recommended)
+
 ```bash
 # Copy and install the pre-push hook
 cp scripts/pre-push-hook .git/hooks/pre-push
@@ -14,6 +15,7 @@ echo "✅ Pre-push hook installed successfully"
 ```
 
 ### 2. Test the Setup
+
 ```bash
 # This should succeed (dev branch)
 git checkout dev
@@ -28,6 +30,7 @@ rm test-file.txt
 ```
 
 ### 3. Verify Rules Work
+
 ```bash
 # This should be blocked (main branch)
 git checkout main
@@ -41,6 +44,7 @@ git push origin feature/test  # Should fail with pre-push hook
 ## 📋 Available Scripts
 
 ### `pre-push-hook`
+
 - **Purpose**: Local git hook to catch rule violations before they reach GitHub
 - **Installation**: Copy to `.git/hooks/pre-push`
 - **Features**:
@@ -50,6 +54,7 @@ git push origin feature/test  # Should fail with pre-push hook
   - Validates commit message format
 
 ### `pr-quality-check.sh --pre-push`
+
 - **Purpose**: Lightweight quality checks for pre-push validation
 - **Usage**: Called automatically by pre-push hook
 - **Features**:
@@ -61,16 +66,19 @@ git push origin feature/test  # Should fail with pre-push hook
 ## 🔧 Rule Enforcement Layers
 
 ### Layer 1: Local Pre-Push Hook (Optional but Recommended)
+
 - **Speed**: Instant feedback
 - **Scope**: Catches violations before push
 - **Installation**: Manual (per developer)
 
 ### Layer 2: GitHub Actions (Mandatory)
+
 - **Speed**: ~30 seconds after push
 - **Scope**: Catches all violations with detailed error messages
 - **Installation**: Automatic (repository-wide)
 
 ### Layer 3: Branch Protection (If Available)
+
 - **Speed**: Immediate for protected branches
 - **Scope**: GitHub Pro feature only
 - **Installation**: Repository settings
@@ -78,6 +86,7 @@ git push origin feature/test  # Should fail with pre-push hook
 ## 🚨 Common Scenarios and Solutions
 
 ### Scenario 1: Accidentally Pushed to Main
+
 ```bash
 # If caught by pre-push hook:
 # Hook prevents the push - no action needed
@@ -90,6 +99,7 @@ git push origin dev
 ```
 
 ### Scenario 2: Working on Feature Branch
+
 ```bash
 # Current state: feature/my-feature with changes
 
@@ -101,6 +111,7 @@ git push origin dev
 ```
 
 ### Scenario 3: Need to Update Dev from Main
+
 ```bash
 # After a release has been merged to main
 git checkout dev
@@ -109,6 +120,7 @@ git push origin dev
 ```
 
 ### Scenario 4: Quality Checks Fail in Pre-Push
+
 ```bash
 # Fix the issues reported
 ./scripts/pr-quality-check.sh
@@ -120,19 +132,25 @@ git push origin dev --no-verify
 ## 🛠️ Customization
 
 ### Modify Pre-Push Hook
+
 Edit `scripts/pre-push-hook` to:
+
 - Add custom quality checks
 - Modify branch rules
 - Add team-specific validations
 
 ### Extend GitHub Actions
+
 Edit `.github/workflows/push-rules-enforcement.yml` to:
+
 - Add additional rule checks
 - Modify error messages
 - Add team notifications
 
 ### Configure Quality Checks
+
 Edit `scripts/pr-quality-check.sh` to:
+
 - Add new quality gates
 - Modify thresholds
 - Add project-specific checks
@@ -140,6 +158,7 @@ Edit `scripts/pr-quality-check.sh` to:
 ## 🔍 Troubleshooting
 
 ### Pre-Push Hook Not Working
+
 ```bash
 # Check if hook is installed
 ls -la .git/hooks/pre-push
@@ -152,6 +171,7 @@ chmod +x .git/hooks/pre-push
 ```
 
 ### Quality Checks Failing
+
 ```bash
 # Run checks manually to see detailed output
 ./scripts/pr-quality-check.sh --pre-push
@@ -163,6 +183,7 @@ dotnet format --verify-no-changes
 ```
 
 ### GitHub Actions Not Triggering
+
 ```bash
 # Check workflow file syntax
 gh workflow list
@@ -177,6 +198,7 @@ gh run view <run-id>
 ## 📊 Monitoring and Metrics
 
 ### Check Rule Compliance
+
 ```bash
 # View recent push attempts
 gh run list --workflow="Push Rules Enforcement"
@@ -186,6 +208,7 @@ gh run list --status=failure --workflow="Push Rules Enforcement"
 ```
 
 ### Team Adoption
+
 ```bash
 # Check which developers have pre-push hook installed
 # (This requires team coordination - no automatic way to check)
@@ -194,6 +217,7 @@ gh run list --status=failure --workflow="Push Rules Enforcement"
 ## 🎯 Best Practices
 
 ### For Developers
+
 1. **Install pre-push hook** for immediate feedback
 2. **Work only on dev branch** - no exceptions
 3. **Run quality checks** before pushing: `./scripts/pr-quality-check.sh`
@@ -201,12 +225,14 @@ gh run list --status=failure --workflow="Push Rules Enforcement"
 5. **Create PRs only when ready** for production
 
 ### For Team Leads
+
 1. **Monitor GitHub Actions** for rule violations
 2. **Review push rule documentation** with new team members
 3. **Update rules as needed** based on team feedback
 4. **Ensure CI/CD pipeline** reflects current rules
 
 ### For Repository Maintenance
+
 1. **Keep workflows updated** with latest best practices
 2. **Review and update documentation** regularly
 3. **Monitor performance** of quality checks
@@ -221,7 +247,8 @@ gh run list --status=failure --workflow="Push Rules Enforcement"
 
 ---
 
-**Need Help?** 
+**Need Help?**
+
 - Check the [troubleshooting section](#troubleshooting) above
-- Review [GitHub Actions logs](https://github.com/DanMarshall909/Anchor/actions)
+- Review [GitHub Actions logs](https://github.com/DanMarshall909/WorkFlo/actions)
 - Ask in team chat or create an issue

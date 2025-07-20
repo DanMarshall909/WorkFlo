@@ -1,10 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using WorkFlo.Application.Common.Interfaces;
-using WorkFlo.Domain.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using WorkFlo.Application.Common.Interfaces;
+using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Infrastructure.Services.Auth;
 
@@ -24,8 +24,8 @@ public class EmailVerificationTokenService : IEmailVerificationTokenService
     {
         _jwtSecret = configuration["JWT:Secret"] ??
                     throw new InvalidOperationException("JWT:Secret is not configured");
-        _jwtIssuer = configuration["JWT:Issuer"] ?? "Anchor";
-        _jwtAudience = configuration["JWT:Audience"] ?? "Anchor";
+        _jwtIssuer = configuration["JWT:Issuer"] ?? "WorkFlo";
+        _jwtAudience = configuration["JWT:Audience"] ?? "WorkFlo";
         _tokenExpiryHours = configuration.GetValue<int>("EmailVerification:TokenExpiryHours", 24);
     }
 
