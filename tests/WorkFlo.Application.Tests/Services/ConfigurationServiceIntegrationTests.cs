@@ -99,7 +99,7 @@ public class ConfigurationServiceIntegrationTests
         await File.WriteAllTextAsync(configPath, json);
 
         using var configService = new ConfigurationService(configPath);
-        using var tddService = new TddStateService();
+        var tddService = new TddStateService();
 
         try
         {
@@ -124,6 +124,7 @@ public class ConfigurationServiceIntegrationTests
         }
         finally
         {
+            tddService?.Dispose();
             Directory.Delete(configDir, true);
         }
     }
@@ -131,8 +132,8 @@ public class ConfigurationServiceIntegrationTests
     [Fact]
     public async Task tdd_state_service_cleans_up_stale_entries()
     {
-        // Arrange
-        using var service = new TddStateService();
+        // Arrange  
+        var service = new TddStateService();
 
         // Act - Set a phase for a feature
         await service.SetPhaseAsync("test-feature", TddPhase.Red);
@@ -144,7 +145,7 @@ public class ConfigurationServiceIntegrationTests
 
         // Note: Testing actual cleanup would require mocking DateTime or very long waits
         // This test verifies the basic functionality works
-        // Real cleanup is tested through the timer mechanism in production
+        service?.Dispose();
     }
 
     [Fact]

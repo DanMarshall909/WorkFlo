@@ -19,16 +19,19 @@ public class ConfigurationService : IConfigurationService
 
     public async Task<Result<WorkFloConfiguration>> LoadConfigAsync()
     {
-        if (_cachedConfig != null)
-        {
-            return Success(_cachedConfig);
-        }
-
+        await _configSemaphore.WaitAsync().ConfigureAwait(false);
         try
         {
+            // Return cached config if still valid
+            if (_cachedConfig != null && !IsConfigStale())
+            {
+                return Success(_cachedConfig);
+            }
+
             if (!File.Exists(_configPath))
             {
                 _cachedConfig = GetDefaultConfiguration();
+                _lastConfigCheck = DateTime.UtcNow;
                 return Success(_cachedConfig);
             }
 
@@ -36,6 +39,7 @@ public class ConfigurationService : IConfigurationService
             WorkFloConfiguration? config = JsonSerializer.Deserialize<WorkFloConfiguration>(json, GetJsonOptions());
 
             _cachedConfig = MergeWithDefaults(config ?? new WorkFloConfiguration());
+            _lastConfigCheck = DateTime.UtcNow;
             return Success(_cachedConfig);
         }
         catch (JsonException ex)
@@ -45,6 +49,10 @@ public class ConfigurationService : IConfigurationService
         catch (Exception ex)
         {
             return Failure<WorkFloConfiguration>($"Failed to load configuration: {ex.Message}");
+        }
+        finally
+        {
+            _configSemaphore.Release();
         }
     }
 
