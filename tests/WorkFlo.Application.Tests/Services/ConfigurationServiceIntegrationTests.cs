@@ -110,7 +110,7 @@ public class ConfigurationServiceIntegrationTests
             // Assert - Configuration affects endpoint behavior
             validationResult.IsSuccess.Should().BeTrue();
             validationResult.Value!.EnableTdd.Should().BeFalse();
-            
+
             tddResult.IsSuccess.Should().BeTrue();
             tddResult.Value!.EnforceTransitions.Should().BeFalse();
 

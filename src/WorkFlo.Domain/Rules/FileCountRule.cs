@@ -11,6 +11,7 @@ public class FileCountRule : ICommitRule
 
     public Result Validate(CommitContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         if (context.StagedFiles.Count > MaxFilesPerCommit)
         {
             return Result.Failure($"Too many files in commit. Maximum {MaxFilesPerCommit} files allowed, but found {context.StagedFiles.Count}.");
