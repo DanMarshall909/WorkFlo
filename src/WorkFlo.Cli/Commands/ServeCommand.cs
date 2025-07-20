@@ -38,18 +38,29 @@ internal class ServeCommand
         {
             try
             {
-                var configService = new ConfigurationService();
+                using var configService = new ConfigurationService();
                 Domain.Common.Result<ApiSettings> apiConfigResult = await configService.GetApiSettingsAsync().ConfigureAwait(false);
                 if (apiConfigResult.IsSuccess)
                 {
                     actualPort = apiConfigResult.Value!.Port;
                     await _console.WriteLineAsync($"Using port {actualPort} from configuration").ConfigureAwait(false);
                 }
+                else
+                {
+                    await _console.WriteLineAsync($"Configuration error: {apiConfigResult.Error}. Using default port {port}").ConfigureAwait(false);
+                }
             }
-            catch
+            catch (UnauthorizedAccessException ex)
             {
-                // If config fails, fall back to command line port
-                await _console.WriteLineAsync("Configuration unavailable, using command line port").ConfigureAwait(false);
+                await _console.WriteLineAsync($"Configuration file access denied: {ex.Message}. Using default port {port}").ConfigureAwait(false);
+            }
+            catch (IOException ex)
+            {
+                await _console.WriteLineAsync($"Configuration file I/O error: {ex.Message}. Using default port {port}").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await _console.WriteLineAsync($"Unexpected configuration error: {ex.Message}. Using default port {port}").ConfigureAwait(false);
             }
         }
 

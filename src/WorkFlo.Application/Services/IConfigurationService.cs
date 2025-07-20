@@ -2,7 +2,7 @@ using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Application.Services;
 
-public interface IConfigurationService
+public interface IConfigurationService : IDisposable
 {
     Task<Result<WorkFloConfiguration>> LoadConfigAsync();
     Task<Result<ValidationSettings>> GetValidationRulesAsync();

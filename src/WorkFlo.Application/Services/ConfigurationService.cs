@@ -7,7 +7,10 @@ namespace WorkFlo.Application.Services;
 public class ConfigurationService : IConfigurationService
 {
     private readonly string _configPath;
+    private readonly SemaphoreSlim _configSemaphore = new(1, 1);
     private WorkFloConfiguration? _cachedConfig;
+    private DateTime _lastConfigCheck = DateTime.MinValue;
+    private readonly TimeSpan _cacheTimeout = TimeSpan.FromMinutes(5);
 
     public ConfigurationService(string configPath = ".workflo/config.json")
     {
@@ -99,6 +102,11 @@ public class ConfigurationService : IConfigurationService
         return config;
     }
 
+    private bool IsConfigStale()
+    {
+        return DateTime.UtcNow - _lastConfigCheck > _cacheTimeout;
+    }
+
     private static JsonSerializerOptions GetJsonOptions()
     {
         return new JsonSerializerOptions
@@ -108,5 +116,10 @@ public class ConfigurationService : IConfigurationService
             ReadCommentHandling = JsonCommentHandling.Skip,
             AllowTrailingCommas = true
         };
+    }
+
+    public void Dispose()
+    {
+        _configSemaphore?.Dispose();
     }
 }
