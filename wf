@@ -1,0 +1,519 @@
+#!/bin/bash
+
+# WorkFlo Unified Command Entry Point
+# Consolidates all WorkFlo functionality for improved developer experience
+
+set -euo pipefail
+
+# Color definitions for consistent output
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly PURPLE='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly WHITE='\033[1;37m'
+readonly NC='\033[0m' # No Color
+
+# Ensure we're in the WorkFlo project directory
+check_workflo_directory() {
+    if [[ ! -f "WorkFlo.sln" ]]; then
+        echo -e "${RED}Error: WorkFlo.sln not found. Please run this command from the WorkFlo project root.${NC}" >&2
+        exit 1
+    fi
+}
+
+# Display the main help message
+show_help() {
+    echo -e "${BLUE}🚀 WorkFlo Unified Command Interface${NC}"
+    echo -e "${WHITE}Usage: wf <category> [subcmd] [args...]${NC}"
+    echo ""
+    echo -e "${CYAN}📋 COMMAND CATEGORIES:${NC}"
+    echo ""
+    echo -e "${GREEN}  workflow${NC}     - Issue and workflow management"
+    echo -e "    start [issue]    Start work on issue (interactive if no issue specified)"
+    echo -e "    status          Show current work status" 
+    echo -e "    complete [issue] Complete and close issue"
+    echo ""
+    echo -e "${GREEN}  development${NC}  - TDD and development workflows"
+    echo -e "    tdd <phase>     TDD cycle management (red, green, refactor, cover, commit)"
+    echo -e "    test            Run tests"
+    echo -e "    build           Build solution"
+    echo -e "    serve           Start API server"
+    echo -e "    dev             Start development environment"
+    echo ""
+    echo -e "${GREEN}  quality${NC}      - Code quality and validation"
+    echo -e "    qc [options]    Quality check (links to workflo CLI)"
+    echo -e "    quality         Quality analysis"
+    echo -e "    lint            Lint code"
+    echo -e "    format          Format code"
+    echo ""
+    echo -e "${GREEN}  git${NC}          - Git operations and validation"
+    echo -e "    commit <msg>    Safe commit with quality checks"
+    echo -e "    validate        Validate current changes"
+    echo -e "    install         Install git hooks"
+    echo ""
+    echo -e "${GREEN}  analysis${NC}     - Project analysis and GitHub board"
+    echo -e "    board <cmd>     GitHub board operations (show, start, complete)"
+    echo -e "    analyze         Code analysis"
+    echo -e "    create          Create issues"
+    echo ""
+    echo -e "${GREEN}  utilities${NC}    - CLI and script management"
+    echo -e "    cli <cmd>       WorkFlo CLI commands"
+    echo -e "    script <name>   Run specific script"
+    echo -e "    help [category] Show help (general or category-specific)"
+    echo -e "    version         Show version information"
+    echo ""
+    echo -e "${YELLOW}Examples:${NC}"
+    echo -e "  wf start               # Interactive issue selection"
+    echo -e "  wf start 42            # Start work on issue #42"
+    echo -e "  wf tdd red             # Mark TDD phase as RED"
+    echo -e "  wf qc                  # Run quality checks"
+    echo -e "  wf board show          # View GitHub board"
+    echo -e "  wf commit \"fix bug\"    # Safe commit with quality checks"
+    echo ""
+    echo -e "${PURPLE}💡 Get category-specific help: wf help <category>${NC}"
+}
+
+# Show category-specific help
+show_category_help() {
+    local category="$1"
+    
+    case "$category" in
+        workflow)
+            echo -e "${BLUE}📋 WorkFlo - Workflow Management${NC}"
+            echo -e "${WHITE}Commands for issue and workflow management${NC}"
+            echo ""
+            echo -e "${GREEN}Available Commands:${NC}"
+            echo -e "  start [issue]    Start work on issue (interactive selection if no issue)"
+            echo -e "  status          Show current work status and progress"
+            echo -e "  complete [issue] Complete and close current or specified issue"
+            echo ""
+            echo -e "${YELLOW}Examples:${NC}"
+            echo -e "  wf start               # Interactive issue selection"
+            echo -e "  wf start 73            # Start work on issue #73"
+            echo -e "  wf status              # Show current work status"
+            echo -e "  wf complete            # Complete current issue"
+            echo -e "  wf complete 73         # Complete issue #73"
+            ;;
+        development)
+            echo -e "${BLUE}⚡ WorkFlo - Development Workflows${NC}"
+            echo -e "${WHITE}Commands for TDD and development processes${NC}"
+            echo ""
+            echo -e "${GREEN}Available Commands:${NC}"
+            echo -e "  tdd <phase>     TDD cycle management"
+            echo -e "    - red         Mark current phase as RED (failing test)"
+            echo -e "    - green       Mark current phase as GREEN (passing test)"
+            echo -e "    - refactor    Mark current phase as REFACTOR"
+            echo -e "    - cover       Mark current phase as COVER (coverage check)"
+            echo -e "    - commit      Mark current phase as COMMIT (complete cycle)"
+            echo -e "  test            Run test suite"
+            echo -e "  build           Build the solution"
+            echo -e "  serve           Start API server"
+            echo -e "  dev             Start full development environment"
+            echo ""
+            echo -e "${YELLOW}Examples:${NC}"
+            echo -e "  wf tdd red             # Mark TDD phase as RED"
+            echo -e "  wf test                # Run tests"
+            echo -e "  wf build               # Build solution"
+            ;;
+        quality)
+            echo -e "${BLUE}🔍 WorkFlo - Quality Assurance${NC}"
+            echo -e "${WHITE}Commands for code quality and validation${NC}"
+            echo ""
+            echo -e "${GREEN}Available Commands:${NC}"
+            echo -e "  qc [options]    Quality check (delegates to workflo CLI)"
+            echo -e "  quality         Comprehensive quality analysis"
+            echo -e "  lint            Run linting tools"
+            echo -e "  format          Format code according to standards"
+            echo ""
+            echo -e "${YELLOW}Examples:${NC}"
+            echo -e "  wf qc                  # Run quality checks"
+            echo -e "  wf qc --skip-tests     # Quality check without tests"
+            echo -e "  wf quality             # Full quality analysis"
+            ;;
+        git)
+            echo -e "${BLUE}🔧 WorkFlo - Git Operations${NC}"
+            echo -e "${WHITE}Commands for git operations and validation${NC}"
+            echo ""
+            echo -e "${GREEN}Available Commands:${NC}"
+            echo -e "  commit <msg>    Safe commit with quality checks"
+            echo -e "  validate        Validate current changes"
+            echo -e "  install         Install WorkFlo git hooks"
+            echo ""
+            echo -e "${YELLOW}Examples:${NC}"
+            echo -e "  wf commit \"fix bug\"   # Safe commit with validation"
+            echo -e "  wf validate            # Validate current changes"
+            echo -e "  wf install             # Install git hooks"
+            ;;
+        analysis)
+            echo -e "${BLUE}📊 WorkFlo - Analysis & Board Management${NC}"
+            echo -e "${WHITE}Commands for project analysis and GitHub board operations${NC}"
+            echo ""
+            echo -e "${GREEN}Available Commands:${NC}"
+            echo -e "  board <cmd>     GitHub board operations"
+            echo -e "    - show        Show current board status"
+            echo -e "    - start <id>  Start work on issue"
+            echo -e "    - complete <id> Complete issue"
+            echo -e "  analyze         Run code analysis"
+            echo -e "  create          Create new issues"
+            echo ""
+            echo -e "${YELLOW}Examples:${NC}"
+            echo -e "  wf board show          # View board status"
+            echo -e "  wf board start 73      # Start work on issue #73"
+            echo -e "  wf analyze             # Run code analysis"
+            ;;
+        utilities)
+            echo -e "${BLUE}🛠️ WorkFlo - Utilities${NC}"
+            echo -e "${WHITE}Commands for CLI and script management${NC}"
+            echo ""
+            echo -e "${GREEN}Available Commands:${NC}"
+            echo -e "  cli <cmd>       Direct WorkFlo CLI commands"
+            echo -e "  script <name>   Run specific script from scripts/ directory"
+            echo -e "  help [category] Show help (general or category-specific)"
+            echo -e "  version         Show version information"
+            echo ""
+            echo -e "${YELLOW}Examples:${NC}"
+            echo -e "  wf cli serve           # Direct CLI serve command"
+            echo -e "  wf script start-dev    # Run start-dev.sh script"
+            echo -e "  wf help workflow       # Show workflow help"
+            ;;
+        *)
+            echo -e "${RED}Unknown category: $category${NC}" >&2
+            echo -e "${WHITE}Available categories: workflow, development, quality, git, analysis, utilities${NC}"
+            exit 1
+            ;;
+    esac
+}
+
+# Execute workflow commands
+execute_workflow() {
+    local subcmd="${1:-}"
+    shift || true
+    
+    case "$subcmd" in
+        start)
+            if [[ -x "./sw" ]]; then
+                ./sw "$@"
+            else
+                echo -e "${RED}Error: ./sw script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        status)
+            if [[ -x "./scripts/gh-board-sync.sh" ]]; then
+                ./scripts/gh-board-sync.sh show
+            else
+                echo -e "${RED}Error: GitHub board sync script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        complete)
+            if [[ -x "./gb" ]]; then
+                if [[ $# -gt 0 ]]; then
+                    ./gb complete "$@"
+                else
+                    echo -e "${YELLOW}Please specify an issue number to complete${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}Error: ./gb script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        help)
+            show_category_help "workflow"
+            ;;
+        *)
+            echo -e "${RED}Unknown workflow command: $subcmd${NC}" >&2
+            show_category_help "workflow"
+            exit 1
+            ;;
+    esac
+}
+
+# Execute development commands
+execute_development() {
+    local subcmd="${1:-}"
+    shift || true
+    
+    case "$subcmd" in
+        tdd)
+            if [[ -x "./scripts/tdd-auto-cycle.sh" ]]; then
+                ./scripts/tdd-auto-cycle.sh "$@"
+            else
+                echo -e "${RED}Error: TDD auto-cycle script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        test)
+            dotnet test
+            ;;
+        build)
+            dotnet build
+            ;;
+        serve)
+            if command -v workflo >/dev/null 2>&1; then
+                workflo serve "$@"
+            else
+                dotnet run --project src/WorkFlo.Cli -- serve "$@"
+            fi
+            ;;
+        dev)
+            if [[ -x "./scripts/start-dev.sh" ]]; then
+                ./scripts/start-dev.sh
+            else
+                echo -e "${RED}Error: start-dev.sh script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        help)
+            show_category_help "development"
+            ;;
+        *)
+            echo -e "${RED}Unknown development command: $subcmd${NC}" >&2
+            show_category_help "development"
+            exit 1
+            ;;
+    esac
+}
+
+# Execute quality commands
+execute_quality() {
+    local subcmd="${1:-}"
+    shift || true
+    
+    case "$subcmd" in
+        qc)
+            if [[ -x "./qc" ]]; then
+                ./qc "$@"
+            else
+                echo -e "${RED}Error: ./qc script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        quality)
+            if [[ -x "./scripts/pr-quality-check.sh" ]]; then
+                ./scripts/pr-quality-check.sh
+            else
+                echo -e "${RED}Error: Quality check script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        lint)
+            dotnet format --verify-no-changes
+            ;;
+        format)
+            dotnet format
+            ;;
+        help)
+            show_category_help "quality"
+            ;;
+        *)
+            echo -e "${RED}Unknown quality command: $subcmd${NC}" >&2
+            show_category_help "quality"
+            exit 1
+            ;;
+    esac
+}
+
+# Execute git commands
+execute_git() {
+    local subcmd="${1:-}"
+    shift || true
+    
+    case "$subcmd" in
+        commit)
+            if [[ $# -eq 0 ]]; then
+                echo -e "${RED}Error: Commit message required${NC}" >&2
+                echo -e "${WHITE}Usage: wf commit \"<message>\"${NC}"
+                exit 1
+            fi
+            if [[ -x "./scripts/safe-commit.sh" ]]; then
+                ./scripts/safe-commit.sh "$@"
+            else
+                echo -e "${RED}Error: safe-commit.sh script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        validate)
+            if command -v workflo >/dev/null 2>&1; then
+                workflo validate "$@"
+            else
+                dotnet run --project src/WorkFlo.Cli -- validate "$@"
+            fi
+            ;;
+        install)
+            if command -v workflo >/dev/null 2>&1; then
+                workflo install "$@"
+            else
+                dotnet run --project src/WorkFlo.Cli -- install "$@"
+            fi
+            ;;
+        help)
+            show_category_help "git"
+            ;;
+        *)
+            echo -e "${RED}Unknown git command: $subcmd${NC}" >&2
+            show_category_help "git"
+            exit 1
+            ;;
+    esac
+}
+
+# Execute analysis commands
+execute_analysis() {
+    local subcmd="${1:-}"
+    shift || true
+    
+    case "$subcmd" in
+        board)
+            if [[ -x "./gb" ]]; then
+                ./gb "$@"
+            else
+                echo -e "${RED}Error: ./gb script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        analyze)
+            if [[ -x "./scripts/analyze-code-context.sh" ]]; then
+                ./scripts/analyze-code-context.sh
+            else
+                echo -e "${RED}Error: Code analysis script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        create)
+            if [[ -x "./scripts/create-quality-issue.sh" ]]; then
+                ./scripts/create-quality-issue.sh "$@"
+            else
+                echo -e "${RED}Error: Issue creation script not found${NC}" >&2
+                exit 1
+            fi
+            ;;
+        help)
+            show_category_help "analysis"
+            ;;
+        *)
+            echo -e "${RED}Unknown analysis command: $subcmd${NC}" >&2
+            show_category_help "analysis"
+            exit 1
+            ;;
+    esac
+}
+
+# Execute utility commands
+execute_utilities() {
+    local subcmd="${1:-}"
+    shift || true
+    
+    case "$subcmd" in
+        cli)
+            if command -v workflo >/dev/null 2>&1; then
+                workflo "$@"
+            else
+                dotnet run --project src/WorkFlo.Cli -- "$@"
+            fi
+            ;;
+        script)
+            if [[ $# -eq 0 ]]; then
+                echo -e "${RED}Error: Script name required${NC}" >&2
+                echo -e "${WHITE}Usage: wf script <script_name> [args...]${NC}"
+                exit 1
+            fi
+            local script_name="$1"
+            shift
+            local script_path="./scripts/${script_name}.sh"
+            if [[ -x "$script_path" ]]; then
+                "$script_path" "$@"
+            else
+                echo -e "${RED}Error: Script $script_path not found or not executable${NC}" >&2
+                exit 1
+            fi
+            ;;
+        help)
+            if [[ $# -gt 0 ]]; then
+                show_category_help "$1"
+            else
+                show_help
+            fi
+            ;;
+        version)
+            echo -e "${BLUE}WorkFlo Unified Command Interface${NC}"
+            echo -e "${WHITE}Version: 1.0.0${NC}"
+            if command -v workflo >/dev/null 2>&1; then
+                echo -e "${CYAN}WorkFlo CLI version:${NC}"
+                workflo --version 2>/dev/null || echo "  (version info unavailable)"
+            fi
+            ;;
+        *)
+            show_category_help "utilities"
+            ;;
+    esac
+}
+
+# Main command dispatcher
+main() {
+    check_workflo_directory
+    
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 0
+    fi
+    
+    local category="$1"
+    shift
+    
+    case "$category" in
+        workflow)
+            execute_workflow "$@"
+            ;;
+        development)
+            execute_development "$@"
+            ;;
+        quality)
+            execute_quality "$@"
+            ;;
+        git)
+            execute_git "$@"
+            ;;
+        analysis)
+            execute_analysis "$@"
+            ;;
+        utilities)
+            execute_utilities "$@"
+            ;;
+        help)
+            if [[ $# -gt 0 ]]; then
+                show_category_help "$1"
+            else
+                show_help
+            fi
+            ;;
+        version)
+            execute_utilities version
+            ;;
+        # Direct command aliases for common operations
+        start)
+            execute_workflow start "$@"
+            ;;
+        qc)
+            execute_quality qc "$@"
+            ;;
+        board)
+            execute_analysis board "$@"
+            ;;
+        commit)
+            execute_git commit "$@"
+            ;;
+        *)
+            echo -e "${RED}Unknown category: $category${NC}" >&2
+            echo -e "${WHITE}Available categories: workflow, development, quality, git, analysis, utilities${NC}"
+            echo -e "${PURPLE}Use 'wf help' for more information${NC}"
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function with all arguments
+main "$@"
