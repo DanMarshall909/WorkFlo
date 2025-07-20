@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-internal class QualityCommand
+internal sealed class QualityCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
@@ -121,7 +121,7 @@ internal class QualityCommand
         return command;
     }
 
-    private async Task HandleQualityCheckAsync(bool skipTests, bool skipCoverage, bool skipMutation)
+    private async Task HandleQualityCheckAsync(bool skipTests, bool skipCoverage, bool skipMutation, bool autoFix)
     {
         await _console.WriteLineAsync("🔍 Running comprehensive quality checks...").ConfigureAwait(false);
 
@@ -266,7 +266,7 @@ internal class QualityCommand
         }
     }
 
-    private Task<string> GenerateQualityReportAsync(string format)
+    private static Task<string> GenerateQualityReportAsync(string format)
     {
         // Basic quality report generation
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");

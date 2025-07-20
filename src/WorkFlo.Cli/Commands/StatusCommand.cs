@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-internal class StatusCommand
+internal sealed class StatusCommand
 {
     private readonly IConsoleService _console;
 

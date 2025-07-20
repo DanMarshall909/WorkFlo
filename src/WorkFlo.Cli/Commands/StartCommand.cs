@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-internal class StartCommand
+internal sealed class StartCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
