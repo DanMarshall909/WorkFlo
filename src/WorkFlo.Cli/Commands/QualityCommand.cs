@@ -121,7 +121,7 @@ internal class QualityCommand
         return command;
     }
 
-    private async Task HandleQualityCheckAsync(bool skipTests, bool skipCoverage, bool skipMutation)
+    private async Task HandleQualityCheckAsync(bool skipTests, bool skipCoverage, bool skipMutation, bool autoFix)
     {
         await _console.WriteLineAsync("🔍 Running comprehensive quality checks...").ConfigureAwait(false);
 

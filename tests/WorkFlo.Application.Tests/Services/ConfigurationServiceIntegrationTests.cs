@@ -170,11 +170,7 @@ public class ConfigurationServiceIntegrationTests
             apiConfigResult.IsSuccess.Should().BeTrue();
             apiConfigResult.Value!.Port.Should().Be(7777);
 
-            // This validates the integration pattern:
-            // if (apiConfigResult.IsSuccess)
-            // {
-            //     actualPort = apiConfigResult.Value!.Port;
-            // }
+            // This validates the integration pattern where the caller uses the config result
         }
         finally
         {
