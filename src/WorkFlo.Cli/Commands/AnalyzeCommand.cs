@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-internal class AnalyzeCommand
+internal sealed class AnalyzeCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;

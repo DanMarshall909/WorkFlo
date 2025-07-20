@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace WorkFlo.Cli.Services;
 
-internal class GitService : IGitService
+internal sealed class GitService : IGitService
 {
     public async Task<string[]> GetStagedFilesAsync()
     {

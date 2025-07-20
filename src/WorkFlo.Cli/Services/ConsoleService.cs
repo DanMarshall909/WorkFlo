@@ -1,6 +1,6 @@
 namespace WorkFlo.Cli.Services;
 
-internal class ConsoleService : IConsoleService
+internal sealed class ConsoleService : IConsoleService
 {
     public void WriteLine(string message)
     {
