@@ -1,0 +1,461 @@
+#!/bin/bash
+
+# WorkFlo - Unified Command Entry Point
+# Single script to access all WorkFlo functionality
+# Usage: wf <command> [args...]
+
+set -euo pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+PURPLE='\033[0;35m'
+NC='\033[0m'
+
+# Logging functions
+log() { echo -e "${BLUE}[WF]${NC} $1"; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+fatal_error() { echo -e "${RED}[FATAL]${NC} $1" >&2; exit 1; }
+
+# Show help
+show_help() {
+    echo -e "${CYAN}🚀 WorkFlo - AI-Powered Workflow Enforcement${NC}"
+    echo "============================================="
+    echo ""
+    echo -e "${YELLOW}WORKFLOW COMMANDS:${NC}"
+    echo "  start [issue]     🚀 Start work on an issue (./sw)"
+    echo "  status            📊 Show current work status"
+    echo "  complete [issue]  ✅ Complete and close issue"
+    echo ""
+    echo -e "${YELLOW}DEVELOPMENT COMMANDS:${NC}"
+    echo "  tdd [command]     🧪 TDD workflow management"
+    echo "  test              🧪 Run tests"
+    echo "  build             🔨 Build solution"
+    echo "  serve             🌐 Start API server"
+    echo "  dev               🚀 Start full development environment"
+    echo ""
+    echo -e "${YELLOW}QUALITY COMMANDS:${NC}"
+    echo "  qc                🔍 Quality check (comprehensive)"
+    echo "  quality [action]  📋 Quality management commands"
+    echo "  lint              🧹 Run linting"
+    echo "  format            ✨ Format code"
+    echo ""
+    echo -e "${YELLOW}GIT WORKFLOW:${NC}"
+    echo "  commit [msg]      📝 Safe commit with quality checks"
+    echo "  validate [type]   ✅ Validate commit/push/pre-commit"
+    echo "  install           ⚙️  Install git hooks"
+    echo ""
+    echo -e "${YELLOW}BOARD & ANALYSIS:${NC}"
+    echo "  board [action]    📋 GitHub board operations"
+    echo "  analyze [type]    🔍 Code analysis commands"
+    echo "  create [type]     ➕ Create issues/features"
+    echo ""
+    echo -e "${YELLOW}CLI & UTILITIES:${NC}"
+    echo "  cli [command]     🖥️  Run WorkFlo CLI directly"
+    echo "  script [name]     📜 Run specific script"
+    echo "  help              ❓ Show this help"
+    echo "  version           ℹ️  Show version information"
+    echo ""
+    echo -e "${YELLOW}EXAMPLES:${NC}"
+    echo "  wf start          # Interactive issue selection"
+    echo "  wf start 42       # Start work on issue #42"
+    echo "  wf tdd red        # Mark TDD phase as RED"
+    echo "  wf qc             # Full quality check"
+    echo "  wf board show     # View GitHub board"
+    echo "  wf commit \"fix\"   # Safe commit with message"
+    echo ""
+}
+
+# Show TDD help
+show_tdd_help() {
+    echo -e "${CYAN}🧪 TDD Workflow Commands${NC}"
+    echo "========================"
+    echo ""
+    echo "  red               🔴 Mark current phase as RED (failing test)"
+    echo "  green             🟢 Mark current phase as GREEN (passing test)"
+    echo "  refactor          🔵 Mark current phase as REFACTOR"
+    echo "  cover             📊 Mark current phase as COVER (coverage)"
+    echo "  commit            ✅ Complete TDD cycle and commit"
+    echo "  status            📋 Check current TDD phase"
+    echo "  auto [feature]    🤖 Auto-detect TDD phase"
+    echo "  watch             👀 Watch tests continuously"
+    echo "  hooks [name]      🪝 TDD workflow for React hooks"
+    echo "  feature [name]    ⭐ TDD workflow for features"
+    echo ""
+}
+
+# Show board help
+show_board_help() {
+    echo -e "${CYAN}📋 GitHub Board Commands${NC}"
+    echo "========================"
+    echo ""
+    echo "  show              👀 View current board status"
+    echo "  start [issue]     🚀 Start work on issue"
+    echo "  complete [issue]  ✅ Complete and close issue"
+    echo "  sync              🔄 Sync board with GitHub"
+    echo ""
+}
+
+# Show quality help
+show_quality_help() {
+    echo -e "${CYAN}📋 Quality Management Commands${NC}"
+    echo "=============================="
+    echo ""
+    echo "  check             🔍 Run comprehensive quality checks"
+    echo "  gate              🚪 Execute quality gate validation"
+    echo "  report [format]   📊 Generate quality report"
+    echo "  analyze           🔍 Analyze code quality"
+    echo ""
+}
+
+# Run specific command categories
+run_tdd_command() {
+    local cmd="${1:-status}"
+    shift || true
+    
+    case "$cmd" in
+        "red"|"green"|"refactor"|"cover"|"commit"|"status")
+            if [[ -f "./scripts/tdd-auto-cycle.sh" ]]; then
+                ./scripts/tdd-auto-cycle.sh "$cmd" "$@"
+            else
+                error "TDD auto-cycle script not found"
+            fi
+            ;;
+        "auto")
+            if [[ -f "./scripts/tdd-auto-cycle.sh" ]]; then
+                ./scripts/tdd-auto-cycle.sh "$@"
+            else
+                error "TDD auto-cycle script not found"
+            fi
+            ;;
+        "watch")
+            if [[ -f "./scripts/tdd-test-watcher.sh" ]]; then
+                ./scripts/tdd-test-watcher.sh watch "$@"
+            else
+                error "TDD test watcher script not found"
+            fi
+            ;;
+        "hooks")
+            local hook_name="${1:-}"
+            local description="${2:-}"
+            if [[ -z "$hook_name" ]]; then
+                error "Hook name required: wf tdd hooks <hook-name> [description]"
+                return 1
+            fi
+            if [[ -f "./scripts/tdd-hooks-commit.sh" ]]; then
+                ./scripts/tdd-hooks-commit.sh "$hook_name" "$description"
+            else
+                error "TDD hooks commit script not found"
+            fi
+            ;;
+        "feature")
+            local feature_name="${1:-}"
+            local description="${2:-}"
+            if [[ -z "$feature_name" ]]; then
+                error "Feature name required: wf tdd feature <feature-name> [description]"
+                return 1
+            fi
+            if [[ -f "./scripts/tdd-phase-4-commit.sh" ]]; then
+                ./scripts/tdd-phase-4-commit.sh "$feature_name" "$description"
+            else
+                error "TDD phase 4 commit script not found"
+            fi
+            ;;
+        "help"|"--help"|"-h")
+            show_tdd_help
+            ;;
+        *)
+            error "Unknown TDD command: $cmd"
+            show_tdd_help
+            return 1
+            ;;
+    esac
+}
+
+run_board_command() {
+    local cmd="${1:-show}"
+    shift || true
+    
+    case "$cmd" in
+        "show"|"start"|"complete"|"sync")
+            if [[ -f "./scripts/gh-board-sync.sh" ]]; then
+                ./scripts/gh-board-sync.sh "$cmd" "$@"
+            else
+                error "GitHub board sync script not found"
+            fi
+            ;;
+        "help"|"--help"|"-h")
+            show_board_help
+            ;;
+        *)
+            error "Unknown board command: $cmd"
+            show_board_help
+            return 1
+            ;;
+    esac
+}
+
+run_quality_command() {
+    local cmd="${1:-check}"
+    shift || true
+    
+    case "$cmd" in
+        "check"|"gate"|"report")
+            if command -v dotnet >/dev/null 2>&1; then
+                dotnet run --project src/WorkFlo.Cli/WorkFlo.Cli.csproj -- quality "$cmd" "$@"
+            else
+                error ".NET runtime not found"
+            fi
+            ;;
+        "analyze")
+            if [[ -f "./scripts/analyze-code-context.sh" ]]; then
+                ./scripts/analyze-code-context.sh "$@"
+            else
+                error "Code analysis script not found"
+            fi
+            ;;
+        "help"|"--help"|"-h")
+            show_quality_help
+            ;;
+        *)
+            error "Unknown quality command: $cmd"
+            show_quality_help
+            return 1
+            ;;
+    esac
+}
+
+run_analyze_command() {
+    local cmd="${1:-code}"
+    shift || true
+    
+    case "$cmd" in
+        "code"|"context")
+            if [[ -f "./scripts/analyze-code-context.sh" ]]; then
+                ./scripts/analyze-code-context.sh "$@"
+            else
+                error "Code analysis script not found"
+            fi
+            ;;
+        "coverage")
+            if [[ -f "./scripts/analyze-coverage-gaps.sh" ]]; then
+                ./scripts/analyze-coverage-gaps.sh "$@"
+            else
+                error "Coverage analysis script not found"
+            fi
+            ;;
+        "parallel")
+            if [[ -f "./scripts/ai-parallel-analysis.sh" ]]; then
+                ./scripts/ai-parallel-analysis.sh "$@"
+            else
+                error "Parallel analysis script not found"
+            fi
+            ;;
+        *)
+            error "Unknown analyze command: $cmd"
+            echo "Available: code, coverage, parallel"
+            return 1
+            ;;
+    esac
+}
+
+run_create_command() {
+    local cmd="${1:-issue}"
+    shift || true
+    
+    case "$cmd" in
+        "issue")
+            if [[ -f "./scripts/create-quality-issue.sh" ]]; then
+                ./scripts/create-quality-issue.sh "$@"
+            else
+                error "Create quality issue script not found"
+            fi
+            ;;
+        "feature")
+            if [[ -f "./scripts/create-feature-branches.sh" ]]; then
+                ./scripts/create-feature-branches.sh "$@"
+            else
+                error "Create feature branches script not found"
+            fi
+            ;;
+        *)
+            error "Unknown create command: $cmd"
+            echo "Available: issue, feature"
+            return 1
+            ;;
+    esac
+}
+
+# Main command dispatcher
+main() {
+    local command="${1:-help}"
+    shift || true
+    
+    case "$command" in
+        # Workflow commands
+        "start"|"sw")
+            if [[ -f "./sw" ]]; then
+                ./sw "$@"
+            else
+                error "Start work script not found"
+            fi
+            ;;
+        "status")
+            if [[ -f "PROGRESS.md" ]]; then
+                echo -e "${CYAN}📋 Current Progress:${NC}"
+                cat PROGRESS.md
+            else
+                log "No active work session"
+            fi
+            ;;
+        "complete")
+            local issue="${1:-}"
+            if [[ -n "$issue" ]]; then
+                run_board_command complete "$issue"
+            else
+                error "Issue number required: wf complete <issue>"
+            fi
+            ;;
+            
+        # Development commands
+        "tdd")
+            run_tdd_command "$@"
+            ;;
+        "test")
+            log "Running tests..."
+            dotnet test
+            ;;
+        "build")
+            log "Building solution..."
+            dotnet build
+            ;;
+        "serve")
+            if command -v dotnet >/dev/null 2>&1; then
+                dotnet run --project src/WorkFlo.Cli/WorkFlo.Cli.csproj -- serve "$@"
+            else
+                error ".NET runtime not found"
+            fi
+            ;;
+        "dev")
+            if [[ -f "./scripts/start-dev.sh" ]]; then
+                ./scripts/start-dev.sh
+            else
+                error "Development start script not found"
+            fi
+            ;;
+            
+        # Quality commands
+        "qc")
+            if [[ -f "./qc" ]]; then
+                ./qc
+            else
+                error "Quality check script not found"
+            fi
+            ;;
+        "quality")
+            run_quality_command "$@"
+            ;;
+        "lint")
+            log "Running linter..."
+            dotnet format --verify-no-changes
+            ;;
+        "format")
+            log "Formatting code..."
+            dotnet format
+            ;;
+            
+        # Git workflow
+        "commit")
+            local message="${1:-}"
+            if [[ -n "$message" ]]; then
+                if [[ -f "./scripts/safe-commit.sh" ]]; then
+                    ./scripts/safe-commit.sh "$message"
+                else
+                    error "Safe commit script not found"
+                fi
+            else
+                error "Commit message required: wf commit \"message\""
+            fi
+            ;;
+        "validate")
+            if command -v dotnet >/dev/null 2>&1; then
+                dotnet run --project src/WorkFlo.Cli/WorkFlo.Cli.csproj -- validate "$@"
+            else
+                error ".NET runtime not found"
+            fi
+            ;;
+        "install")
+            if command -v dotnet >/dev/null 2>&1; then
+                dotnet run --project src/WorkFlo.Cli/WorkFlo.Cli.csproj -- install "$@"
+            else
+                error ".NET runtime not found"
+            fi
+            ;;
+            
+        # Board & analysis
+        "board")
+            run_board_command "$@"
+            ;;
+        "analyze")
+            run_analyze_command "$@"
+            ;;
+        "create")
+            run_create_command "$@"
+            ;;
+            
+        # CLI & utilities
+        "cli")
+            if command -v dotnet >/dev/null 2>&1; then
+                dotnet run --project src/WorkFlo.Cli/WorkFlo.Cli.csproj -- "$@"
+            else
+                error ".NET runtime not found"
+            fi
+            ;;
+        "script")
+            local script_name="${1:-}"
+            if [[ -z "$script_name" ]]; then
+                error "Script name required: wf script <script-name>"
+                return 1
+            fi
+            shift
+            if [[ -f "./scripts/$script_name.sh" ]]; then
+                "./scripts/$script_name.sh" "$@"
+            elif [[ -f "./$script_name" ]]; then
+                "./$script_name" "$@"
+            else
+                error "Script not found: $script_name"
+            fi
+            ;;
+        "version")
+            echo -e "${CYAN}WorkFlo${NC} - AI-Powered Workflow Enforcement"
+            if command -v dotnet >/dev/null 2>&1; then
+                dotnet run --project src/WorkFlo.Cli/WorkFlo.Cli.csproj -- --version
+            fi
+            ;;
+            
+        # Help and unknown commands
+        "help"|"--help"|"-h"|"")
+            show_help
+            ;;
+        *)
+            error "Unknown command: $command"
+            echo ""
+            show_help
+            return 1
+            ;;
+    esac
+}
+
+# Check if we're in a WorkFlo project
+if [[ ! -f "WorkFlo.sln" ]]; then
+    error "Not in a WorkFlo project directory"
+    exit 1
+fi
+
+# Run main command dispatcher
+main "$@"
