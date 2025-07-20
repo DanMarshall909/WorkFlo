@@ -12,6 +12,7 @@ public partial class ConventionalCommitRule : ICommitRule
 
     public Result Validate(CommitContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         if (string.IsNullOrWhiteSpace(context.CommitMessage))
         {
             return Result.Failure("Commit message must follow conventional commit format: <type>: <description>");

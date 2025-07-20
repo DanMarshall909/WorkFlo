@@ -15,11 +15,13 @@ public static class ResultExtensions
 
     public static bool IsFailure<T>(this Result<T> result)
     {
+        ArgumentNullException.ThrowIfNull(result);
         return !result.IsSuccess;
     }
 
     public static bool IsFailure(this Result result)
     {
+        ArgumentNullException.ThrowIfNull(result);
         return !result.IsSuccess;
     }
 }

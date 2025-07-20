@@ -6,7 +6,7 @@ using WorkFlo.Infrastructure.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-internal class InstallCommand
+internal sealed class InstallCommand
 {
     private readonly IHookInstallationService _hookInstallationService;
     private readonly IConsoleService _console;

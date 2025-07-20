@@ -145,7 +145,7 @@ public class JwtTokenService : IJwtTokenService
         return isRememberMe ? DateTime.UtcNow.AddDays(30) : DateTime.UtcNow.AddDays(7);
     }
 
-    private class RefreshTokenInfo
+    private sealed class RefreshTokenInfo
     {
         public Guid UserId { get; set; }
         public DateTime ExpiresAt { get; set; }

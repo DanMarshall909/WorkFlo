@@ -5,7 +5,7 @@ using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Cli.Commands;
 
-internal class ValidateCommand
+internal sealed class ValidateCommand
 {
     private const string PreCommitHookType = "pre-commit";
     private const string CommitMsgHookType = "commit-msg";

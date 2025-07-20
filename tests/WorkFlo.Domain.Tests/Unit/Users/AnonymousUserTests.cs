@@ -59,7 +59,7 @@ public class UserTests
 
         // Assert
         user.CanAccessCloudFeatures.Should().BeFalse("Anonymous users should be local-only");
-        user.CanExportData.Should().BeTrue("Anonymous users should be able to export their data");
+        User.CanExportData.Should().BeTrue("Anonymous users should be able to export their data");
         user.HasDataRetentionLimits.Should().BeTrue("Anonymous users should have data retention limits");
     }
 
@@ -344,7 +344,7 @@ public class UserTests
 
         // Assert
         user.CanAccessCloudFeatures.Should().BeTrue("Registered users should access cloud features");
-        user.CanExportData.Should().BeTrue("All users should be able to export their data");
+        User.CanExportData.Should().BeTrue("All users should be able to export their data");
         user.HasDataRetentionLimits.Should().BeFalse("Registered users should not have data retention limits");
     }
 

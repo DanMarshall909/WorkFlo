@@ -11,6 +11,7 @@ public class BranchRule : ICommitRule
 
     public Result Validate(CommitContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
         if (!string.Equals(context.CurrentBranch, RequiredBranch, StringComparison.Ordinal))
         {
             return Result.Failure($"Commits must be made on the '{RequiredBranch}' branch. Current branch is '{context.CurrentBranch}'.");

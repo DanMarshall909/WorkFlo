@@ -14,5 +14,5 @@ public sealed record OAuthUserInfo
     public required string ProviderId { get; init; }
     public required string Provider { get; init; }
     public string? Name { get; init; }
-    public bool EmailVerified { get; init; } = false;
+    public bool EmailVerified { get; init; }
 }

@@ -8,7 +8,7 @@ public sealed class COAuthLogin : ICommand<Result<COAuthLogin.Response>>
     public required string Provider { get; init; }
     public required string AuthorizationCode { get; init; }
     public string? RedirectUri { get; init; }
-    public bool RememberMe { get; init; } = false;
+    public bool RememberMe { get; init; }
 
     public sealed record Response
     {

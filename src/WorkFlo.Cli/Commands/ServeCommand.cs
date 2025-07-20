@@ -4,7 +4,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-internal class ServeCommand
+internal sealed class ServeCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
