@@ -583,3 +583,113 @@ appsettings.local.json
 .temp-key-loader.js
 # Test coverage results
 TestResults/
+
+# ===============================================
+# SECURITY: Sensitive Data Protection
+# ===============================================
+
+# Sensitive Configuration Files
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.Local.json
+*.secrets.json
+*.local.json
+ConnectionStrings.config
+.env
+.env.*
+*.env
+!.env.example
+
+# API Keys & Authentication Tokens
+**/apikeys.json
+**/secrets.json
+**/.secrets/
+**/keys/
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/*.crt
+**/*.cer
+jwt.key
+oauth.config
+
+# Database Files & Connection Strings
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+database.config
+
+# Logs & Diagnostic Files
+logs/
+*.log
+*.log.*
+diagnostic_*.txt
+error.log
+debug.log
+trace.log
+
+# Development Environment Files
+.vscode/settings.json
+.vs/config/
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# WorkFlo Specific Sensitive Data
+**/temp/
+**/cache/
+PROGRESS.local.md
+*.private.*
+.workflo/secrets/
+workflo.secrets
+user.config
+personal.settings
+
+# Backup & Archive Files (potential sensitive data)
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.archive
+*.zip.enc
+
+# Email & Communication
+*.eml
+*.msg
+mail.config
+
+# Certificates & Security
+*.jks
+*.keystore
+*.truststore
+security.config
+
+# Cloud & Deployment Secrets
+.aws/
+.azure/
+.gcp/
+deployment.secrets
+docker.secrets
+k8s.secrets
+
+# IDE Personal Settings
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+.vscode/settings.json
