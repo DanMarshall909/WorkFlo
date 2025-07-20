@@ -1,7 +1,7 @@
+using MediatR;
 using WorkFlo.Application.Common.Interfaces;
 using WorkFlo.Domain.Common;
 using WorkFlo.Domain.Users;
-using MediatR;
 using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Application.Auth.Commands;

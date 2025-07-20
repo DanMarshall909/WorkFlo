@@ -64,7 +64,7 @@ rootCommand.SetHandler(() =>
 });
 
 // Handle --version manually before invoking the command
-if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
+if (args.Length > 0 && (string.Equals(args[0], "--version", StringComparison.Ordinal) || string.Equals(args[0], "-v", StringComparison.Ordinal)))
 {
     Console.WriteLine("WorkFlo CLI v0.1.0");
     return 0;

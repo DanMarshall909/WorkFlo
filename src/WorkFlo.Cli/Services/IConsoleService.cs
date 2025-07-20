@@ -1,6 +1,6 @@
 namespace WorkFlo.Cli.Services;
 
-public interface IConsoleService
+internal interface IConsoleService
 {
     void WriteLine(string message);
     void WriteError(string message);

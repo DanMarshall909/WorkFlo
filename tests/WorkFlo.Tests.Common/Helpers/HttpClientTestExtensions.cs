@@ -25,7 +25,7 @@ internal static class HttpClientTestExtensions
         object request) where T : class
     {
         HttpResponseMessage response = await client.PostAsJsonAsync(url, request).ConfigureAwait(false);
-        T? result = default(T);
+        var result = default(T);
 
         if (response.IsSuccessStatusCode && response.Content.Headers.ContentLength > 0)
         {

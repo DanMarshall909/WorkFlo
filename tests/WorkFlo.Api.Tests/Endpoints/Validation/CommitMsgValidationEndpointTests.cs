@@ -1,10 +1,10 @@
 
 using System.Net;
 using System.Net.Http.Json;
-using WorkFlo.Api.Tests.Helpers;
-using WorkFlo.Contracts.Validation;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using WorkFlo.Api.Tests.Helpers;
+using WorkFlo.Contracts.Validation;
 
 namespace WorkFlo.Api.Tests.Endpoints.Validation;
 
@@ -21,7 +21,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task CommitMsgValidation_Returns_Success_For_Valid_Message()
+    public async Task CommitMsgValidation_Returns_Success_For_Valid_MessageAsync()
     {
         // Arrange
         var request = new CommitMsgValidationRequest
@@ -42,7 +42,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task TDD_commit_message_validation_accepts_valid_RED_phase_format()
+    public async Task TDD_commit_message_validation_accepts_valid_RED_phase_formatAsync()
     {
         // Arrange
         var request = new CommitMsgValidationRequest
@@ -63,7 +63,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task TDD_commit_message_validation_rejects_invalid_TDD_format()
+    public async Task TDD_commit_message_validation_rejects_invalid_TDD_formatAsync()
     {
         // Arrange
         var request = new CommitMsgValidationRequest
@@ -87,7 +87,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     [Theory]
     [InlineData("#123 R: new-feature - Add failing test", true)]  // Starting with RED is always valid
     [InlineData("#123 INVALID_PHASE: feature - Wrong phase", false)]  // Invalid phase
-    public async Task TDD_commit_message_validation_handles_phase_formats(string commitMessage, bool expectedValid)
+    public async Task TDD_commit_message_validation_handles_phase_formatsAsync(string commitMessage, bool expectedValid)
     {
         // Arrange
         var request = new CommitMsgValidationRequest
@@ -111,7 +111,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task non_TDD_commit_messages_are_accepted()
+    public async Task non_TDD_commit_messages_are_acceptedAsync()
     {
         // Arrange
         var request = new CommitMsgValidationRequest
@@ -132,7 +132,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task empty_commit_message_is_accepted()
+    public async Task empty_commit_message_is_acceptedAsync()
     {
         // Arrange
         var request = new CommitMsgValidationRequest
@@ -153,7 +153,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task null_commit_message_is_accepted()
+    public async Task null_commit_message_is_acceptedAsync()
     {
         // Arrange
         var request = new CommitMsgValidationRequest
@@ -174,7 +174,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task TDD_phase_transition_validation_rejects_invalid_red_to_cover_transition()
+    public async Task TDD_phase_transition_validation_rejects_invalid_red_to_cover_transitionAsync()
     {
         // Arrange
         // First commit with RED phase
@@ -203,7 +203,7 @@ public sealed class CommitMsgValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task full_TDD_cycle_with_valid_transitions_succeeds()
+    public async Task full_TDD_cycle_with_valid_transitions_succeedsAsync()
     {
         // Test a complete TDD cycle with valid transitions
         var featureName = $"test-feature-{Guid.NewGuid():N}"; // Unique feature name to avoid state conflicts

@@ -1,8 +1,8 @@
+using FastEndpoints;
+using MediatR;
 using WorkFlo.Application.Auth.Commands;
 using WorkFlo.Contracts.Auth;
 using WorkFlo.Domain.Common;
-using FastEndpoints;
-using MediatR;
 
 namespace WorkFlo.Api.Endpoints.Auth;
 

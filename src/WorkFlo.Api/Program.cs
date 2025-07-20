@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using WorkFlo.Api.Extensions;
 using Serilog;
 using Serilog.Events;
+using WorkFlo.Api.Extensions;
 
 namespace WorkFlo.Api;
 

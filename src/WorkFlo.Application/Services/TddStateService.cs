@@ -1,12 +1,12 @@
-using WorkFlo.Domain.Common;
 using System.Collections.Concurrent;
 using System.Linq;
+using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Application.Services;
 
 public class TddStateService : ITddStateService
 {
-    private readonly ConcurrentDictionary<string, TddPhase> _featureStates = new();
+    private readonly ConcurrentDictionary<string, TddPhase> _featureStates = new(StringComparer.Ordinal);
 
     public Task<Result<TddPhase>> GetCurrentPhaseAsync(string featureName)
     {

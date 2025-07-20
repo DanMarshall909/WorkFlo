@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using FastEndpoints;
+using Serilog;
 using WorkFlo.Api.Configuration;
 using WorkFlo.Api.Services;
 using WorkFlo.Infrastructure.Configuration;
-using FastEndpoints;
-using Serilog;
 
 namespace WorkFlo.Api.Extensions;
 

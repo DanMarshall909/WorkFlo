@@ -8,14 +8,14 @@ namespace WorkFlo.Application.Tests.Services;
 public class ConfigurationServiceTests
 {
     [Fact]
-    public async Task configuration_loads_default_values_when_file_missing()
+    public async Task configuration_loads_default_values_when_file_missingAsync()
     {
         // Arrange
         var configPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "nonexistent.json");
         var service = new ConfigurationService(configPath);
 
         // Act
-        var result = await service.LoadConfigAsync().ConfigureAwait(false);
+        var result = await service.LoadConfigAsync();
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -28,14 +28,14 @@ public class ConfigurationServiceTests
     }
 
     [Fact]
-    public async Task configuration_loads_values_from_valid_json_file()
+    public async Task configuration_loads_values_from_valid_json_fileAsync()
     {
         // Arrange
         var tempPath = Path.GetTempPath();
         var configDir = Path.Combine(tempPath, Guid.NewGuid().ToString());
         Directory.CreateDirectory(configDir);
         var configPath = Path.Combine(configDir, "config.json");
-        
+
         var json = """
         {
           "api": { "port": 8080, "enableHttps": true },
@@ -43,14 +43,14 @@ public class ConfigurationServiceTests
           "tdd": { "enforceTransitions": false, "allowSkipPhases": true }
         }
         """;
-        
-        await File.WriteAllTextAsync(configPath, json).ConfigureAwait(false);
+
+        await File.WriteAllTextAsync(configPath, json);
         var service = new ConfigurationService(configPath);
 
         try
         {
             // Act
-            var result = await service.LoadConfigAsync().ConfigureAwait(false);
+            var result = await service.LoadConfigAsync();
 
             // Assert
             result.IsSuccess.Should().BeTrue();
@@ -68,21 +68,21 @@ public class ConfigurationServiceTests
     }
 
     [Fact]
-    public async Task configuration_returns_error_for_invalid_json()
+    public async Task configuration_returns_error_for_invalid_jsonAsync()
     {
         // Arrange
         var tempPath = Path.GetTempPath();
         var configDir = Path.Combine(tempPath, Guid.NewGuid().ToString());
         Directory.CreateDirectory(configDir);
         var configPath = Path.Combine(configDir, "config.json");
-        
-        await File.WriteAllTextAsync(configPath, "{ invalid json }").ConfigureAwait(false);
+
+        await File.WriteAllTextAsync(configPath, "{ invalid json }");
         var service = new ConfigurationService(configPath);
 
         try
         {
             // Act
-            var result = await service.LoadConfigAsync().ConfigureAwait(false);
+            var result = await service.LoadConfigAsync();
 
             // Assert
             result.IsFailure().Should().BeTrue();
@@ -95,22 +95,22 @@ public class ConfigurationServiceTests
     }
 
     [Fact]
-    public async Task api_settings_returns_configured_values()
+    public async Task api_settings_returns_configured_valuesAsync()
     {
         // Arrange
         var tempPath = Path.GetTempPath();
         var configDir = Path.Combine(tempPath, Guid.NewGuid().ToString());
         Directory.CreateDirectory(configDir);
         var configPath = Path.Combine(configDir, "config.json");
-        
+
         var json = """{ "api": { "port": 9000, "enableHttps": true } }""";
-        await File.WriteAllTextAsync(configPath, json).ConfigureAwait(false);
+        await File.WriteAllTextAsync(configPath, json);
         var service = new ConfigurationService(configPath);
 
         try
         {
             // Act
-            var result = await service.GetApiSettingsAsync().ConfigureAwait(false);
+            var result = await service.GetApiSettingsAsync();
 
             // Assert
             result.IsSuccess.Should().BeTrue();
@@ -124,22 +124,22 @@ public class ConfigurationServiceTests
     }
 
     [Fact]
-    public async Task validation_settings_returns_configured_values()
+    public async Task validation_settings_returns_configured_valuesAsync()
     {
         // Arrange
         var tempPath = Path.GetTempPath();
         var configDir = Path.Combine(tempPath, Guid.NewGuid().ToString());
         Directory.CreateDirectory(configDir);
         var configPath = Path.Combine(configDir, "config.json");
-        
+
         var json = """{ "validation": { "enableTdd": false, "enableCommitMsg": false } }""";
-        await File.WriteAllTextAsync(configPath, json).ConfigureAwait(false);
+        await File.WriteAllTextAsync(configPath, json);
         var service = new ConfigurationService(configPath);
 
         try
         {
             // Act
-            var result = await service.GetValidationRulesAsync().ConfigureAwait(false);
+            var result = await service.GetValidationRulesAsync();
 
             // Assert
             result.IsSuccess.Should().BeTrue();
@@ -153,22 +153,22 @@ public class ConfigurationServiceTests
     }
 
     [Fact]
-    public async Task tdd_settings_returns_configured_values()
+    public async Task tdd_settings_returns_configured_valuesAsync()
     {
         // Arrange
         var tempPath = Path.GetTempPath();
         var configDir = Path.Combine(tempPath, Guid.NewGuid().ToString());
         Directory.CreateDirectory(configDir);
         var configPath = Path.Combine(configDir, "config.json");
-        
+
         var json = """{ "tdd": { "enforceTransitions": false, "allowSkipPhases": true } }""";
-        await File.WriteAllTextAsync(configPath, json).ConfigureAwait(false);
+        await File.WriteAllTextAsync(configPath, json);
         var service = new ConfigurationService(configPath);
 
         try
         {
             // Act
-            var result = await service.GetTddSettingsAsync().ConfigureAwait(false);
+            var result = await service.GetTddSettingsAsync();
 
             // Assert
             result.IsSuccess.Should().BeTrue();
@@ -182,22 +182,22 @@ public class ConfigurationServiceTests
     }
 
     [Fact]
-    public async Task configuration_handles_partial_json_gracefully()
+    public async Task configuration_handles_partial_json_gracefullyAsync()
     {
         // Arrange
         var tempPath = Path.GetTempPath();
         var configDir = Path.Combine(tempPath, Guid.NewGuid().ToString());
         Directory.CreateDirectory(configDir);
         var configPath = Path.Combine(configDir, "config.json");
-        
+
         var json = """{ "api": { "port": 7000 } }"""; // Only partial config
-        await File.WriteAllTextAsync(configPath, json).ConfigureAwait(false);
+        await File.WriteAllTextAsync(configPath, json);
         var service = new ConfigurationService(configPath);
 
         try
         {
             // Act
-            var result = await service.LoadConfigAsync().ConfigureAwait(false);
+            var result = await service.LoadConfigAsync();
 
             // Assert
             result.IsSuccess.Should().BeTrue();

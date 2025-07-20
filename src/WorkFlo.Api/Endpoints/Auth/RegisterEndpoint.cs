@@ -1,9 +1,9 @@
+using FastEndpoints;
 using WorkFlo.Api.Validators;
 using WorkFlo.Application.Auth.Commands;
 using WorkFlo.Application.Common.Messaging;
 using WorkFlo.Contracts.Auth;
 using WorkFlo.Domain.Common;
-using FastEndpoints;
 
 namespace WorkFlo.Api.Endpoints.Auth;
 

@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-public class AnalyzeCommand
+internal class AnalyzeCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
@@ -63,11 +63,13 @@ public class AnalyzeCommand
         // Duplicates check options
         var titleOption = new Option<string>(
             "--title",
-            "Issue title to check for duplicates") { IsRequired = true };
+            "Issue title to check for duplicates")
+        { IsRequired = true };
 
         var keywordsOption = new Option<string>(
-            "--keywords", 
-            "Comma-separated keywords for duplicate detection") { IsRequired = true };
+            "--keywords",
+            "Comma-separated keywords for duplicate detection")
+        { IsRequired = true };
 
         var jsonOutputOption = new Option<bool>(
             "--json",
@@ -130,13 +132,13 @@ public class AnalyzeCommand
 
         try
         {
-            var args = autoCreate ? "--auto-create-issues" : "";
+            string args = autoCreate ? "--auto-create-issues" : "";
             if (!string.IsNullOrEmpty(targetFile))
             {
                 args += $" --target-file {targetFile}";
             }
 
-            var result = await _process.RunAsync("./scripts/analyze-code-context.sh", args).ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/analyze-code-context.sh", args).ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {
@@ -163,13 +165,13 @@ public class AnalyzeCommand
 
         try
         {
-            var args = issue.ToString();
+            string args = issue.ToString();
             if (autoSpikes)
             {
                 args += " --auto-create-spikes";
             }
 
-            var result = await _process.RunAsync("./scripts/analyze-coverage-gaps.sh", args).ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/analyze-coverage-gaps.sh", args).ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {
@@ -196,7 +198,7 @@ public class AnalyzeCommand
 
         try
         {
-            var result = await _process.RunAsync("./scripts/ai-parallel-analysis.sh", issue.ToString()).ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/ai-parallel-analysis.sh", issue.ToString()).ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {
@@ -223,13 +225,13 @@ public class AnalyzeCommand
 
         try
         {
-            var args = $"\"{title}\" \"{keywords}\"";
+            string args = $"\"{title}\" \"{keywords}\"";
             if (json)
             {
                 args += " --json";
             }
 
-            var result = await _process.RunAsync("./scripts/check-duplicate-issues.sh", args).ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/check-duplicate-issues.sh", args).ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {

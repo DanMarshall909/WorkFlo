@@ -1,11 +1,11 @@
+using FastEndpoints;
+using FluentValidation;
+using MediatR;
 using WorkFlo.Application.Common.Behaviors;
 using WorkFlo.Application.Common.Messaging;
 using WorkFlo.Application.Common.Messaging.Adapters;
 using WorkFlo.Application.Common.Validation;
 using WorkFlo.Application.Common.Validation.Adapters;
-using FastEndpoints;
-using FluentValidation;
-using MediatR;
 
 namespace WorkFlo.Api.Configuration;
 

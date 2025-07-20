@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-public class StartCommand
+internal class StartCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
@@ -28,9 +28,9 @@ public class StartCommand
             "--issue",
             "GitHub issue number to start work on");
         issueOption.AddAlias("-i");
-        
+
         var subissueOption = new Option<int?>(
-            "--subissue", 
+            "--subissue",
             "Specific subissue number to start (optional)");
         subissueOption.AddAlias("-s");
 
@@ -62,8 +62,8 @@ public class StartCommand
             {
                 // Interactive mode - equivalent to ./sw
                 await _console.WriteLineAsync("Starting interactive issue selection...").ConfigureAwait(false);
-                var result = await _process.RunAsync("./scripts/enhanced-start-work.sh", "").ConfigureAwait(false);
-                
+                ProcessResult result = await _process.RunAsync("./scripts/enhanced-start-work.sh", "").ConfigureAwait(false);
+
                 if (result.ExitCode != 0)
                 {
                     await _console.WriteLineAsync($"❌ Interactive start failed: {result.Error}").ConfigureAwait(false);
@@ -76,8 +76,8 @@ public class StartCommand
                 {
                     // Start specific subissue
                     await _console.WriteLineAsync($"Starting work on issue #{issue} subissue {subissue}...").ConfigureAwait(false);
-                    var result = await _process.RunAsync("./scripts/start-subissue-work.sh", $"{issue} {subissue}").ConfigureAwait(false);
-                    
+                    ProcessResult result = await _process.RunAsync("./scripts/start-subissue-work.sh", $"{issue} {subissue}").ConfigureAwait(false);
+
                     if (result.ExitCode != 0)
                     {
                         await _console.WriteLineAsync($"❌ Failed to start subissue work: {result.Error}").ConfigureAwait(false);
@@ -88,8 +88,8 @@ public class StartCommand
                 {
                     // Create feature branches for issue
                     await _console.WriteLineAsync($"Creating feature branch structure for issue #{issue}...").ConfigureAwait(false);
-                    var result = await _process.RunAsync("./scripts/create-feature-branches.sh", issue.ToString()).ConfigureAwait(false);
-                    
+                    ProcessResult result = await _process.RunAsync("./scripts/create-feature-branches.sh", issue.ToString()).ConfigureAwait(false);
+
                     if (result.ExitCode != 0)
                     {
                         await _console.WriteLineAsync($"❌ Failed to create feature branches: {result.Error}").ConfigureAwait(false);

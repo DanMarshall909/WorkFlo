@@ -29,9 +29,9 @@ public class ConfigurationService : IConfigurationService
                 return Success(_cachedConfig);
             }
 
-            var json = await File.ReadAllTextAsync(_configPath).ConfigureAwait(false);
-            var config = JsonSerializer.Deserialize<WorkFloConfiguration>(json, GetJsonOptions());
-            
+            string json = await File.ReadAllTextAsync(_configPath).ConfigureAwait(false);
+            WorkFloConfiguration? config = JsonSerializer.Deserialize<WorkFloConfiguration>(json, GetJsonOptions());
+
             _cachedConfig = MergeWithDefaults(config ?? new WorkFloConfiguration());
             return Success(_cachedConfig);
         }
@@ -47,7 +47,7 @@ public class ConfigurationService : IConfigurationService
 
     public async Task<Result<ValidationSettings>> GetValidationRulesAsync()
     {
-        var configResult = await LoadConfigAsync().ConfigureAwait(false);
+        Result<WorkFloConfiguration> configResult = await LoadConfigAsync().ConfigureAwait(false);
         if (configResult.IsFailure())
         {
             return Failure<ValidationSettings>(configResult.Error!);
@@ -58,7 +58,7 @@ public class ConfigurationService : IConfigurationService
 
     public async Task<Result<TddSettings>> GetTddSettingsAsync()
     {
-        var configResult = await LoadConfigAsync().ConfigureAwait(false);
+        Result<WorkFloConfiguration> configResult = await LoadConfigAsync().ConfigureAwait(false);
         if (configResult.IsFailure())
         {
             return Failure<TddSettings>(configResult.Error!);
@@ -69,7 +69,7 @@ public class ConfigurationService : IConfigurationService
 
     public async Task<Result<ApiSettings>> GetApiSettingsAsync()
     {
-        var configResult = await LoadConfigAsync().ConfigureAwait(false);
+        Result<WorkFloConfiguration> configResult = await LoadConfigAsync().ConfigureAwait(false);
         if (configResult.IsFailure())
         {
             return Failure<ApiSettings>(configResult.Error!);
@@ -90,8 +90,8 @@ public class ConfigurationService : IConfigurationService
 
     private static WorkFloConfiguration MergeWithDefaults(WorkFloConfiguration config)
     {
-        var defaults = GetDefaultConfiguration();
-        
+        WorkFloConfiguration defaults = GetDefaultConfiguration();
+
         config.Api ??= defaults.Api;
         config.Validation ??= defaults.Validation;
         config.Tdd ??= defaults.Tdd;

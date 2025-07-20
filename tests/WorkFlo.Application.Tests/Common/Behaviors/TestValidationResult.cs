@@ -1,5 +1,5 @@
-using WorkFlo.Application.Common.Validation;
 using FluentValidation.Results;
+using WorkFlo.Application.Common.Validation;
 
 namespace WorkFlo.Application.Tests.Common.Behaviors;
 

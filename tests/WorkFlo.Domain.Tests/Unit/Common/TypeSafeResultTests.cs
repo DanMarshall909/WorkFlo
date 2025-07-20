@@ -1,6 +1,6 @@
+using FluentAssertions;
 using WorkFlo.Domain.Common;
 using WorkFlo.Domain.Common.Errors;
-using FluentAssertions;
 
 namespace WorkFlo.Domain.Tests.Unit.Common;
 

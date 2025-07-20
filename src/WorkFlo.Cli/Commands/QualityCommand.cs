@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-public class QualityCommand
+internal class QualityCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
@@ -121,7 +121,7 @@ public class QualityCommand
         return command;
     }
 
-    private async Task HandleQualityCheckAsync(bool skipTests, bool skipCoverage, bool skipMutation, bool autoFix)
+    private async Task HandleQualityCheckAsync(bool skipTests, bool skipCoverage, bool skipMutation)
     {
         await _console.WriteLineAsync("🔍 Running comprehensive quality checks...").ConfigureAwait(false);
 
@@ -130,8 +130,8 @@ public class QualityCommand
             // Check if qc script exists
             if (File.Exists("./qc"))
             {
-                var result = await _process.RunAsync("./qc", "").ConfigureAwait(false);
-                
+                ProcessResult result = await _process.RunAsync("./qc", "").ConfigureAwait(false);
+
                 if (result.ExitCode == 0)
                 {
                     await _console.WriteLineAsync("✅ Quality checks passed!").ConfigureAwait(false);
@@ -153,11 +153,11 @@ public class QualityCommand
             {
                 // Fallback to individual quality checks
                 await _console.WriteLineAsync("Running individual quality checks...").ConfigureAwait(false);
-                
+
                 if (!skipTests)
                 {
                     await _console.WriteLineAsync("🧪 Running tests...").ConfigureAwait(false);
-                    var testResult = await _process.RunAsync("dotnet", "test").ConfigureAwait(false);
+                    ProcessResult testResult = await _process.RunAsync("dotnet", "test").ConfigureAwait(false);
                     if (testResult.ExitCode != 0)
                     {
                         await _console.WriteLineAsync("❌ Tests failed").ConfigureAwait(false);
@@ -169,7 +169,7 @@ public class QualityCommand
                 if (!skipCoverage)
                 {
                     await _console.WriteLineAsync("📊 Checking coverage...").ConfigureAwait(false);
-                    var coverageResult = await _process.RunAsync("dotnet", "test --collect:\"XPlat Code Coverage\"").ConfigureAwait(false);
+                    ProcessResult coverageResult = await _process.RunAsync("dotnet", "test --collect:\"XPlat Code Coverage\"").ConfigureAwait(false);
                     if (coverageResult.ExitCode == 0)
                     {
                         await _console.WriteLineAsync("✅ Coverage analysis completed").ConfigureAwait(false);
@@ -179,7 +179,7 @@ public class QualityCommand
                 if (!skipMutation)
                 {
                     await _console.WriteLineAsync("🧬 Running mutation testing...").ConfigureAwait(false);
-                    var mutationResult = await _process.RunAsync("dotnet", "stryker").ConfigureAwait(false);
+                    ProcessResult mutationResult = await _process.RunAsync("dotnet", "stryker").ConfigureAwait(false);
                     if (mutationResult.ExitCode == 0)
                     {
                         await _console.WriteLineAsync("✅ Mutation testing completed").ConfigureAwait(false);
@@ -201,13 +201,13 @@ public class QualityCommand
 
     private async Task HandleQualityGateAsync(bool strict, bool fast)
     {
-        var gateType = strict ? "strict" : fast ? "fast" : "standard";
+        string gateType = strict ? "strict" : fast ? "fast" : "standard";
         await _console.WriteLineAsync($"🚪 Executing {gateType} quality gate...").ConfigureAwait(false);
 
         try
         {
             // Use pre-commit quality gate script as the quality gate
-            var result = await _process.RunAsync("./scripts/pre-commit-quality-gate.sh", "").ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/pre-commit-quality-gate.sh", "").ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {
@@ -248,7 +248,7 @@ public class QualityCommand
         {
             // This would integrate with a quality reporting system
             // For now, provide a basic implementation
-            var reportContent = await GenerateQualityReportAsync(format).ConfigureAwait(false);
+            string reportContent = await GenerateQualityReportAsync(format).ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(output))
             {
@@ -266,14 +266,14 @@ public class QualityCommand
         }
     }
 
-    private async Task<string> GenerateQualityReportAsync(string format)
+    private Task<string> GenerateQualityReportAsync(string format)
     {
         // Basic quality report generation
-        var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        
-        if (format.ToLower() == "json")
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+        if (string.Equals(format.ToLower(), "json", StringComparison.Ordinal))
         {
-            return $@"{{
+            return Task.FromResult($@"{{
   ""timestamp"": ""{timestamp}"",
   ""quality_metrics"": {{
     ""test_coverage"": ""95%+"",
@@ -282,11 +282,11 @@ public class QualityCommand
     ""security_scan"": ""pattern-based analysis""
   }},
   ""status"": ""Quality report generated by WorkFlo CLI""
-}}";
+}}");
         }
         else
         {
-            return $@"# WorkFlo Quality Report
+            return Task.FromResult($@"# WorkFlo Quality Report
 
 Generated: {timestamp}
 
@@ -299,7 +299,7 @@ Generated: {timestamp}
 ## Status
 Quality report generated by WorkFlo CLI
 Use 'workflo quality check' for detailed analysis
-";
+");
         }
     }
 }

@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace WorkFlo.Cli.Services;
 
-public class ProcessService : IProcessService
+internal class ProcessService : IProcessService
 {
     public async Task<ProcessResult> RunAsync(string command, string arguments = "", CancellationToken cancellationToken = default)
     {
@@ -20,12 +20,12 @@ public class ProcessService : IProcessService
         };
 
         process.Start();
-        
-        var outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-        
+
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+
         await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-        
+
         return new ProcessResult
         {
             ExitCode = process.ExitCode,

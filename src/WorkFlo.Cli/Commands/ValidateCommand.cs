@@ -5,17 +5,17 @@ using WorkFlo.Domain.Common;
 
 namespace WorkFlo.Cli.Commands;
 
-public class ValidateCommand
+internal class ValidateCommand
 {
     private const string PreCommitHookType = "pre-commit";
     private const string CommitMsgHookType = "commit-msg";
-    
+
     private readonly ICommitValidationService _validationService;
     private readonly IConsoleService _console;
     private readonly IGitService _gitService;
-    
+
     public ValidateCommand(
-        ICommitValidationService? validationService = null, 
+        ICommitValidationService? validationService = null,
         IConsoleService? console = null,
         IGitService? gitService = null)
     {
@@ -23,11 +23,11 @@ public class ValidateCommand
         _console = console ?? new ConsoleService();
         _gitService = gitService ?? new GitService();
     }
-    
+
     public Command Build()
     {
         var command = new Command("validate", "Validate commits against workflow rules");
-        
+
         var hookTypeArg = new Argument<string>(
             name: "hook-type",
             description: "The type of git hook (pre-commit, commit-msg)");
@@ -53,9 +53,9 @@ public class ValidateCommand
             switch (hookType.ToLowerInvariant())
             {
                 case PreCommitHookType:
-                    exitCode = await ValidatePreCommit().ConfigureAwait(false);
+                    exitCode = await ValidatePreCommitAsync().ConfigureAwait(false);
                     break;
-                    
+
                 case CommitMsgHookType:
                     if (string.IsNullOrEmpty(commitMsgFile))
                     {
@@ -63,9 +63,9 @@ public class ValidateCommand
                         exitCode = 1;
                         break;
                     }
-                    exitCode = await ValidateCommitMessage(commitMsgFile).ConfigureAwait(false);
+                    exitCode = await ValidateCommitMessageAsync(commitMsgFile).ConfigureAwait(false);
                     break;
-                    
+
                 default:
                     await _console.WriteErrorAsync($"Error: Unknown hook type '{hookType}'").ConfigureAwait(false);
                     exitCode = 1;
@@ -77,48 +77,48 @@ public class ValidateCommand
             await _console.WriteErrorAsync($"Error: {ex.Message}").ConfigureAwait(false);
             exitCode = 1;
         }
-        
+
         if (exitCode != 0)
         {
             Environment.Exit(exitCode);
         }
     }
 
-    private async Task<int> ValidatePreCommit()
+    private async Task<int> ValidatePreCommitAsync()
     {
         // Get staged files
-        var stagedFiles = await _gitService.GetStagedFilesAsync().ConfigureAwait(false);
-        
+        string[] stagedFiles = await _gitService.GetStagedFilesAsync().ConfigureAwait(false);
+
         // Get current branch
-        var currentBranch = await _gitService.GetCurrentBranchAsync().ConfigureAwait(false);
-        
+        string currentBranch = await _gitService.GetCurrentBranchAsync().ConfigureAwait(false);
+
         // Validate
-        var result = await _validationService.ValidatePreCommitAsync(stagedFiles, currentBranch).ConfigureAwait(false);
-        
+        Result result = await _validationService.ValidatePreCommitAsync(stagedFiles, currentBranch).ConfigureAwait(false);
+
         if (result.IsFailure())
         {
             await _console.WriteErrorAsync($"Validation failed: {result.Error}").ConfigureAwait(false);
             return 1;
         }
-        
+
         await _console.WriteLineAsync("✓ Pre-commit validation passed").ConfigureAwait(false);
         return 0;
     }
 
-    private async Task<int> ValidateCommitMessage(string commitMsgFile)
+    private async Task<int> ValidateCommitMessageAsync(string commitMsgFile)
     {
         // Read commit message from file
-        var commitMessage = await File.ReadAllTextAsync(commitMsgFile).ConfigureAwait(false);
-        
+        string commitMessage = await File.ReadAllTextAsync(commitMsgFile).ConfigureAwait(false);
+
         // Validate
-        var result = await _validationService.ValidateCommitMessageAsync(commitMessage).ConfigureAwait(false);
-        
+        Result result = await _validationService.ValidateCommitMessageAsync(commitMessage).ConfigureAwait(false);
+
         if (result.IsFailure())
         {
             await _console.WriteErrorAsync($"Validation failed: {result.Error}").ConfigureAwait(false);
             return 1;
         }
-        
+
         await _console.WriteLineAsync("✓ Commit message validation passed").ConfigureAwait(false);
         return 0;
     }

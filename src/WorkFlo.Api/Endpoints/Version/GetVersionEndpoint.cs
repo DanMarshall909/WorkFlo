@@ -1,5 +1,5 @@
-using WorkFlo.Api.Services;
 using FastEndpoints;
+using WorkFlo.Api.Services;
 
 namespace WorkFlo.Api.Endpoints.Version;
 

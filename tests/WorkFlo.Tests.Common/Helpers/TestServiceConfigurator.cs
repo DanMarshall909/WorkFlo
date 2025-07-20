@@ -1,8 +1,8 @@
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Infrastructure.Data;
 
 namespace WorkFlo.Tests.Common.Helpers;
 
@@ -116,8 +116,8 @@ internal static class TestServiceConfigurator
     /// </summary>
     private static void RemoveServices<T>(IServiceCollection services)
     {
-        List<ServiceDescriptor> descriptors = services.Where(d => d.ServiceType == typeof(T)).ToList();
-        foreach (var descriptor in descriptors)
+        var descriptors = services.Where(d => d.ServiceType == typeof(T)).ToList();
+        foreach (ServiceDescriptor? descriptor in descriptors)
         {
             services.Remove(descriptor);
         }
@@ -128,11 +128,11 @@ internal static class TestServiceConfigurator
     /// </summary>
     private static void RemoveServicesByName(IServiceCollection services, string[] typeNames)
     {
-        List<ServiceDescriptor> descriptors = services
+        var descriptors = services
             .Where(d => typeNames.Any(name => d.ServiceType.Name.Contains(name)))
             .ToList();
 
-        foreach (var descriptor in descriptors)
+        foreach (ServiceDescriptor? descriptor in descriptors)
         {
             services.Remove(descriptor);
         }
@@ -145,12 +145,12 @@ internal static class TestServiceConfigurator
     {
         preserveTypes ??= Array.Empty<Type>();
 
-        List<ServiceDescriptor> descriptors = services
+        var descriptors = services
             .Where(d => d.ServiceType.FullName?.Contains(contains, StringComparison.OrdinalIgnoreCase) == true)
             .Where(d => !preserveTypes.Contains(d.ServiceType))
             .ToList();
 
-        foreach (var descriptor in descriptors)
+        foreach (ServiceDescriptor? descriptor in descriptors)
         {
             services.Remove(descriptor);
         }

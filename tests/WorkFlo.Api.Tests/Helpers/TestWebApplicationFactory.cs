@@ -1,5 +1,5 @@
-using WorkFlo.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
+using WorkFlo.Infrastructure.Data;
 
 namespace WorkFlo.Api.Tests.Helpers;
 

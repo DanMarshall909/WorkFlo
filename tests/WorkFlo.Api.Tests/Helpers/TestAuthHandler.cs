@@ -10,6 +10,7 @@ public class TestAuthHandler : AuthenticationHandler<TestAuthHandlerOptions>
 {
     public const string AuthenticationScheme = "TestScheme";
 
+    [Obsolete]
     public TestAuthHandler(IOptionsMonitor<TestAuthHandlerOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,

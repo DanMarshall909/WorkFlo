@@ -30,7 +30,7 @@ public class PreCommitValidationEndpoint : Endpoint<PreCommitValidationRequest, 
             return;
         }
 
-        var result = await _validationService.ValidatePreCommitAsync(
+        Result result = await _validationService.ValidatePreCommitAsync(
             req.StagedFiles?.ToArray() ?? Array.Empty<string>(),
             req.CurrentBranch ?? string.Empty
         ).ConfigureAwait(false);

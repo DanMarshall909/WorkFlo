@@ -1,8 +1,8 @@
-using WorkFlo.Application.Auth.Services;
-using WorkFlo.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WorkFlo.Application.Auth.Services;
+using WorkFlo.Infrastructure.Data;
 
 namespace WorkFlo.Api.Tests.Helpers;
 

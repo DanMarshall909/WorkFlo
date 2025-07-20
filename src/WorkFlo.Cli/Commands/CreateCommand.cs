@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-public class CreateCommand
+internal class CreateCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
@@ -32,7 +32,8 @@ public class CreateCommand
         // Branches creation options
         var issueNumberOption = new Option<int>(
             "--issue",
-            "GitHub issue number for branch creation") { IsRequired = true };
+            "GitHub issue number for branch creation")
+        { IsRequired = true };
         issueNumberOption.AddAlias("-i");
 
         branchesCommand.AddOption(issueNumberOption);
@@ -40,17 +41,20 @@ public class CreateCommand
         // Issue creation options
         var titleOption = new Option<string>(
             "--title",
-            "Issue title") { IsRequired = true };
+            "Issue title")
+        { IsRequired = true };
         titleOption.AddAlias("-t");
 
         var descriptionOption = new Option<string>(
             "--description",
-            "Issue description") { IsRequired = true };
+            "Issue description")
+        { IsRequired = true };
         descriptionOption.AddAlias("-d");
 
         var keywordsOption = new Option<string>(
             "--keywords",
-            "Comma-separated keywords for categorization") { IsRequired = true };
+            "Comma-separated keywords for categorization")
+        { IsRequired = true };
         keywordsOption.AddAlias("-k");
 
         var forceOption = new Option<bool>(
@@ -66,11 +70,13 @@ public class CreateCommand
         // Test stubs options
         var testFileOption = new Option<string>(
             "--test-file",
-            "Test file to add stubs to") { IsRequired = true };
+            "Test file to add stubs to")
+        { IsRequired = true };
 
         var testDescriptionsOption = new Option<string[]>(
             "--descriptions",
-            "Test descriptions for stub generation") { IsRequired = true };
+            "Test descriptions for stub generation")
+        { IsRequired = true };
 
         stubsCommand.AddOption(testFileOption);
         stubsCommand.AddOption(testDescriptionsOption);
@@ -120,7 +126,7 @@ public class CreateCommand
 
         try
         {
-            var result = await _process.RunAsync("./scripts/create-feature-branches.sh", issue.ToString()).ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/create-feature-branches.sh", issue.ToString()).ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {
@@ -154,13 +160,13 @@ public class CreateCommand
 
         try
         {
-            var args = $"\"{title}\" \"{description}\" \"{keywords}\"";
+            string args = $"\"{title}\" \"{description}\" \"{keywords}\"";
             if (force)
             {
                 args += " --force";
             }
 
-            var result = await _process.RunAsync("./scripts/create-quality-issue.sh", args).ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/create-quality-issue.sh", args).ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {
@@ -173,7 +179,7 @@ public class CreateCommand
             else
             {
                 await _console.WriteLineAsync($"❌ Failed to create quality issue: {result.Error}").ConfigureAwait(false);
-                
+
                 // If it's a duplicate issue error, provide guidance
                 if (result.Error.Contains("duplicate") || result.Error.Contains("similar"))
                 {
@@ -198,9 +204,9 @@ public class CreateCommand
         try
         {
             // Build arguments: test file followed by test descriptions
-            var args = $"\"{testFile}\" " + string.Join(" ", descriptions.Select(d => $"\"{d}\""));
+            string args = $"\"{testFile}\" " + string.Join(" ", descriptions.Select(d => $"\"{d}\""));
 
-            var result = await _process.RunAsync("./scripts/add-test-stubs.sh", args).ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/add-test-stubs.sh", args).ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {

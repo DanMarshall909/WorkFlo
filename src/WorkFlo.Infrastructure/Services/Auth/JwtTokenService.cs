@@ -2,9 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using WorkFlo.Application.Auth.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using WorkFlo.Application.Auth.Services;
 
 namespace WorkFlo.Infrastructure.Services.Auth;
 

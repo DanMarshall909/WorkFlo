@@ -1,9 +1,9 @@
-using WorkFlo.Application.Common.Behaviors;
 using FluentAssertions;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using WorkFlo.Application.Common.Behaviors;
 
 namespace WorkFlo.Api.Tests.Configuration;
 

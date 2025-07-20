@@ -30,7 +30,7 @@ public class ConventionalCommitRuleTests
         // Assert
         result.IsSuccess.Should().BeTrue();
     }
-    
+
     [Theory]
     [InlineData("Added new feature")]
     [InlineData("fixed bug")]

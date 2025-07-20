@@ -3,7 +3,7 @@ using WorkFlo.Cli.Services;
 
 namespace WorkFlo.Cli.Commands;
 
-public class CompleteCommand
+internal class CompleteCommand
 {
     private readonly IConsoleService _console;
     private readonly IProcessService _process;
@@ -26,12 +26,14 @@ public class CompleteCommand
 
         var issueOption = new Option<int>(
             "--issue",
-            "GitHub issue number") { IsRequired = true };
+            "GitHub issue number")
+        { IsRequired = true };
         issueOption.AddAlias("-i");
 
         var subissueOption = new Option<int>(
             "--subissue",
-            "Subissue number to complete") { IsRequired = true };
+            "Subissue number to complete")
+        { IsRequired = true };
         subissueOption.AddAlias("-s");
 
         var skipValidationOption = new Option<bool>(
@@ -66,9 +68,9 @@ public class CompleteCommand
             if (!skipValidation)
             {
                 await _console.WriteLineAsync("🔍 Validating subissue completion requirements...").ConfigureAwait(false);
-                
+
                 // Check if tests are passing
-                var testResult = await _process.RunAsync("dotnet", "test --verbosity quiet").ConfigureAwait(false);
+                ProcessResult testResult = await _process.RunAsync("dotnet", "test --verbosity quiet").ConfigureAwait(false);
                 if (testResult.ExitCode != 0)
                 {
                     await _console.WriteLineAsync("❌ Tests are failing. Cannot complete subissue.").ConfigureAwait(false);
@@ -85,7 +87,7 @@ public class CompleteCommand
                 }
 
                 // Check for uncommitted changes
-                var gitStatusResult = await _process.RunAsync("git", "status --porcelain").ConfigureAwait(false);
+                ProcessResult gitStatusResult = await _process.RunAsync("git", "status --porcelain").ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(gitStatusResult.Output))
                 {
                     await _console.WriteLineAsync("❌ Uncommitted changes detected. Please commit all changes before completion.").ConfigureAwait(false);
@@ -103,7 +105,7 @@ public class CompleteCommand
 
             // Run the completion script
             await _console.WriteLineAsync("🔄 Executing subissue completion workflow...").ConfigureAwait(false);
-            var result = await _process.RunAsync("./scripts/complete-subissue.sh", $"{issue} {subissue}").ConfigureAwait(false);
+            ProcessResult result = await _process.RunAsync("./scripts/complete-subissue.sh", $"{issue} {subissue}").ConfigureAwait(false);
 
             if (result.ExitCode == 0)
             {
@@ -123,7 +125,7 @@ public class CompleteCommand
             else
             {
                 await _console.WriteLineAsync($"❌ Subissue completion failed: {result.Error}").ConfigureAwait(false);
-                
+
                 // Provide troubleshooting guidance
                 await _console.WriteLineAsync("").ConfigureAwait(false);
                 await _console.WriteLineAsync("🔧 Troubleshooting:").ConfigureAwait(false);

@@ -1,9 +1,9 @@
 
 using System.Net;
 using System.Net.Http.Json;
-using WorkFlo.Api.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using WorkFlo.Api.Tests.Helpers;
 
 namespace WorkFlo.Api.Tests.Endpoints.Health;
 
@@ -20,7 +20,7 @@ public sealed class HealthCheckEndpointTests : IClassFixture<TestWebApplicationF
     }
 
     [Fact]
-    public async Task HealthCheck_Returns_Ok_And_Healthy_Status()
+    public async Task HealthCheck_Returns_Ok_And_Healthy_StatusAsync()
     {
         // Act
         var response = await _client.GetAsync("/api/health");

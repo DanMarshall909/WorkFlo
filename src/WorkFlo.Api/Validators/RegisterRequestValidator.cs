@@ -1,6 +1,6 @@
-using WorkFlo.Contracts.Auth;
 using FastEndpoints;
 using FluentValidation;
+using WorkFlo.Contracts.Auth;
 
 namespace WorkFlo.Api.Validators;
 

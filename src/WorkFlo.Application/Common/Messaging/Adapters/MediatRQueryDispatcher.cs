@@ -1,5 +1,5 @@
-using WorkFlo.Application.Common.CQRS;
 using MediatR;
+using WorkFlo.Application.Common.CQRS;
 
 namespace WorkFlo.Application.Common.Messaging.Adapters;
 

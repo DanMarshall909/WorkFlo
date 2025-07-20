@@ -1,6 +1,6 @@
 namespace WorkFlo.Cli.Services;
 
-public class ConsoleService : IConsoleService
+internal class ConsoleService : IConsoleService
 {
     public void WriteLine(string message)
     {
@@ -12,13 +12,13 @@ public class ConsoleService : IConsoleService
         Console.Error.WriteLine(message);
     }
 
-    public async Task WriteLineAsync(string message)
+    public Task WriteLineAsync(string message)
     {
-        await Console.Out.WriteLineAsync(message).ConfigureAwait(false);
+        return Console.Out.WriteLineAsync(message);
     }
 
-    public async Task WriteErrorAsync(string message)
+    public Task WriteErrorAsync(string message)
     {
-        await Console.Error.WriteLineAsync(message).ConfigureAwait(false);
+        return Console.Error.WriteLineAsync(message);
     }
 }

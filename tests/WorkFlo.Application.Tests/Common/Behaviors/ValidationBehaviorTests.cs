@@ -1,11 +1,11 @@
-using WorkFlo.Application.Common.Behaviors;
-using WorkFlo.Application.Common.Validation;
-using WorkFlo.Domain.Common;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
 using NSubstitute;
+using WorkFlo.Application.Common.Behaviors;
+using WorkFlo.Application.Common.Validation;
+using WorkFlo.Domain.Common;
 using Xunit;
 using static WorkFlo.Domain.Common.ResultExtensions;
 

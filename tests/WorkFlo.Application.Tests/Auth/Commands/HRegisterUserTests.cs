@@ -1,11 +1,11 @@
+using FluentAssertions;
+using NSubstitute;
 using WorkFlo.Application.Auth.Commands;
 using WorkFlo.Application.Auth.Services;
 using WorkFlo.Application.Common.Interfaces;
 using WorkFlo.Application.Services;
 using WorkFlo.Domain.Common;
 using WorkFlo.Domain.Users;
-using FluentAssertions;
-using NSubstitute;
 using Xunit;
 
 namespace WorkFlo.Application.Tests.Auth.Commands;
@@ -321,13 +321,13 @@ public class HRegisterUserTests
     }
 
     [Fact]
-    public async Task null_request_throws_argument_null_exceptionAsync()
+    public Task null_request_throws_argument_null_exceptionAsync()
     {
         // Arrange
         CRegisterUser? request = null;
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _handler.Handle(request!, CancellationToken.None));
+        return Assert.ThrowsAsync<ArgumentNullException>(() => _handler.Handle(request!, CancellationToken.None));
     }
 
     [Fact]

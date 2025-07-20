@@ -1,9 +1,9 @@
 
+using System.Linq;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authorization;
-using WorkFlo.Contracts.Validation;
 using WorkFlo.Application.Services;
-using System.Linq;
+using WorkFlo.Contracts.Validation;
 using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Api.Endpoints.Validation;
@@ -35,7 +35,7 @@ public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, 
         };
 
         // Get configuration settings
-        var configResult = await _configurationService.GetValidationRulesAsync().ConfigureAwait(false);
+        Domain.Common.Result<ValidationSettings> configResult = await _configurationService.GetValidationRulesAsync().ConfigureAwait(false);
         if (configResult.IsFailure())
         {
             response.IsValid = false;
@@ -44,7 +44,7 @@ public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, 
             return;
         }
 
-        var validationConfig = configResult.Value!;
+        ValidationSettings validationConfig = configResult.Value!;
 
         // Skip TDD validation if disabled in configuration
         if (!validationConfig.EnableTdd)
@@ -62,7 +62,7 @@ public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, 
             {
                 string phaseStr = parts[1].TrimEnd(':');
                 string featureName = parts[2];
-                
+
                 // Map string phases to enum
                 var phaseMapping = new Dictionary<string, TddPhase>(StringComparer.Ordinal)
                 {
@@ -83,19 +83,19 @@ public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, 
                 else
                 {
                     // Get TDD settings to check if transition enforcement is enabled
-                    var tddConfigResult = await _configurationService.GetTddSettingsAsync().ConfigureAwait(false);
+                    Domain.Common.Result<TddSettings> tddConfigResult = await _configurationService.GetTddSettingsAsync().ConfigureAwait(false);
                     bool enforceTransitions = tddConfigResult.IsSuccess && tddConfigResult.Value!.EnforceTransitions;
 
                     // Check phase transition only if enforcement is enabled
                     if (enforceTransitions)
                     {
-                        var currentPhaseResult = await _tddStateService.GetCurrentPhaseAsync(featureName).ConfigureAwait(false);
+                        Domain.Common.Result<TddPhase> currentPhaseResult = await _tddStateService.GetCurrentPhaseAsync(featureName).ConfigureAwait(false);
                         if (currentPhaseResult.IsSuccess)
                         {
-                            var currentPhase = currentPhaseResult.Value;
+                            TddPhase currentPhase = currentPhaseResult.Value;
                             if (currentPhase != TddPhase.None)
                             {
-                                var transitionResult = await _tddStateService.ValidatePhaseTransitionAsync(featureName, currentPhase, newPhase).ConfigureAwait(false);
+                                Domain.Common.Result<bool> transitionResult = await _tddStateService.ValidatePhaseTransitionAsync(featureName, currentPhase, newPhase).ConfigureAwait(false);
                                 if (transitionResult.IsSuccess && !transitionResult.Value)
                                 {
                                     response.IsValid = false;

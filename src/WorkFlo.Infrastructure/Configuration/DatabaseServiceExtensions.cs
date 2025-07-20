@@ -1,9 +1,9 @@
-using WorkFlo.Application.Common.Interfaces;
-using WorkFlo.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using WorkFlo.Application.Common.Interfaces;
+using WorkFlo.Infrastructure.Data;
 
 namespace WorkFlo.Infrastructure.Configuration;
 

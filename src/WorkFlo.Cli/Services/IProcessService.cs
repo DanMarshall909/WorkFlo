@@ -1,11 +1,11 @@
 namespace WorkFlo.Cli.Services;
 
-public interface IProcessService
+internal interface IProcessService
 {
     Task<ProcessResult> RunAsync(string command, string arguments = "", CancellationToken cancellationToken = default);
 }
 
-public class ProcessResult
+internal class ProcessResult
 {
     public int ExitCode { get; init; }
     public string Output { get; init; } = string.Empty;

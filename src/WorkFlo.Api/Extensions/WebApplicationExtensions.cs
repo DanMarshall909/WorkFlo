@@ -1,12 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
-using WorkFlo.Api.Services;
-using WorkFlo.Infrastructure.Configuration;
-using FastEndpoints;
-using Serilog;
-using Serilog.Events;
 using System.Net;
+using FastEndpoints;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Serilog;
+using Serilog.Events;
+using WorkFlo.Api.Services;
+using WorkFlo.Infrastructure.Configuration;
 
 namespace WorkFlo.Api.Extensions;
 
@@ -66,8 +66,8 @@ internal static class WebApplicationExtensions
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "application/json";
 
-                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-                var exception = exceptionHandlerPathFeature?.Error;
+                IExceptionHandlerPathFeature? exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                Exception? exception = exceptionHandlerPathFeature?.Error;
 
                 var errorResponse = new
                 {

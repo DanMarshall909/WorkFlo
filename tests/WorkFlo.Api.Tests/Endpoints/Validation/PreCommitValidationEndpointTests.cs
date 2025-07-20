@@ -1,10 +1,10 @@
 
 using System.Net;
 using System.Net.Http.Json;
-using WorkFlo.Api.Tests.Helpers;
-using WorkFlo.Contracts.Validation;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using WorkFlo.Api.Tests.Helpers;
+using WorkFlo.Contracts.Validation;
 
 namespace WorkFlo.Api.Tests.Endpoints.Validation;
 
@@ -21,7 +21,7 @@ public sealed class PreCommitValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task PreCommitValidation_Returns_Success_For_Valid_Request()
+    public async Task PreCommitValidation_Returns_Success_For_Valid_RequestAsync()
     {
         // Arrange
         var request = new PreCommitValidationRequest
@@ -43,7 +43,7 @@ public sealed class PreCommitValidationEndpointTests : IClassFixture<TestWebAppl
     }
 
     [Fact]
-    public async Task developer_commits_4_plus_files()
+    public async Task developer_commits_4_plus_filesAsync()
     {
         // Arrange
         var request = new PreCommitValidationRequest

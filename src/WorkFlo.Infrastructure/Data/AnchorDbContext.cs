@@ -1,5 +1,5 @@
-using WorkFlo.Infrastructure.Data.Models.Identity;
 using Microsoft.EntityFrameworkCore;
+using WorkFlo.Infrastructure.Data.Models.Identity;
 
 namespace WorkFlo.Infrastructure.Data;
 

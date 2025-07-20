@@ -1,7 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using WorkFlo.Application.Common.Interfaces;
 using WorkFlo.Infrastructure.Data;
 using WorkFlo.Infrastructure.Data.Models.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace WorkFlo.Infrastructure.Configuration;
 

@@ -1,8 +1,8 @@
-using WorkFlo.Application.Auth.Commands;
-using WorkFlo.Contracts.Auth;
 using FastEndpoints;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using WorkFlo.Application.Auth.Commands;
+using WorkFlo.Contracts.Auth;
 
 namespace WorkFlo.Api.Endpoints.Auth;
 

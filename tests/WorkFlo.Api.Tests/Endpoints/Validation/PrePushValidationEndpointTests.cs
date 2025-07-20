@@ -1,10 +1,10 @@
 
 using System.Net;
 using System.Net.Http.Json;
-using WorkFlo.Api.Tests.Helpers;
-using WorkFlo.Contracts.Validation;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using WorkFlo.Api.Tests.Helpers;
+using WorkFlo.Contracts.Validation;
 
 namespace WorkFlo.Api.Tests.Endpoints.Validation;
 
@@ -21,7 +21,7 @@ public sealed class PrePushValidationEndpointTests : IClassFixture<TestWebApplic
     }
 
     [Fact]
-    public async Task PrePushValidation_Returns_Success_For_Valid_Request()
+    public async Task PrePushValidation_Returns_Success_For_Valid_RequestAsync()
     {
         // Arrange
         var request = new PrePushValidationRequest
