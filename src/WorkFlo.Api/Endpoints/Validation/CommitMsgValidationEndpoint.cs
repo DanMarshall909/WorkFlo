@@ -2,6 +2,7 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Authorization;
 using WorkFlo.Contracts.Validation;
+using WorkFlo.Application.Services;
 using System.Linq;
 
 namespace WorkFlo.Api.Endpoints.Validation;
@@ -10,7 +11,19 @@ namespace WorkFlo.Api.Endpoints.Validation;
 [AllowAnonymous]
 public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, CommitMsgValidationResponse>
 {
+    private readonly ITddStateService _tddStateService;
+
+    public CommitMsgValidationEndpoint(ITddStateService tddStateService)
+    {
+        _tddStateService = tddStateService;
+    }
+
     public override Task HandleAsync(CommitMsgValidationRequest req, CancellationToken ct)
+    {
+        return HandleInternalAsync(req, ct);
+    }
+
+    private async Task HandleInternalAsync(CommitMsgValidationRequest req, CancellationToken ct)
     {
         CommitMsgValidationResponse response = new()
         {
@@ -22,20 +35,56 @@ public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, 
         if (req?.CommitMessage != null && !string.IsNullOrWhiteSpace(req.CommitMessage) && req.CommitMessage.StartsWith('#'))
         {
             // Parse TDD commit format: #<ticket> <phase>: <feature> - <description>
-            string[] parts = req.CommitMessage.Split(' ', 3);
-            if (parts.Length >= 2)
+            string[] parts = req.CommitMessage.Split(' ', 4);
+            if (parts.Length >= 3)
             {
-                string phase = parts[1].TrimEnd(':');
-                string[] validPhases = ["R", "G", "REFACTOR", "C", "M", "REVIEW", "DONE"];
+                string phaseStr = parts[1].TrimEnd(':');
+                string featureName = parts[2];
                 
-                if (!validPhases.Contains(phase, StringComparer.Ordinal))
+                // Map string phases to enum
+                var phaseMapping = new Dictionary<string, TddPhase>(StringComparer.Ordinal)
+                {
+                    ["R"] = TddPhase.Red,
+                    ["G"] = TddPhase.Green,
+                    ["REFACTOR"] = TddPhase.Refactor,
+                    ["C"] = TddPhase.Cover,
+                    ["M"] = TddPhase.Mutation,
+                    ["REVIEW"] = TddPhase.Review,
+                    ["DONE"] = TddPhase.Done
+                };
+
+                if (!phaseMapping.TryGetValue(phaseStr, out TddPhase newPhase))
                 {
                     response.IsValid = false;
-                    response.Errors.Add($"Invalid TDD phase '{phase}'. Valid phases are: R (RED), G (GREEN), REFACTOR, C (COVER), M (MUTATION), REVIEW, DONE");
+                    response.Errors.Add($"Invalid TDD phase '{phaseStr}'. Valid phases are: R (RED), G (GREEN), REFACTOR, C (COVER), M (MUTATION), REVIEW, DONE");
+                }
+                else
+                {
+                    // Check phase transition
+                    var currentPhaseResult = await _tddStateService.GetCurrentPhaseAsync(featureName).ConfigureAwait(false);
+                    if (currentPhaseResult.IsSuccess)
+                    {
+                        var currentPhase = currentPhaseResult.Value;
+                        if (currentPhase != TddPhase.None)
+                        {
+                            var transitionResult = await _tddStateService.ValidatePhaseTransitionAsync(featureName, currentPhase, newPhase).ConfigureAwait(false);
+                            if (transitionResult.IsSuccess && !transitionResult.Value)
+                            {
+                                response.IsValid = false;
+                                response.Errors.Add($"Invalid phase transition from {currentPhase} to {newPhase}");
+                            }
+                        }
+                    }
+
+                    // Update state if valid
+                    if (response.IsValid)
+                    {
+                        await _tddStateService.SetPhaseAsync(featureName, newPhase).ConfigureAwait(false);
+                    }
                 }
             }
         }
 
-        return SendOkAsync(response, ct);
+        await SendOkAsync(response, ct).ConfigureAwait(false);
     }
 }
