@@ -2,6 +2,13 @@
 
 This document outlines security best practices and guidelines for the WorkFlo project.
 
+## 🛡️ Repository Security Status
+
+**REPOSITORY PRIVACY**: ✅ **PROTECTED**
+- Repository is now **PRIVATE** (changed from public)
+- Protects WorkFlo intellectual property from unauthorized access
+- Only authenticated collaborators can access the code
+
 ## 🚨 Critical Security Issues Identified
 
 During our security audit, the following critical issues were found and addressed:
@@ -193,15 +200,39 @@ Perform these checks regularly:
    - Add pre-commit hooks for sensitive data detection
    - Educate team members
 
+## 🔐 Access Control Policy
+
+### Repository Access
+- **Owner**: DanMarshall909 (admin access)
+- **Collaborators**: Add team members as needed with appropriate permissions
+- **Visibility**: Private repository - IP protection enabled
+- **Access Levels**:
+  - **Admin**: Full repository control (owner only)
+  - **Write**: Push access for core team members
+  - **Read**: View access for stakeholders/reviewers
+
+### Adding New Team Members
+```bash
+# Add collaborator with write access
+gh api repos/DanMarshall909/WorkFlo/collaborators/USERNAME \
+  --method PUT \
+  --field permission=push
+
+# View current collaborators
+gh api repos/DanMarshall909/WorkFlo/collaborators
+```
+
 ## 📋 Security Checklist
 
 Before any deployment or public release:
 
+- [x] Repository is private and IP protected
+- [x] Access control policy documented  
 - [ ] No hardcoded passwords or API keys in code
 - [ ] All production secrets use environment variables  
-- [ ] .gitignore patterns cover all sensitive file types
+- [x] .gitignore patterns cover all sensitive file types
 - [ ] No sensitive data in git history
-- [ ] Environment variable templates provided (.env.example)
+- [x] Environment variable templates provided (.env.example)
 - [ ] Database connections use secure, rotated credentials
 - [ ] JWT secrets are cryptographically secure (32+ characters)
 - [ ] API keys are properly scoped and rotated regularly
