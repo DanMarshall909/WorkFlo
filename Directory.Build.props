@@ -18,40 +18,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- SonarAnalyzer for C# - Free static code analysis -->
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.12.0.118525">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-
-    <!-- Roslynator for advanced C# analysis and code fixes -->
-    <PackageReference Include="Roslynator.Analyzers" Version="4.13.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-
-    <!-- Microsoft Code Analysis for better code quality -->
+    <!-- Microsoft Code Analysis for core .NET quality rules -->
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <!-- Async analyzer for proper async/await usage -->
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15">
+    <!-- SonarAnalyzer for C# - Security and quality analysis -->
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.12.0.118525">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-
-    <!-- Meziantou analyzer for additional best practices -->
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.205">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-
-    <!-- AsyncFixer for async/await best practices -->
-    <PackageReference Include="AsyncFixer" Version="1.6.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
