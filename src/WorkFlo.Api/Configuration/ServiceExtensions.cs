@@ -90,6 +90,7 @@ internal static class ServiceExtensions
         // Register application services
         services.AddScoped<WorkFlo.Application.Services.ICommitValidationService, WorkFlo.Application.Services.CommitValidationService>();
         services.AddSingleton<WorkFlo.Application.Services.ITddStateService, WorkFlo.Application.Services.TddStateService>();
+        services.AddSingleton<WorkFlo.Application.Services.IConfigurationService, WorkFlo.Application.Services.ConfigurationService>();
 
         return services;
     }

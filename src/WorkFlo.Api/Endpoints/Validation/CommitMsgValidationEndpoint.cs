@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using WorkFlo.Contracts.Validation;
 using WorkFlo.Application.Services;
 using System.Linq;
+using static WorkFlo.Domain.Common.ResultExtensions;
 
 namespace WorkFlo.Api.Endpoints.Validation;
 
@@ -12,10 +13,12 @@ namespace WorkFlo.Api.Endpoints.Validation;
 public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, CommitMsgValidationResponse>
 {
     private readonly ITddStateService _tddStateService;
+    private readonly IConfigurationService _configurationService;
 
-    public CommitMsgValidationEndpoint(ITddStateService tddStateService)
+    public CommitMsgValidationEndpoint(ITddStateService tddStateService, IConfigurationService configurationService)
     {
         _tddStateService = tddStateService;
+        _configurationService = configurationService;
     }
 
     public override Task HandleAsync(CommitMsgValidationRequest req, CancellationToken ct)
@@ -30,6 +33,25 @@ public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, 
             IsValid = true,
             Errors = new List<string>()
         };
+
+        // Get configuration settings
+        var configResult = await _configurationService.GetValidationRulesAsync().ConfigureAwait(false);
+        if (configResult.IsFailure())
+        {
+            response.IsValid = false;
+            response.Errors.Add($"Configuration error: {configResult.Error}");
+            await SendOkAsync(response, ct).ConfigureAwait(false);
+            return;
+        }
+
+        var validationConfig = configResult.Value!;
+
+        // Skip TDD validation if disabled in configuration
+        if (!validationConfig.EnableTdd)
+        {
+            await SendOkAsync(response, ct).ConfigureAwait(false);
+            return;
+        }
 
         // Check if commit message follows TDD format
         if (req?.CommitMessage != null && !string.IsNullOrWhiteSpace(req.CommitMessage) && req.CommitMessage.StartsWith('#'))
@@ -60,18 +82,25 @@ public class CommitMsgValidationEndpoint : Endpoint<CommitMsgValidationRequest, 
                 }
                 else
                 {
-                    // Check phase transition
-                    var currentPhaseResult = await _tddStateService.GetCurrentPhaseAsync(featureName).ConfigureAwait(false);
-                    if (currentPhaseResult.IsSuccess)
+                    // Get TDD settings to check if transition enforcement is enabled
+                    var tddConfigResult = await _configurationService.GetTddSettingsAsync().ConfigureAwait(false);
+                    bool enforceTransitions = tddConfigResult.IsSuccess && tddConfigResult.Value!.EnforceTransitions;
+
+                    // Check phase transition only if enforcement is enabled
+                    if (enforceTransitions)
                     {
-                        var currentPhase = currentPhaseResult.Value;
-                        if (currentPhase != TddPhase.None)
+                        var currentPhaseResult = await _tddStateService.GetCurrentPhaseAsync(featureName).ConfigureAwait(false);
+                        if (currentPhaseResult.IsSuccess)
                         {
-                            var transitionResult = await _tddStateService.ValidatePhaseTransitionAsync(featureName, currentPhase, newPhase).ConfigureAwait(false);
-                            if (transitionResult.IsSuccess && !transitionResult.Value)
+                            var currentPhase = currentPhaseResult.Value;
+                            if (currentPhase != TddPhase.None)
                             {
-                                response.IsValid = false;
-                                response.Errors.Add($"Invalid phase transition from {currentPhase} to {newPhase}");
+                                var transitionResult = await _tddStateService.ValidatePhaseTransitionAsync(featureName, currentPhase, newPhase).ConfigureAwait(false);
+                                if (transitionResult.IsSuccess && !transitionResult.Value)
+                                {
+                                    response.IsValid = false;
+                                    response.Errors.Add($"Invalid phase transition from {currentPhase} to {newPhase}");
+                                }
                             }
                         }
                     }
