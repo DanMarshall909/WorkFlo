@@ -266,7 +266,7 @@ internal sealed class QualityCommand
         }
     }
 
-    private Task<string> GenerateQualityReportAsync(string format)
+    private static Task<string> GenerateQualityReportAsync(string format)
     {
         // Basic quality report generation
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
