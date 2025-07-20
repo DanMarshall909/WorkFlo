@@ -83,6 +83,20 @@ public sealed class OAuthHttpClient
     }
 
     /// <summary>
+    /// Exchanges authorization code for access token with Uri parameter
+    /// </summary>
+    public async Task<Result<string>> ExchangeCodeForTokenAsync<T>(
+        IOAuthConfig config,
+        string authorizationCode,
+        Uri? redirectUri,
+        CancellationToken cancellationToken = default)
+        where T : class
+    {
+        return await ExchangeCodeForTokenAsync<T>(config, authorizationCode, redirectUri?.ToString(), cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Retrieves user information using access token
     /// </summary>
     public async Task<Result<T>> GetUserInfoAsync<T>(

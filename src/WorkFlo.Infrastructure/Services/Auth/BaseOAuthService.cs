@@ -67,6 +67,7 @@ public abstract class BaseOAuthService : IOAuthService
         }
     }
 
+
     /// <summary>
     /// Template method for token exchange - must be implemented by derived classes
     /// </summary>
@@ -74,6 +75,7 @@ public abstract class BaseOAuthService : IOAuthService
         string authorizationCode,
         string? redirectUri,
         CancellationToken cancellationToken);
+
 
     /// <summary>
     /// Template method for user info retrieval - must be implemented by derived classes

@@ -20,7 +20,7 @@ public class WorkFloConfiguration
 public class ApiSettings
 {
     public int Port { get; set; } = 5000;
-    public bool EnableHttps { get; set; } = false;
+    public bool EnableHttps { get; set; }
 }
 
 public class ValidationSettings
@@ -33,6 +33,6 @@ public class ValidationSettings
 public class TddSettings
 {
     public bool EnforceTransitions { get; set; } = true;
-    public bool AllowSkipPhases { get; set; } = false;
+    public bool AllowSkipPhases { get; set; }
     public bool RequireTestFirst { get; set; } = true;
 }

@@ -7,7 +7,7 @@ public sealed class CLoginUser : ICommand<Result<CLoginUser.Response>>
 {
     public required string Email { get; init; }
     public required string Password { get; init; }
-    public bool RememberMe { get; init; } = false;
+    public bool RememberMe { get; init; }
 
     public sealed record Response
     {
