@@ -727,6 +727,97 @@ TEST_TIMEOUT=60 ./scripts/tdd-auto-cycle.sh feature-name  # 60s test timeout
 - **Comprehensive Error Handling**: Clear error messages and recovery guidance
 - **Progress Tracking**: Integrates with PROGRESS.md for session continuity
 
+## 🌉 CLI DOGFOODING BRIDGE PATTERN
+
+### Bridge Pattern Implementation
+
+**WORKFLO CLI DOGFOODING STRATEGY:**
+- **Bridge Scripts**: Short root-level scripts that delegate to WorkFlo CLI or existing bash scripts
+- **Unified Command Interface**: Enables `wf` script to call consistent ./command format
+- **Fallback Mechanism**: CLI bridges try global tool first, fallback to `dotnet run`
+- **Visual Feedback**: Clear indication of execution path (global tool vs fallback)
+
+### Bridge Types
+
+#### 🔧 CLI Bridges
+**Pattern**: Delegate to WorkFlo CLI commands with intelligent fallback
+```bash
+# Example: ./qc bridge
+./qc --help                              # Calls: workflo quality check --help
+./qc --skip-tests                        # Calls: workflo quality check --skip-tests
+
+# Execution paths:
+# 1. Global tool (preferred): workflo quality check
+# 2. Fallback: dotnet run --project src/WorkFlo.Cli -- quality check
+```
+
+#### 📋 Script Bridges  
+**Pattern**: Delegate to existing bash scripts
+```bash
+# Example: ./gb bridge
+./gb show                                # Calls: ./scripts/gh-board-sync.sh show
+./gb start 73                            # Calls: ./scripts/gh-board-sync.sh start 73
+
+# Direct delegation to: ./scripts/gh-board-sync.sh
+```
+
+### Current Bridge Commands
+
+#### ✅ Implemented Bridges
+```bash
+./qc                                     # CLI Bridge → workflo quality check
+./gb                                     # Script Bridge → scripts/gh-board-sync.sh  
+./sw                                     # Direct Implementation (enhanced-start-work.sh)
+```
+
+### Bridge Generator Tool
+
+**AUTOMATED BRIDGE CREATION:**
+```bash
+# Create CLI bridge
+./scripts/create-bridge.sh cli <command> --cli-command '<cli_cmd>' --description '<desc>' --icon '<icon>' --title '<title>'
+
+# Create script bridge  
+./scripts/create-bridge.sh script <command> --target-script '<script_path>' --description '<desc>' --icon '<icon>' --title '<title>'
+
+# Examples:
+./scripts/create-bridge.sh cli qc --cli-command 'quality check' --description 'Quality Check' --icon '🔍' --title 'WorkFlo Quality Check'
+./scripts/create-bridge.sh script gb --target-script './scripts/gh-board-sync.sh' --description 'GitHub Board' --icon '📋' --title 'WorkFlo GitHub Board Management'
+```
+
+**Bridge Template Features:**
+- **Mustache-style templating**: `{{COMMAND_NAME}}`, `{{DESCRIPTION}}`, etc.
+- **Conditional sections**: CLI vs Script bridge logic
+- **Error handling**: Project directory validation, target script existence
+- **Visual feedback**: Consistent color scheme and progress indicators
+- **Exit code preservation**: Proper error propagation
+
+### Bridge Pattern Benefits
+
+#### 🎯 For Development Workflow
+- **Consistent Interface**: All commands follow `./command` pattern for `wf` script integration
+- **CLI Dogfooding**: Forces use of WorkFlo CLI for quality commands, improving CLI UX
+- **Backwards Compatibility**: Existing scripts continue to work through bridge delegation
+- **Visual Clarity**: Clear indication of execution path and technology used
+
+#### ⚡ For Command Migration
+- **Incremental Migration**: Commands can be migrated from bash to CLI one by one
+- **Fallback Safety**: CLI bridges gracefully fallback when global tool unavailable  
+- **Development Velocity**: Bridges can be created quickly using generator tool
+- **Testing Isolation**: Each bridge can be tested independently
+
+### Usage in wf Script Integration
+
+**The bridge pattern enables the `wf` script to use a unified command interface:**
+```bash
+# wf script can call any command consistently:
+./qc                                     # Quality check via CLI bridge
+./gb show                                # Board status via script bridge  
+./sw                                     # Start work via direct implementation
+
+# All commands follow same pattern regardless of underlying implementation
+```
+
 ## Architecture Guidelines
 
 ### CQRS + FastEndpoints (Backend)
