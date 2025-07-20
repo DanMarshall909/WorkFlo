@@ -36,6 +36,7 @@ public static class TypeSafeResultExtensions
     /// </summary>
     public static TypeSafeResult<T, DomainError> ToTypeSafe<T>(this Result<T> result)
     {
+        ArgumentNullException.ThrowIfNull(result);
         if (result.IsSuccess)
         {
             return TypeSafeResult<T, DomainError>.Success(result.Value!);
@@ -51,6 +52,7 @@ public static class TypeSafeResultExtensions
     /// </summary>
     public static TypeSafeResult<DomainError> ToTypeSafe(this Result result)
     {
+        ArgumentNullException.ThrowIfNull(result);
         if (result.IsSuccess)
         {
             return TypeSafeResult<DomainError>.Success();

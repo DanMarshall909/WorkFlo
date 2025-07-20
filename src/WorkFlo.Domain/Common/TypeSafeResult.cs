@@ -64,6 +64,8 @@ public sealed class TypeSafeResult<T, TError> where TError : IError
     /// </summary>
     public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<TError, TResult> onFailure)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
         return IsSuccess ? onSuccess(_value!) : onFailure(_error!);
     }
 
@@ -72,6 +74,8 @@ public sealed class TypeSafeResult<T, TError> where TError : IError
     /// </summary>
     public void Match(Action<T> onSuccess, Action<TError> onFailure)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
         if (IsSuccess)
         {
             onSuccess(_value!);
@@ -87,6 +91,7 @@ public sealed class TypeSafeResult<T, TError> where TError : IError
     /// </summary>
     public TypeSafeResult<TNewValue, TError> Map<TNewValue>(Func<T, TNewValue> mapper)
     {
+        ArgumentNullException.ThrowIfNull(mapper);
         return IsSuccess
             ? TypeSafeResult<TNewValue, TError>.Success(mapper(_value!))
             : TypeSafeResult<TNewValue, TError>.Failure(_error!);
@@ -97,6 +102,7 @@ public sealed class TypeSafeResult<T, TError> where TError : IError
     /// </summary>
     public TypeSafeResult<T, TNewError> MapError<TNewError>(Func<TError, TNewError> mapper) where TNewError : IError
     {
+        ArgumentNullException.ThrowIfNull(mapper);
         return IsSuccess
             ? TypeSafeResult<T, TNewError>.Success(_value!)
             : TypeSafeResult<T, TNewError>.Failure(mapper(_error!));
@@ -107,6 +113,7 @@ public sealed class TypeSafeResult<T, TError> where TError : IError
     /// </summary>
     public TypeSafeResult<TNewValue, TError> Bind<TNewValue>(Func<T, TypeSafeResult<TNewValue, TError>> binder)
     {
+        ArgumentNullException.ThrowIfNull(binder);
         return IsSuccess ? binder(_value!) : TypeSafeResult<TNewValue, TError>.Failure(_error!);
     }
 
@@ -173,6 +180,8 @@ public sealed class TypeSafeResult<TError> where TError : IError
     /// </summary>
     public TResult Match<TResult>(Func<TResult> onSuccess, Func<TError, TResult> onFailure)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
         return IsSuccess ? onSuccess() : onFailure(_error!);
     }
 
@@ -181,6 +190,8 @@ public sealed class TypeSafeResult<TError> where TError : IError
     /// </summary>
     public void Match(Action onSuccess, Action<TError> onFailure)
     {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
         if (IsSuccess)
         {
             onSuccess();
