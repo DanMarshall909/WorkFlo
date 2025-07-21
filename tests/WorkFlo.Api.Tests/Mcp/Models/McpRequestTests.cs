@@ -26,4 +26,25 @@ public class McpRequestTests
         Assert.Equal("tools/call", request.Method);
         Assert.False(request.IsNotification);
     }
+
+    [Fact]
+    public void ai_agent_can_send_notification_without_response()
+    {
+        // Given: An AI agent wants to send a notification (no response expected)
+        var notification = new McpRequest
+        {
+            Id = null,
+            Method = "initialized"
+        };
+
+        // When: The notification is validated
+        var isValid = notification.IsValid();
+
+        // Then: The notification should be valid and marked as notification
+        Assert.True(isValid);
+        Assert.Equal("2.0", notification.JsonRpc);
+        Assert.Null(notification.Id);
+        Assert.Equal("initialized", notification.Method);
+        Assert.True(notification.IsNotification);
+    }
 }
