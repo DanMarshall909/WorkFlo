@@ -143,17 +143,25 @@ if [[ "$1" == "--with-buttons" ]]; then
             \$buttons = @($BUTTONS_PS)
             \$buttonCount = \$buttons.Length
             
-            # Calculate form dimensions based on content and buttons
+            # Calculate form dimensions based on screen size (2/3 of screen, square)
             \$buttonHeight = 35
             \$buttonWidth = 120
             \$spacing = 10
-            \$formWidth = [Math]::Max(500, (\$buttonCount * (\$buttonWidth + \$spacing)) + 50)
-            \$formHeight = 400  # Increased height to accommodate all buttons
+            
+            # Get screen dimensions
+            \$screen = [System.Windows.Forms.Screen]::PrimaryScreen
+            \$screenWidth = \$screen.Bounds.Width
+            \$screenHeight = \$screen.Bounds.Height
+            
+            # Calculate 2/3 of screen size, make it square
+            \$targetSize = [Math]::Min(\$screenWidth, \$screenHeight) * 0.67
+            \$formWidth = [Math]::Max(\$targetSize, (\$buttonCount * (\$buttonWidth + \$spacing)) + 100)
+            \$formHeight = \$formWidth  # Make it square
             
             \$form = New-Object System.Windows.Forms.Form
             \$form.Text = '$TITLE'
             \$form.Size = New-Object System.Drawing.Size(\$formWidth, \$formHeight)
-            \$form.MinimumSize = New-Object System.Drawing.Size(400, 300)
+            \$form.MinimumSize = New-Object System.Drawing.Size(500, 400)
             \$form.StartPosition = 'CenterScreen'
             \$form.FormBorderStyle = 'Sizable'  # Allow resizing
             \$form.MaximizeBox = \$true
@@ -161,11 +169,14 @@ if [[ "$1" == "--with-buttons" ]]; then
             \$form.TopMost = \$true
             
             # Content display area - use WebBrowser for HTML or TextBox for plain text
+            \$contentPadding = 20
+            \$contentHeight = \$formHeight - 120  # Leave space for buttons at bottom
+            
             if ('$USE_HTML' -eq 'true') {
                 # Use WebBrowser control for rich HTML content
                 \$webBrowser = New-Object System.Windows.Forms.WebBrowser
-                \$webBrowser.Size = New-Object System.Drawing.Size((\$formWidth - 40), 150)
-                \$webBrowser.Location = New-Object System.Drawing.Point(20, 20)
+                \$webBrowser.Size = New-Object System.Drawing.Size((\$formWidth - (\$contentPadding * 2)), \$contentHeight)
+                \$webBrowser.Location = New-Object System.Drawing.Point(\$contentPadding, \$contentPadding)
                 \$webBrowser.Anchor = 'Top,Left,Right,Bottom'  # Resize with form
                 \$webBrowser.ScrollBarsEnabled = \$true
                 \$webBrowser.DocumentText = '$PS_HTML_CONTENT'
@@ -176,14 +187,14 @@ if [[ "$1" == "--with-buttons" ]]; then
                 # Use TextBox for plain text content
                 \$textBox = New-Object System.Windows.Forms.TextBox
                 \$textBox.Text = '$PS_MESSAGE'
-                \$textBox.Size = New-Object System.Drawing.Size((\$formWidth - 40), 150)
-                \$textBox.Location = New-Object System.Drawing.Point(20, 20)
+                \$textBox.Size = New-Object System.Drawing.Size((\$formWidth - (\$contentPadding * 2)), \$contentHeight)
+                \$textBox.Location = New-Object System.Drawing.Point(\$contentPadding, \$contentPadding)
                 \$textBox.Anchor = 'Top,Left,Right,Bottom'  # Resize with form
                 \$textBox.Multiline = \$true
                 \$textBox.ReadOnly = \$true
                 \$textBox.ScrollBars = 'Vertical'
                 \$textBox.WordWrap = \$true
-                \$textBox.Font = New-Object System.Drawing.Font('Consolas', 9)
+                \$textBox.Font = New-Object System.Drawing.Font('Consolas', 10)  # Slightly larger font for bigger dialog
                 \$textBox.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
                 \$textBox.BorderStyle = 'Fixed3D'
                 \$form.Controls.Add(\$textBox)
