@@ -2,50 +2,76 @@ namespace WorkFlo.Api.Mcp.Tools;
 
 public class CommitValidationTool
 {
+    private static readonly string[] ValidCommitTypes = 
+    {
+        "feat", "fix", "docs", "style", "refactor", "test", "chore"
+    };
+
+    private const string ConventionalFormatMessage = "Commit message must follow conventional commit format: type: description";
+    private const string EmptyMessageError = "Commit message cannot be empty";
+    private const string ValidFormatMessage = "✅ Valid conventional commit format";
+
     public CommitValidationResult ValidateCommitMessage(string commitMessage)
     {
         if (string.IsNullOrWhiteSpace(commitMessage))
         {
-            return new CommitValidationResult
-            {
-                IsValid = false,
-                ValidationMessage = "Commit message cannot be empty"
-            };
+            return CreateInvalidResult(EmptyMessageError);
         }
 
-        // Check for conventional commit format: type: description
+        var (isValidFormat, type, description) = ParseCommitMessage(commitMessage);
+        if (!isValidFormat)
+        {
+            return CreateInvalidResult(ConventionalFormatMessage);
+        }
+
+        if (!IsValidCommitType(type))
+        {
+            return CreateInvalidResult(
+                $"Invalid commit type '{type}'. Valid types: {string.Join(", ", ValidCommitTypes)}",
+                type,
+                description);
+        }
+
+        return CreateValidResult(type, description);
+    }
+
+    private static (bool isValid, string type, string description) ParseCommitMessage(string commitMessage)
+    {
         var parts = commitMessage.Split(':', 2);
         if (parts.Length != 2)
         {
-            return new CommitValidationResult
-            {
-                IsValid = false,
-                ValidationMessage = "Commit message must follow conventional commit format: type: description"
-            };
+            return (false, string.Empty, string.Empty);
         }
 
         var type = parts[0].Trim();
         var description = parts[1].Trim();
+        return (true, type, description);
+    }
 
-        // Validate conventional commit types
-        var validTypes = new[] { "feat", "fix", "docs", "style", "refactor", "test", "chore" };
-        if (!validTypes.Contains(type))
-        {
-            return new CommitValidationResult
-            {
-                IsValid = false,
-                Type = type,
-                Description = description,
-                ValidationMessage = $"Invalid commit type '{type}'. Valid types: {string.Join(", ", validTypes)}"
-            };
-        }
+    private static bool IsValidCommitType(string type)
+    {
+        return ValidCommitTypes.Contains(type);
+    }
 
+    private static CommitValidationResult CreateValidResult(string type, string description)
+    {
         return new CommitValidationResult
         {
             IsValid = true,
             Type = type,
             Description = description,
-            ValidationMessage = "✅ Valid conventional commit format"
+            ValidationMessage = ValidFormatMessage
+        };
+    }
+
+    private static CommitValidationResult CreateInvalidResult(string message, string type = "", string description = "")
+    {
+        return new CommitValidationResult
+        {
+            IsValid = false,
+            Type = type,
+            Description = description,
+            ValidationMessage = message
         };
     }
 }
