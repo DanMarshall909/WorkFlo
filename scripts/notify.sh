@@ -6,8 +6,338 @@
 #   ./scripts/notify.sh --md-view /path/to/file.md           # Open markdown file in browser as HTML
 #   ./scripts/notify.sh --html-view /path/to/file.html       # Open HTML file in browser
 #   ./scripts/notify.sh --mermaid-view /path/to/file.mmd     # Open Mermaid diagram in browser
+#   ./scripts/notify.sh --with-buttons "message" "title" "button1:command1" "button2:command2" # Interactive notification
 
 set -e
+
+# Check if this is an interactive notification with buttons
+if [[ "$1" == "--with-buttons" ]]; then
+    if [[ $# -lt 4 ]]; then
+        echo "Usage: $0 --with-buttons \"message\" \"title\" \"button1:command1\" [\"button2:command2\" ...]"
+        echo "       $0 --with-buttons --md-file /path/to/file.md \"title\" \"button1:command1\" [\"button2:command2\" ...]"
+        echo "Example: $0 --with-buttons \"Build complete!\" \"WorkFlo\" \"View Report:./scripts/notify.sh --html-view report.html\" \"Run Tests:npm test\""
+        echo "Example: $0 --with-buttons --md-file PROGRESS.md \"Development Status\" \"Continue:echo next\" \"Review:echo review\""
+        exit 1
+    fi
+    
+    # Check if we're loading content from a markdown file
+    if [[ "$2" == "--md-file" ]]; then
+        if [[ ! -f "$3" ]]; then
+            echo "Error: Markdown file '$3' not found"
+            exit 1
+        fi
+        
+        # Read and process markdown content
+        MD_CONTENT=$(cat "$3")
+        # Convert basic markdown to plain text for dialogs
+        MESSAGE=$(echo "$MD_CONTENT" | sed 's/^#\+\s*//g' | sed 's/\*\*\(.*\)\*\*/\1/g' | sed 's/\*\(.*\)\*/\1/g' | head -20 | tr '\n' ' ')
+        TITLE="$4"
+        shift 4  # Remove the first 4 arguments
+        
+        # For platforms that support it, we'll use the full markdown content
+        FULL_MD_CONTENT="$MD_CONTENT"
+    else
+        MESSAGE="$2"
+        TITLE="$3" 
+        shift 3  # Remove the first 3 arguments, leaving button definitions
+        FULL_MD_CONTENT=""
+    fi
+    
+    # Parse button definitions
+    BUTTON_TEXTS=()
+    BUTTON_COMMANDS=()
+    
+    for button_def in "$@"; do
+        if [[ "$button_def" == *":"* ]]; then
+            BUTTON_TEXT="${button_def%%:*}"
+            BUTTON_CMD="${button_def#*:}"
+            BUTTON_TEXTS+=("$BUTTON_TEXT")
+            BUTTON_COMMANDS+=("$BUTTON_CMD")
+        fi
+    done
+    
+    echo "Creating interactive dialog with ${#BUTTON_TEXTS[@]} buttons..."
+    
+    # Platform-specific dialog implementation
+    if [[ -n "$WSL_DISTRO_NAME" || -n "$WSLENV" ]]; then
+        # WSL/Windows - Use PowerShell with Windows Forms
+        BUTTONS_PS=""
+        for i in "${!BUTTON_TEXTS[@]}"; do
+            BUTTONS_PS="$BUTTONS_PS'${BUTTON_TEXTS[$i]}',"
+        done
+        BUTTONS_PS=${BUTTONS_PS%,}  # Remove trailing comma
+        
+        # Prepare content for PowerShell - use markdown content if available
+        if [[ -n "$FULL_MD_CONTENT" ]]; then
+            # Use full markdown content for better display
+            PS_MESSAGE=$(echo "$FULL_MD_CONTENT" | sed "s/'/\'\'/g" | head -50)  # Limit to first 50 lines
+        else
+            PS_MESSAGE=$(echo "$MESSAGE" | sed "s/'/\'\'/g")
+        fi
+        
+        RESULT=$(powershell.exe -Command "
+            Add-Type -AssemblyName System.Windows.Forms
+            Add-Type -AssemblyName System.Drawing
+            
+            \$buttons = @($BUTTONS_PS)
+            \$buttonCount = \$buttons.Length
+            
+            # Calculate form dimensions based on content and buttons
+            \$buttonHeight = 35
+            \$buttonWidth = 120
+            \$spacing = 10
+            \$formWidth = [Math]::Max(500, (\$buttonCount * (\$buttonWidth + \$spacing)) + 50)
+            \$formHeight = 350  # Increased height for better content display
+            
+            \$form = New-Object System.Windows.Forms.Form
+            \$form.Text = '$TITLE'
+            \$form.Size = New-Object System.Drawing.Size(\$formWidth, \$formHeight)
+            \$form.StartPosition = 'CenterScreen'
+            \$form.FormBorderStyle = 'FixedDialog'
+            \$form.MaximizeBox = \$false
+            \$form.MinimizeBox = \$false
+            \$form.TopMost = \$true
+            
+            # Text display area - enhanced for markdown content
+            \$textBox = New-Object System.Windows.Forms.TextBox
+            \$textBox.Text = '$PS_MESSAGE'
+            \$textBox.Size = New-Object System.Drawing.Size((\$formWidth - 40), 150)  # Increased height
+            \$textBox.Location = New-Object System.Drawing.Point(20, 20)
+            \$textBox.Multiline = \$true
+            \$textBox.ReadOnly = \$true
+            \$textBox.ScrollBars = 'Vertical'
+            \$textBox.WordWrap = \$true
+            \$textBox.Font = New-Object System.Drawing.Font('Consolas', 9)  # Monospace for markdown
+            \$textBox.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)  # Light gray background
+            \$textBox.BorderStyle = 'Fixed3D'
+            \$form.Controls.Add(\$textBox)
+            
+            # Action buttons - positioned lower due to increased text area
+            \$startY = 190
+            \$totalButtonWidth = \$buttonCount * \$buttonWidth + (\$buttonCount - 1) * \$spacing
+            \$startX = (\$formWidth - \$totalButtonWidth) / 2
+            
+            for (\$i = 0; \$i -lt \$buttonCount; \$i++) {
+                \$button = New-Object System.Windows.Forms.Button
+                \$button.Text = \$buttons[\$i]
+                \$button.Size = New-Object System.Drawing.Size(\$buttonWidth, \$buttonHeight)
+                \$button.Location = New-Object System.Drawing.Point((\$startX + (\$i * (\$buttonWidth + \$spacing))), \$startY)
+                \$button.Tag = \$i
+                \$button.Add_Click({
+                    \$form.DialogResult = 'OK'
+                    \$form.Tag = \$this.Tag
+                    \$form.Close()
+                })
+                \$form.Controls.Add(\$button)
+            }
+            
+            # Cancel button - properly centered below action buttons
+            \$cancelButton = New-Object System.Windows.Forms.Button
+            \$cancelButton.Text = 'Cancel'
+            \$cancelButton.Size = New-Object System.Drawing.Size(100, \$buttonHeight)
+            \$cancelButtonX = (\$formWidth - 100) / 2
+            \$cancelButtonY = \$startY + \$buttonHeight + 15  # 15px gap below action buttons
+            \$cancelButton.Location = New-Object System.Drawing.Point(\$cancelButtonX, \$cancelButtonY)
+            \$cancelButton.Add_Click({ 
+                \$form.Tag = -1
+                \$form.Close() 
+            })
+            \$form.Controls.Add(\$cancelButton)
+            
+            \$result = \$form.ShowDialog()
+            if (\$form.Tag -ne \$null) {
+                Write-Host \$form.Tag
+            } else {
+                Write-Host '-1'
+            }
+        " 2>/dev/null | tr -d '\r')
+        
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux - Use zenity if available
+        if command -v zenity > /dev/null 2>&1; then
+            # Use markdown content if available, otherwise use the regular message
+            if [[ -n "$FULL_MD_CONTENT" ]]; then
+                # For markdown content, show it in a scrollable text dialog first
+                DISPLAY_MESSAGE=$(echo "$FULL_MD_CONTENT" | head -30)  # Limit lines for readability
+                ZENITY_MESSAGE=$(echo "$DISPLAY_MESSAGE" | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g')
+            else
+                ZENITY_MESSAGE=$(echo "$MESSAGE" | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g')
+            fi
+            
+            # For zenity, we'll use a list dialog for multiple options
+            if [[ ${#BUTTON_TEXTS[@]} -gt 2 ]]; then
+                # Use list dialog for more than 2 buttons with info display
+                LIST_OPTIONS=""
+                for i in "${!BUTTON_TEXTS[@]}"; do
+                    LIST_OPTIONS="$LIST_OPTIONS FALSE \"${BUTTON_TEXTS[$i]}\""
+                done
+                
+                # Show content dialog first
+                if [[ -n "$FULL_MD_CONTENT" ]]; then
+                    # Use text-info dialog for better markdown display
+                    echo "$FULL_MD_CONTENT" | zenity --text-info --title="$TITLE - Content" --width=600 --height=400 --font="monospace 10" 2>/dev/null || \
+                    zenity --info --title="$TITLE" --text="$ZENITY_MESSAGE" --width=600 --height=300 2>/dev/null
+                else
+                    zenity --info --title="$TITLE" --text="$ZENITY_MESSAGE" --width=500 --height=200 2>/dev/null
+                fi
+                
+                RESULT=$(eval "zenity --list --title=\"$TITLE - Choose Action\" --text=\"Select an action:\" --radiolist --column=\"Select\" --column=\"Action\" $LIST_OPTIONS --width=400 --height=300" 2>/dev/null)
+                
+                if [[ -n "$RESULT" ]]; then
+                    # Find which button was selected
+                    for i in "${!BUTTON_TEXTS[@]}"; do
+                        if [[ "${BUTTON_TEXTS[$i]}" == "$RESULT" ]]; then
+                            RESULT="$i"
+                            break
+                        fi
+                    done
+                else
+                    RESULT="-1"
+                fi
+            else
+                # Use question dialog for 2 buttons
+                # Show content first if we have markdown
+                if [[ -n "$FULL_MD_CONTENT" ]]; then
+                    echo "$FULL_MD_CONTENT" | zenity --text-info --title="$TITLE - Content" --width=600 --height=400 --font="monospace 10" 2>/dev/null || \
+                    zenity --info --title="$TITLE" --text="$ZENITY_MESSAGE" --width=600 --height=300 2>/dev/null
+                fi
+                
+                # Now show the action buttons
+                if zenity --question --title="$TITLE" --text="Choose your action:" --ok-label="${BUTTON_TEXTS[0]}" --cancel-label="${BUTTON_TEXTS[1]:-Cancel}" 2>/dev/null; then
+                    RESULT="0"
+                else
+                    RESULT="1"
+                fi
+            fi
+        else
+            echo "zenity not found. Install with: sudo apt-get install zenity"
+            echo "Falling back to terminal selection..."
+            
+            # Terminal fallback
+            echo ""
+            echo "=== $TITLE ==="
+            
+            # Display markdown content if available
+            if [[ -n "$FULL_MD_CONTENT" ]]; then
+                echo "Content:"
+                echo "--------"
+                echo "$FULL_MD_CONTENT" | head -20  # Show first 20 lines
+                echo "--------"
+            else
+                echo "$MESSAGE"
+            fi
+            
+            echo ""
+            echo "Actions:"
+            for i in "${!BUTTON_TEXTS[@]}"; do
+                echo "$((i + 1)). ${BUTTON_TEXTS[$i]}"
+            done
+            echo "0. Cancel"
+            echo ""
+            read -p "Select option: " choice
+            
+            if [[ "$choice" =~ ^[1-9][0-9]*$ ]] && [[ $choice -le ${#BUTTON_TEXTS[@]} ]]; then
+                RESULT=$((choice - 1))
+            else
+                RESULT="-1"
+            fi
+        fi
+        
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS - Use osascript
+        BUTTONS_AS=""
+        for button_text in "${BUTTON_TEXTS[@]}"; do
+            BUTTONS_AS="$BUTTONS_AS\"$button_text\", "
+        done
+        BUTTONS_AS=${BUTTONS_AS%, }  # Remove trailing comma and space
+        
+        # Use markdown content if available for display
+        if [[ -n "$FULL_MD_CONTENT" ]]; then
+            # For markdown content, use a larger dialog with better formatting
+            DISPLAY_TEXT=$(echo "$FULL_MD_CONTENT" | head -30 | sed 's/"/\\"/g')  # Escape quotes and limit lines
+            RESULT=$(osascript -e "
+                set buttonList to {$BUTTONS_AS}
+                set contentText to \"$DISPLAY_TEXT\"
+                
+                # Show content first if it's substantial
+                if length of contentText > 100 then
+                    try
+                        display dialog contentText with title \"$TITLE - Content\" buttons {\"Continue\"} default button 1 giving up after 30
+                    end try
+                end if
+                
+                set theResult to display dialog \"Choose your action:\" with title \"$TITLE\" buttons buttonList default button 1
+                set buttonPressed to button returned of theResult
+                
+                repeat with i from 1 to count of buttonList
+                    if item i of buttonList is buttonPressed then
+                        return (i - 1) as string
+                    end if
+                end repeat
+                return \"-1\"
+            " 2>/dev/null)
+        else
+            RESULT=$(osascript -e "
+                set buttonList to {$BUTTONS_AS}
+                set theResult to display dialog \"$MESSAGE\" with title \"$TITLE\" buttons buttonList default button 1
+                set buttonPressed to button returned of theResult
+                
+                repeat with i from 1 to count of buttonList
+                    if item i of buttonList is buttonPressed then
+                        return (i - 1) as string
+                    end if
+                end repeat
+                return \"-1\"
+            " 2>/dev/null)
+        fi
+        
+    else
+        echo "Platform not supported for interactive dialogs. Falling back to terminal."
+        # Terminal fallback
+        echo ""
+        echo "=== $TITLE ==="
+        
+        # Display markdown content if available
+        if [[ -n "$FULL_MD_CONTENT" ]]; then
+            echo "Content:"
+            echo "--------"
+            echo "$FULL_MD_CONTENT" | head -20  # Show first 20 lines
+            echo "--------"
+        else
+            echo "$MESSAGE"
+        fi
+        
+        echo ""
+        echo "Actions:"
+        for i in "${!BUTTON_TEXTS[@]}"; do
+            echo "$((i + 1)). ${BUTTON_TEXTS[$i]}"
+        done
+        echo "0. Cancel"
+        echo ""
+        read -p "Select option: " choice
+        
+        if [[ "$choice" =~ ^[1-9][0-9]*$ ]] && [[ $choice -le ${#BUTTON_TEXTS[@]} ]]; then
+            RESULT=$((choice - 1))
+        else
+            RESULT="-1"
+        fi
+    fi
+    
+    # Execute the selected command
+    if [[ "$RESULT" =~ ^[0-9]+$ ]] && [[ $RESULT -ge 0 ]] && [[ $RESULT -lt ${#BUTTON_COMMANDS[@]} ]]; then
+        SELECTED_CMD="${BUTTON_COMMANDS[$RESULT]}"
+        SELECTED_BUTTON="${BUTTON_TEXTS[$RESULT]}"
+        
+        echo "Executing: $SELECTED_BUTTON -> $SELECTED_CMD"
+        
+        # Execute the command
+        eval "$SELECTED_CMD"
+    else
+        echo "Dialog cancelled or invalid selection."
+    fi
+    
+    exit 0
+fi
 
 # Check if this is a file viewer request
 if [[ "$1" == "--md-view" || "$1" == "--html-view" || "$1" == "--mermaid-view" ]]; then
