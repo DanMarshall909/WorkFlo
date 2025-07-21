@@ -69,10 +69,71 @@ if [[ "$1" == "--with-buttons" ]]; then
         
         # Prepare content for PowerShell - use markdown content if available
         if [[ -n "$FULL_MD_CONTENT" ]]; then
-            # Use full markdown content for better display
-            PS_MESSAGE=$(echo "$FULL_MD_CONTENT" | sed "s/'/\'\'/g" | head -50)  # Limit to first 50 lines
+            # Convert markdown to HTML for rich display
+            MD_CONTENT_ESCAPED=$(echo "$FULL_MD_CONTENT" | sed "s/'/\'\'/g" | head -50)
+            # Create HTML content with basic markdown conversion
+            HTML_CONTENT="<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            padding: 15px; 
+            margin: 0; 
+            background: #f8f9fa; 
+        }
+        h1, h2, h3 { color: #333; margin-top: 20px; margin-bottom: 10px; }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 3px; }
+        code { 
+            background: #f1f3f4; 
+            padding: 2px 4px; 
+            border-radius: 3px; 
+            font-family: 'Consolas', monospace; 
+        }
+        pre { 
+            background: #f8f8f8; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            padding: 10px; 
+            overflow-x: auto; 
+        }
+        ul, ol { padding-left: 20px; }
+        li { margin: 5px 0; }
+        .emoji { font-size: 1.2em; }
+        .status { font-weight: bold; }
+        .completed { color: #28a745; }
+        .in-progress { color: #ffc107; }
+        .pending { color: #6c757d; }
+    </style>
+</head>
+<body>"
+            
+            # Basic markdown to HTML conversion
+            HTML_BODY=$(echo "$MD_CONTENT_ESCAPED" | \
+                sed 's/^### \(.*\)/<h3>\1<\/h3>/' | \
+                sed 's/^## \(.*\)/<h2>\1<\/h2>/' | \
+                sed 's/^# \(.*\)/<h1>\1<\/h1>/' | \
+                sed 's/^\* \(.*\)/<li>\1<\/li>/' | \
+                sed 's/^- \(.*\)/<li>\1<\/li>/' | \
+                sed 's/\*\*\([^*]*\)\*\*/<strong>\1<\/strong>/g' | \
+                sed 's/`\([^`]*\)`/<code>\1<\/code>/g' | \
+                sed 's/✅/<span class="emoji completed">✅<\/span>/g' | \
+                sed 's/🚀/<span class="emoji">🚀<\/span>/g' | \
+                sed 's/📋/<span class="emoji">📋<\/span>/g' | \
+                sed 's/^$/<br>/' | \
+                sed ':a;N;$!ba;s/\(<li>.*<\/li>\)\n\(<li>.*<\/li>\)/<ul>\1\n\2<\/ul>/g')
+            
+            HTML_CONTENT="$HTML_CONTENT$HTML_BODY</body></html>"
+            
+            # Escape for PowerShell
+            PS_HTML_CONTENT=$(echo "$HTML_CONTENT" | sed "s/'/\'\'/g")
+            USE_HTML=true
         else
             PS_MESSAGE=$(echo "$MESSAGE" | sed "s/'/\'\'/g")
+            USE_HTML=false
         fi
         
         RESULT=$(powershell.exe -Command "
@@ -87,41 +148,61 @@ if [[ "$1" == "--with-buttons" ]]; then
             \$buttonWidth = 120
             \$spacing = 10
             \$formWidth = [Math]::Max(500, (\$buttonCount * (\$buttonWidth + \$spacing)) + 50)
-            \$formHeight = 350  # Increased height for better content display
+            \$formHeight = 400  # Increased height to accommodate all buttons
             
             \$form = New-Object System.Windows.Forms.Form
             \$form.Text = '$TITLE'
             \$form.Size = New-Object System.Drawing.Size(\$formWidth, \$formHeight)
+            \$form.MinimumSize = New-Object System.Drawing.Size(400, 300)
             \$form.StartPosition = 'CenterScreen'
-            \$form.FormBorderStyle = 'FixedDialog'
-            \$form.MaximizeBox = \$false
-            \$form.MinimizeBox = \$false
+            \$form.FormBorderStyle = 'Sizable'  # Allow resizing
+            \$form.MaximizeBox = \$true
+            \$form.MinimizeBox = \$true
             \$form.TopMost = \$true
             
-            # Text display area - enhanced for markdown content
-            \$textBox = New-Object System.Windows.Forms.TextBox
-            \$textBox.Text = '$PS_MESSAGE'
-            \$textBox.Size = New-Object System.Drawing.Size((\$formWidth - 40), 150)  # Increased height
-            \$textBox.Location = New-Object System.Drawing.Point(20, 20)
-            \$textBox.Multiline = \$true
-            \$textBox.ReadOnly = \$true
-            \$textBox.ScrollBars = 'Vertical'
-            \$textBox.WordWrap = \$true
-            \$textBox.Font = New-Object System.Drawing.Font('Consolas', 9)  # Monospace for markdown
-            \$textBox.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)  # Light gray background
-            \$textBox.BorderStyle = 'Fixed3D'
-            \$form.Controls.Add(\$textBox)
+            # Content display area - use WebBrowser for HTML or TextBox for plain text
+            if ('$USE_HTML' -eq 'true') {
+                # Use WebBrowser control for rich HTML content
+                \$webBrowser = New-Object System.Windows.Forms.WebBrowser
+                \$webBrowser.Size = New-Object System.Drawing.Size((\$formWidth - 40), 150)
+                \$webBrowser.Location = New-Object System.Drawing.Point(20, 20)
+                \$webBrowser.Anchor = 'Top,Left,Right,Bottom'  # Resize with form
+                \$webBrowser.ScrollBarsEnabled = \$true
+                \$webBrowser.DocumentText = '$PS_HTML_CONTENT'
+                \$webBrowser.AllowNavigation = \$false  # Prevent navigation for security
+                \$form.Controls.Add(\$webBrowser)
+                \$contentControl = \$webBrowser
+            } else {
+                # Use TextBox for plain text content
+                \$textBox = New-Object System.Windows.Forms.TextBox
+                \$textBox.Text = '$PS_MESSAGE'
+                \$textBox.Size = New-Object System.Drawing.Size((\$formWidth - 40), 150)
+                \$textBox.Location = New-Object System.Drawing.Point(20, 20)
+                \$textBox.Anchor = 'Top,Left,Right,Bottom'  # Resize with form
+                \$textBox.Multiline = \$true
+                \$textBox.ReadOnly = \$true
+                \$textBox.ScrollBars = 'Vertical'
+                \$textBox.WordWrap = \$true
+                \$textBox.Font = New-Object System.Drawing.Font('Consolas', 9)
+                \$textBox.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
+                \$textBox.BorderStyle = 'Fixed3D'
+                \$form.Controls.Add(\$textBox)
+                \$contentControl = \$textBox
+            }
             
-            # Action buttons - positioned lower due to increased text area
-            \$startY = 190
-            \$totalButtonWidth = \$buttonCount * \$buttonWidth + (\$buttonCount - 1) * \$spacing
+            # All buttons inline - including cancel button in the same row
+            \$buttonStartY = \$formHeight - 80  # Position from bottom for single row
+            \$cancelButtonWidth = 100
+            \$totalButtonWidth = (\$buttonCount * \$buttonWidth) + ((\$buttonCount - 1) * \$spacing) + \$spacing + \$cancelButtonWidth
             \$startX = (\$formWidth - \$totalButtonWidth) / 2
             
+            # Action buttons
             for (\$i = 0; \$i -lt \$buttonCount; \$i++) {
                 \$button = New-Object System.Windows.Forms.Button
                 \$button.Text = \$buttons[\$i]
                 \$button.Size = New-Object System.Drawing.Size(\$buttonWidth, \$buttonHeight)
-                \$button.Location = New-Object System.Drawing.Point((\$startX + (\$i * (\$buttonWidth + \$spacing))), \$startY)
+                \$button.Location = New-Object System.Drawing.Point((\$startX + (\$i * (\$buttonWidth + \$spacing))), \$buttonStartY)
+                \$button.Anchor = 'Bottom'
                 \$button.Tag = \$i
                 \$button.Add_Click({
                     \$form.DialogResult = 'OK'
@@ -131,18 +212,22 @@ if [[ "$1" == "--with-buttons" ]]; then
                 \$form.Controls.Add(\$button)
             }
             
-            # Cancel button - properly centered below action buttons
+            # Cancel button - inline with action buttons
             \$cancelButton = New-Object System.Windows.Forms.Button
             \$cancelButton.Text = 'Cancel'
-            \$cancelButton.Size = New-Object System.Drawing.Size(100, \$buttonHeight)
-            \$cancelButtonX = (\$formWidth - 100) / 2
-            \$cancelButtonY = \$startY + \$buttonHeight + 15  # 15px gap below action buttons
-            \$cancelButton.Location = New-Object System.Drawing.Point(\$cancelButtonX, \$cancelButtonY)
+            \$cancelButton.Size = New-Object System.Drawing.Size(\$cancelButtonWidth, \$buttonHeight)
+            \$cancelButtonX = \$startX + (\$buttonCount * (\$buttonWidth + \$spacing))  # Position after last action button
+            \$cancelButton.Location = New-Object System.Drawing.Point(\$cancelButtonX, \$buttonStartY)
+            \$cancelButton.Anchor = 'Bottom'
             \$cancelButton.Add_Click({ 
                 \$form.Tag = -1
                 \$form.Close() 
             })
             \$form.Controls.Add(\$cancelButton)
+            
+            # Adjust content control size to not overlap with buttons
+            \$contentBottomMargin = 60  # Less space needed for single row of buttons
+            \$contentControl.Size = New-Object System.Drawing.Size((\$formWidth - 40), (\$formHeight - 60 - \$contentBottomMargin))
             
             \$result = \$form.ShowDialog()
             if (\$form.Tag -ne \$null) {
