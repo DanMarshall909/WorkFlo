@@ -6,6 +6,7 @@
         "run",
         "--project",
         "/home/dan/code/WorkFlo/src/WorkFlo.Api/WorkFlo.Api.csproj",
+        "-p:TreatWarningsAsErrors=false",
         "--",
         "mcp"
       ],

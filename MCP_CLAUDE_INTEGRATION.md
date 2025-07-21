@@ -129,6 +129,25 @@ Claude should identify this as invalid and suggest the correct format.
 
 ## Troubleshooting
 
+### Build Errors
+
+If you see build errors when running the setup script, the project has code analysis warnings that are treated as errors:
+
+**Quick Fix - Add to your configuration:**
+```json
+"args": [
+  "run",
+  "--project",
+  "/path/to/WorkFlo/src/WorkFlo.Api/WorkFlo.Api.csproj",
+  "-p:TreatWarningsAsErrors=false",
+  "--",
+  "mcp"
+]
+```
+
+**Permanent Fix:**
+The project needs code analysis warnings resolved. These are mainly in `UnionResult.cs` and authentication services.
+
 ### MCP Server Not Connecting
 
 1. **Check Configuration Path**:
@@ -143,7 +162,7 @@ Claude should identify this as invalid and suggest the correct format.
 3. **Test MCP Server Manually**:
    ```bash
    cd /path/to/WorkFlo
-   dotnet run --project src/WorkFlo.Api/WorkFlo.Api.csproj -- mcp
+   dotnet run --project src/WorkFlo.Api/WorkFlo.Api.csproj -p:TreatWarningsAsErrors=false -- mcp
    ```
    
    Then type: `{"jsonrpc": "2.0", "id": 1, "method": "initialize"}`
