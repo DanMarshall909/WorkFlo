@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "workflo": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "/home/dan/code/WorkFlo/src/WorkFlo.Api/WorkFlo.Api.csproj",
+        "--",
+        "mcp"
+      ],
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "WORKFLO_LOG_LEVEL": "Information"
+      }
+    }
+  }
+}
