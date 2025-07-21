@@ -47,4 +47,22 @@ public class McpRequestTests
         Assert.Equal("initialized", notification.Method);
         Assert.True(notification.IsNotification);
     }
+
+    [Fact]
+    public void malformed_mcp_request_fails_validation()
+    {
+        // Given: A malformed MCP request with empty method
+        var invalidRequest = new McpRequest
+        {
+            Id = 1,
+            Method = "",  // Invalid: empty method
+            JsonRpc = "2.0"
+        };
+
+        // When: The request is validated
+        var isValid = invalidRequest.IsValid();
+
+        // Then: The request should be invalid
+        Assert.False(isValid);
+    }
 }
