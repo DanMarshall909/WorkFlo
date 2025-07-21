@@ -150,13 +150,15 @@ EOF
 )
     
     # Create the issue
-    local issue_number
-    issue_number=$(gh issue create \
+    local issue_url
+    issue_url=$(gh issue create \
         --title "$title" \
         --body "$issue_body" \
-        --label "$labels" \
-        --json number \
-        --jq '.number')
+        --label "$labels")
+    
+    # Extract issue number from URL
+    local issue_number
+    issue_number=$(echo "$issue_url" | grep -o '[0-9]*$')
     
     if [[ -n "$issue_number" ]]; then
         success "Created issue #$issue_number: $title"

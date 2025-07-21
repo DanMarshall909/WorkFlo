@@ -9,8 +9,11 @@
     <ToolCommandName>workflo</ToolCommandName>
     <PackageId>WorkFlo.Cli</PackageId>
     <Version>0.1.0</Version>
-    <Authors>WorkFlo Team</Authors>
+    <Authors>Dan Marshall</Authors>
     <Description>AI-powered workflow enforcement for development teams</Description>
+    <Copyright>Copyright (c) 2025 Dan Marshall. All rights reserved.</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/DanMarshall909/WorkFlo</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +30,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Templates\pre-commit" />
     <EmbeddedResource Include="Templates\commit-msg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
   </ItemGroup>
 
 </Project>
