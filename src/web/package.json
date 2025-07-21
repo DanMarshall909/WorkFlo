@@ -2,6 +2,8 @@
   "name": "workflo-web",
   "version": "1.0.0",
   "private": true,
+  "license": "UNLICENSED",
+  "author": "Dan Marshall",
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
     "dev:windows": "next dev --hostname 0.0.0.0 --port 3000",
