@@ -10,7 +10,7 @@ namespace WorkFlo.Tests.Common.Helpers;
 /// Handles test service configuration for WebApplicationFactory
 /// Provides clean, type-safe service replacement for testing
 /// </summary>
-internal static class TestServiceConfigurator
+public static class TestServiceConfigurator
 {
     /// <summary>
     /// Configures all test services in the correct order
