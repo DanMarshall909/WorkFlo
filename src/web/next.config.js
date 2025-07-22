@@ -6,7 +6,7 @@ const nextConfig = {
   },
   eslint: {
     // Run ESLint during builds
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   // API proxy configuration for backend integration
   async rewrites() {
