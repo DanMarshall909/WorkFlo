@@ -177,7 +177,7 @@ export function useServices(): IServiceContainer {
 }
 
 // Service registration
-import { WorkFloApiService } from './implementations/workflo-api.service';
+import { WorkFloApiService } from './implementations/anchor-api.service';
 import { TaskService } from './implementations/task.service';
 import { AuthService } from './implementations/auth.service';
 import { BrowserStorageService } from './implementations/browser-storage.service';

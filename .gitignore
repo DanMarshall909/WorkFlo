@@ -693,3 +693,5 @@ k8s.secrets
 .idea/usage.statistics.xml
 .idea/shelf/
 .vscode/settings.json
+
+build/
