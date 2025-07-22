@@ -233,8 +233,8 @@ check_feature_completion() {
         echo ""
         echo "🚀 Next Steps:"
         echo "  1. Run feature-level quality validation: ./scripts/validate-feature-completion.sh $parent_issue"
-        echo "  2. Create PR for feature branch: gh pr create --base master --head feature/..."
-        echo "  3. Merge to master after review and approval"
+        echo "  2. Create PR for feature branch: gh pr create --base \${WORKFLO_MAIN_BRANCH:-master} --head feature/..."
+        echo "  3. Merge to main development branch after review and approval"
         echo ""
         return 0
     else

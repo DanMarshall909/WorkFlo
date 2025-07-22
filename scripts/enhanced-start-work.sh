@@ -52,12 +52,13 @@ check_prereqs() {
         error "Not in a git repository"
     fi
     
-    # Ensure we're on dev branch
+    # Ensure we're on the main development branch (trunk-based development)
+    TARGET_BRANCH="${WORKFLO_MAIN_BRANCH:-master}"  # Trunk-based development
     current_branch=$(git branch --show-current)
-    if [[ "$current_branch" != "dev" ]]; then
-        warn "Not on dev branch. Switching to dev..."
-        git checkout dev
-        git pull origin dev
+    if [[ "$current_branch" != "$TARGET_BRANCH" ]]; then
+        warn "Not on $TARGET_BRANCH branch. Switching to $TARGET_BRANCH..."
+        git checkout "$TARGET_BRANCH"
+        git pull origin "$TARGET_BRANCH"
     fi
 }
 

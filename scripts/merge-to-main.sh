@@ -2,7 +2,7 @@
 set -e
 
 # WorkFlo Project - Safe Merge to Main Script
-# Enforces quality checks before merging dev to main
+# Enforces quality checks before merging development branch to main
 
 echo "⚓ WorkFlo Project: Safe Merge to Main"
 echo "===================================="
@@ -14,12 +14,14 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Check current branch
+# Check current branch (configurable for trunk-based development)
+# TODO: This script will be deprecated after trunk-based migration
+TARGET_BRANCH="${WORKFLO_MAIN_BRANCH:-master}"  # Trunk-based development
 current_branch=$(git branch --show-current)
-if [ "$current_branch" != "dev" ]; then
-    echo -e "${RED}❌ Must be on dev branch to merge to main${NC}"
+if [ "$current_branch" != "$TARGET_BRANCH" ]; then
+    echo -e "${RED}❌ Must be on $TARGET_BRANCH branch to merge to main${NC}"
     echo "Current branch: $current_branch"
-    echo "Run: git checkout dev"
+    echo "Run: git checkout $TARGET_BRANCH"
     exit 1
 fi
 
@@ -45,10 +47,10 @@ echo -e "${GREEN}✅ Quality check passed!${NC}"
 echo
 
 # Confirm merge
-echo -e "${YELLOW}⚠️  Ready to merge dev → main${NC}"
+echo -e "${YELLOW}⚠️  Ready to merge $TARGET_BRANCH → main${NC}"
 echo "This will:"
 echo "  1. Switch to main branch"
-echo "  2. Merge dev branch"
+echo "  2. Merge $TARGET_BRANCH branch"
 echo "  3. Push to origin/main"
 echo
 read -p "Continue with merge? (y/N): " -n 1 -r
@@ -60,14 +62,14 @@ fi
 
 # Perform the merge
 echo
-echo -e "${BLUE}📦 Merging dev to main...${NC}"
+echo -e "${BLUE}📦 Merging $TARGET_BRANCH to main...${NC}"
 
 # Switch to main and merge
 git checkout main
 git pull origin main  # Ensure main is up to date
-git merge dev --no-ff -m "feat: merge dev improvements
+git merge $TARGET_BRANCH --no-ff -m "feat: merge $TARGET_BRANCH improvements
 
-$(git log --oneline main..dev | head -5)
+$(git log --oneline main..$TARGET_BRANCH | head -5)
 
 🤖 Generated with [Claude Code](https://claude.ai/code)"
 
@@ -85,8 +87,8 @@ else
     echo "Run 'git push origin main' when ready"
 fi
 
-# Switch back to dev
-git checkout dev
+# Switch back to development branch
+git checkout $TARGET_BRANCH
 echo
 echo -e "${GREEN}🎉 Merge process complete!${NC}"
-echo "Switched back to dev branch for continued development"
+echo "Switched back to $TARGET_BRANCH branch for continued development"

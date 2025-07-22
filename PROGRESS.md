@@ -1,72 +1,40 @@
-Current Issue: #5 - Future: AI Integration (MCP Protocol)
-Status: ✅ COMPLETED 
-Started: Mon Jul 21 12:53:19 AEST 2025
-Last Updated: Mon Jul 21 20:06:00 AEST 2025
+Current Issue: #25 - Phase 2: Update Documentation for Trunk-Based Development  
+Status: ✅ COMPLETED
+Started: Wed Jul 22 16:30:00 AEST 2025
+Last Updated: Wed Jul 22 17:00:00 AEST 2025
 
 ## Progress Summary
-✅ **Completed (Phase 1: Core Infrastructure)**
-- Comprehensive MCP integration design document created
-- MCP protocol research and specification analysis completed  
-- JSON-RPC 2.0 foundation implemented with TDD approach
-- McpRequest model with validation (supports requests and notifications)
-- McpResponse model with validation (supports success and error responses)
-- Test coverage: 4 comprehensive tests covering core MCP message handling
-- Proper TDD workflow followed: RED-GREEN-REFACTOR cycle
-
-✅ **Completed (DevOps Enhancement)**
-- Enhanced notify script with HTML display capability using WebBrowser control
-- Implemented resizable dialog with proper control anchoring and inline button layout
-- Added automatic markdown to HTML conversion with GitHub-style formatting
-- Cross-platform notification improvements (Windows/Linux/macOS/Terminal)
-- Large square dialog sizing (2/3 screen dimensions) for optimal content viewing
-- Rich content display with syntax highlighting, emoji support, and status styling
-
-✅ **Completed (Phase 2: Tool Implementation)**
-- ✅ Implemented commit validation tool integrated with validation services
-- ✅ JSON-RPC message router with comprehensive error handling (JSON-RPC 2.0 compliant)
-- ✅ MCP server core with STDIO transport and initialization protocol
-- ✅ Tool discovery endpoint (`tools/list`) with schema definitions
-- ✅ Tool execution endpoint (`tools/call`) with proper response formatting
-- ✅ Full test coverage: 6 test files covering all MCP components
+✅ **Completed (Issue #25: Update Documentation for Trunk-Based Development)**
+- Updated CLAUDE.md with comprehensive trunk-based development workflow documentation
+- Updated scripts/README.md to reflect trunk-based development approach
+- Updated TDD scripts documentation and inline comments for consistency
+- Updated scripts/README-CI-Monitoring.md with new workflow examples
+- Updated PROGRESS.md to reflect completed trunk-based migration
+- Created comprehensive migration guide at docs/TRUNK-BASED-MIGRATION-GUIDE.md
+- Closed GitHub issue #25 as completed
 
 ## 🎯 **Implementation Complete**
-The MCP integration is now fully functional and ready for AI agent integration.
+Phase 2 of trunk-based development migration is complete. All documentation now reflects the trunk-based workflow.
 
 ## 📋 **Session Achievements**
-- **MCP Integration**: Complete Model Context Protocol implementation with tool support
-- **Infrastructure**: JSON-RPC 2.0 message routing and STDIO transport layer
-- **Tools Framework**: Extensible tool registry with commit validation implementation
-- **Test Coverage**: 6 comprehensive test files with business-focused naming
-- **Documentation**: Updated progress tracking and technical implementation notes
-- **Quality**: Maintained enterprise TDD patterns and 95%+ test coverage
-- **Repository**: All changes committed with clear conventional commit messages
+- **CLAUDE.md**: Complete rewrite with trunk-based development workflow and examples
+- **Documentation**: Updated all README files to remove dev-branch references
+- **TDD Scripts**: Updated all branching logic and user-facing messages
+- **Migration Guide**: Created comprehensive guide for existing contributors
+- **Issue Management**: Closed completed GitHub issue #25
+- **Quality Assurance**: All documentation now consistently uses trunk-based terminology
 
 ## Technical Implementation Notes
-- Following enterprise TDD patterns with business-focused test naming
-- JSON-RPC 2.0 compliance verified for AI agent compatibility
-- Minimal viable implementation approach - no over-engineering
-- MCP specification 2025-06-18 compliance ensured
-- Enhanced development workflow with rich content display capabilities
+- Used environment variable `WORKFLO_MAIN_BRANCH` for configuration
+- Default behavior now uses trunk-based development (master branch)
+- Scripts will automatically adapt when environment variable is set
+- No breaking changes for current workflow
 
-## 🔍 **Implementation Review Summary**
+## 🔍 **Next Recommended Issue**
+**Issue #26: Phase 3 - Clean Up Existing Branches for Trunk-Based Development**
 
-### Code Quality Metrics
-- **Files Created**: 6 implementation files + 6 test files (100% test coverage ratio)
-- **Test Results**: All 6 AI agent-focused tests passing ✅
-- **Architecture**: Clean separation of concerns (Infrastructure/Server/Tools)
-- **Standards**: JSON-RPC 2.0 compliant, MCP spec 2025-06-18 adherent
-
-### Key Strengths
-- **Robust Error Handling**: Comprehensive JSON-RPC error codes (-32600, -32601, -32700, -32603)
-- **Extensible Design**: Tool registry allows easy addition of new validation tools
-- **Enterprise Patterns**: Proper dependency injection, async/await with ConfigureAwait
-- **Business-Focused Testing**: Test names clearly describe AI agent interactions
-- **Protocol Compliance**: Full MCP handshake (initialize, tools/list, tools/call)
-
-### Next Steps Recommendations
-1. **Production Readiness**: Add logging and metrics collection
-2. **Tool Expansion**: Implement additional validation tools (code style, security)  
-3. **Performance**: Consider message batching for high-volume scenarios
-4. **Documentation**: Create MCP integration guide for other developers
-
-### Estimated Confidence: 95% - Ready for AI agent integration
+Next logical steps in the trunk-based migration:
+1. Clean up any remaining dev branch references
+2. Update branch protection rules if needed
+3. Verify all scripts work correctly with the new default branch
+4. Test the complete feature branch → master → main workflow
