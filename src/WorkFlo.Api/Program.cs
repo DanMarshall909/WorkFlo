@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Serilog;
 using Serilog.Events;
 using WorkFlo.Api.Extensions;
+using WorkFlo.Api.Mcp.Server;
 
 namespace WorkFlo.Api;
 
@@ -21,6 +22,15 @@ public class Program
     [SuppressMessage("Usage", "CA2007:Consider calling ConfigureAwait", Justification = "ASP.NET Core manages context")]
     public static async Task Main(string[] args)
     {
+        // Check if running in MCP mode
+        if (args.Length > 0 && args[0] == "mcp")
+        {
+            // Run MCP server directly
+            var mcpServer = new McpServer(Console.In, Console.Out);
+            await mcpServer.StartAsync().ConfigureAwait(false);
+            return;
+        }
+
         WebApplicationExtensions.ConfigureLogging();
         try
         {
