@@ -1,6 +1,8 @@
 # Push Rules Setup and Installation
 
-This directory contains scripts and tools to enforce the dev branch strategy and maintain code quality.
+This directory contains scripts and tools to enforce the trunk-based development strategy and maintain code quality.
+
+**Note**: Scripts are being migrated to support trunk-based development. During the transition, they support both `dev` branch (current) and `master` branch (future) workflows via the `WORKFLO_MAIN_BRANCH` environment variable.
 
 ## 🚀 Quick Setup
 
@@ -17,12 +19,13 @@ echo "✅ Pre-push hook installed successfully"
 ### 2. Test the Setup
 
 ```bash
-# This should succeed (dev branch)
-git checkout dev
+# This should succeed (main development branch)
+TARGET_BRANCH="${WORKFLO_MAIN_BRANCH:-dev}"  # Will be "master" after migration
+git checkout $TARGET_BRANCH
 echo "test" > test-file.txt
 git add test-file.txt
 git commit -m "test: verify push rules"
-git push origin dev
+git push origin $TARGET_BRANCH
 
 # Clean up
 git reset --hard HEAD~1
@@ -32,13 +35,15 @@ rm test-file.txt
 ### 3. Verify Rules Work
 
 ```bash
-# This should be blocked (main branch)
-git checkout main
-git push origin main  # Should fail with pre-push hook
+# For trunk-based development with feature branches:
+# Feature branches will be allowed after migration
+git checkout -b feature/test-feature
+# Work on feature...
+git push origin feature/test-feature  # Will be allowed after migration
 
-# This should be blocked (feature branch)
-git checkout -b feature/test
-git push origin feature/test  # Should fail with pre-push hook
+# Direct pushes to production branch remain blocked:
+git checkout main
+git push origin main  # Should fail - use PR process
 ```
 
 ## 📋 Available Scripts
@@ -48,9 +53,9 @@ git push origin feature/test  # Should fail with pre-push hook
 - **Purpose**: Local git hook to catch rule violations before they reach GitHub
 - **Installation**: Copy to `.git/hooks/pre-push`
 - **Features**:
-  - Blocks pushes to main branch
-  - Blocks pushes to feature branches
-  - Runs quality checks on dev branch
+  - Blocks direct pushes to main branch (production)
+  - Allows pushes to feature branches (after migration)
+  - Runs quality checks on all branches
   - Validates commit message format
 
 ### `pr-quality-check.sh --pre-push`
@@ -219,7 +224,7 @@ gh run list --status=failure --workflow="Push Rules Enforcement"
 ### For Developers
 
 1. **Install pre-push hook** for immediate feedback
-2. **Work only on dev branch** - no exceptions
+2. **Work on feature branches or main development branch**
 3. **Run quality checks** before pushing: `./scripts/pr-quality-check.sh`
 4. **Use conventional commits** for better history
 5. **Create PRs only when ready** for production

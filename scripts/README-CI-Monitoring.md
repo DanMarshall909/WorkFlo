@@ -17,7 +17,7 @@ After experiencing the issue where local tests passed but CI failed, these hooks
 
 Enhanced pre-push hook that:
 
-- ✅ Enforces dev-branch-only workflow (blocks pushes to main)
+- ✅ Enforces trunk-based workflow (blocks pushes to production main branch)
 - ✅ Checks existing PR CI status before allowing new pushes
 - ✅ Runs quality checks (build, test, format)
 - ✅ Validates conventional commit format
@@ -61,8 +61,8 @@ gh auth login
 ## 📋 Workflow Example
 
 ```bash
-# 1. Make changes on dev branch
-git checkout dev
+# 1. Make changes on feature branch
+git checkout -b feature/123-new-feature
 # ... make changes ...
 
 # 2. Commit with conventional format
@@ -73,8 +73,8 @@ git commit -m "fix: resolve CI formatting issues"
 git push origin dev
 
 # Output:
-# 🔍 Pre-push hook: Checking push rules for branch 'dev'
-# ✅ ALLOWED: Pushing to dev branch
+# 🔍 Pre-push hook: Checking push rules for branch 'feature/123-new-feature'
+# ✅ ALLOWED: Pushing to feature branch
 # ℹ️ Found existing PR #39
 # ⚠️ Previous CI run has 8 failing check(s)
 # Are you pushing fixes for these failures? (y/N) y
@@ -121,7 +121,7 @@ CHECK_INTERVAL=30
 REQUIRE_CI_SUCCESS=true
 
 # Branches to monitor
-MONITOR_BRANCHES=dev
+MONITOR_BRANCHES=master  # or feature branches
 
 # Enable post-push CI monitoring
 ENABLE_CI_MONITOR=true
@@ -142,7 +142,7 @@ gh pr checks <PR_NUMBER> --watch
 # View PR in browser
 gh pr view <PR_NUMBER> --web
 
-# Check current PR for dev branch
+# Check current PR for feature branch
 gh pr list --head dev
 ```
 
@@ -190,7 +190,7 @@ dotnet test
 1. **Prevents CI Surprises**: No more "tests pass locally but fail in CI"
 2. **Enforces Completion**: Work isn't done until CI passes
 3. **Early Detection**: Catch issues before wasting time
-4. **Process Enforcement**: Maintains dev-branch workflow
+4. **Process Enforcement**: Maintains trunk-based development workflow
 5. **Quality Gates**: Ensures basic checks before push
 6. **Real-time Feedback**: See CI progress immediately
 
@@ -198,7 +198,7 @@ dotnet test
 
 This system enforces several rules from CLAUDE.md:
 
-- ✅ **Dev branch workflow**: Only allows pushes to dev
+- ✅ **Trunk-based workflow**: Feature branches merge to master, main is protected
 - ✅ **Quality gates**: Runs build/test checks
 - ✅ **Conventional commits**: Validates commit format
 - ✅ **CI monitoring**: Tracks completion status
