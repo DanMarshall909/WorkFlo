@@ -15,8 +15,8 @@ if [[ -f "$PROJECT_ROOT/.workflow/config-loader.sh" ]]; then
     load_all_config
 else
     # Fallback to defaults if config system not available
-    # TODO: Change to "master" after trunk-based migration
-    export GIT_DEV_BRANCH="${WORKFLO_MAIN_BRANCH:-dev}"
+    # Trunk-based development - defaults to master
+    export GIT_DEV_BRANCH="${WORKFLO_MAIN_BRANCH:-master}"
     export GIT_REQUIRE_SAFE_COMMIT="true"
     export ADHD_TDD_ENABLED="true"
     export ADHD_ALLOW_SKIP_DOCS="true"

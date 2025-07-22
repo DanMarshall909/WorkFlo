@@ -47,9 +47,10 @@ print_header "Post-Push CI Monitoring"
 print_info "Branch: $BRANCH"
 print_info "Repository: $REPO"
 
-# Only monitor CI for dev branch (where PRs originate)
-if [[ "$BRANCH" != "dev" ]]; then
-    print_info "Not on dev branch. CI monitoring skipped."
+# Only monitor CI for main development branch (where PRs originate)
+TARGET_BRANCH="${WORKFLO_MAIN_BRANCH:-master}"  # Trunk-based development
+if [[ "$BRANCH" != "$TARGET_BRANCH" ]]; then
+    print_info "Not on $TARGET_BRANCH branch. CI monitoring skipped."
     exit 0
 fi
 

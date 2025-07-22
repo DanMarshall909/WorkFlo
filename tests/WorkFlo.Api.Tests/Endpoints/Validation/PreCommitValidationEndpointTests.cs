@@ -27,7 +27,7 @@ public sealed class PreCommitValidationEndpointTests : IClassFixture<TestWebAppl
         var request = new PreCommitValidationRequest
         {
             StagedFiles = new List<string> { "file1.cs", "file2.cs" },
-            CurrentBranch = "dev"
+            CurrentBranch = "master"
         };
 
         // Act
@@ -49,7 +49,7 @@ public sealed class PreCommitValidationEndpointTests : IClassFixture<TestWebAppl
         var request = new PreCommitValidationRequest
         {
             StagedFiles = new List<string> { "file1.cs", "file2.cs", "file3.cs", "file4.cs" },
-            CurrentBranch = "dev"
+            CurrentBranch = "master"
         };
 
         // Act

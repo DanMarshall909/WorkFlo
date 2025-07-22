@@ -8,13 +8,13 @@ namespace WorkFlo.Domain.Tests.Unit.Rules;
 public class BranchRuleTests
 {
     [Fact]
-    public void developer_can_commit_on_dev_branch()
+    public void developer_can_commit_on_master_branch()
     {
         // Arrange
         var rule = new BranchRule();
         var context = new CommitContext
         {
-            CurrentBranch = "dev"
+            CurrentBranch = "master"
         };
 
         // Act
@@ -39,6 +39,6 @@ public class BranchRuleTests
 
         // Assert
         result.IsFailure().Should().BeTrue();
-        result.Error.Should().Contain("'dev' branch");
+        result.Error.Should().Contain("'master' branch");
     }
 }
