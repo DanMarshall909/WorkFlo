@@ -1,144 +1,148 @@
-# WorkFlo Windows Scripts
+# WorkFlo Windows CLI (WSL Integration)
 
-This directory contains Windows installation scripts and build tools for WorkFlo - an AI-powered workflow enforcement tool for development teams.
+This directory contains Windows CLI installation scripts for WorkFlo - an AI-powered workflow enforcement tool that runs with WSL API integration.
 
-## For Developers: Building Windows Releases
+## Architecture Overview
 
-### Prerequisites
-- .NET 9 SDK
-- Node.js 18+
-- Git
-
-### Build Commands
-
-**PowerShell:**
-```powershell
-# Build Windows release binaries
-.\scripts\windows\build-release.ps1
-
-# Build with options
-.\scripts\windows\build-release.ps1 -OutputPath "dist\windows" -Clean
-```
-
-**Linux/macOS:**
-```bash
-# Cross-compile Windows binaries
-./scripts/windows/build-release.sh
-
-# Build with options  
-./scripts/windows/build-release.sh --output-path "dist/windows" --clean
-```
-
-This creates a complete Windows distribution in `build/windows/` with:
-- Self-contained executables (CLI + API)
-- Next.js production frontend
-- Installation scripts
-- Documentation
-
----
-
-## For End Users: Installing WorkFlo
+**WorkFlo Windows Setup:**
+- **Windows CLI**: Lightweight client installed natively on Windows
+- **WSL API Service**: Full WorkFlo API running in Windows Subsystem for Linux
+- **WSL Web Interface**: Next.js frontend accessible from Windows browsers
+- **Automatic Detection**: WSL IP auto-discovery with manual override support
 
 ## Quick Installation
 
-### Option 1: PowerShell (Recommended)
-1. **Run as Administrator**: Right-click PowerShell and select "Run as administrator"
-2. **Execute the script**:
-   ```powershell
-   .\install.ps1
-   ```
+### Prerequisites
+1. **Windows Subsystem for Linux (WSL)** installed and configured
+2. **Administrator privileges** for Windows CLI installation
+3. **.NET 9 SDK** installed in WSL
+4. **WorkFlo source code** available in WSL
 
-### Option 2: Batch File
-1. **Run as Administrator**: Right-click Command Prompt and select "Run as administrator"
-2. **Execute the script**:
-   ```cmd
-   install.bat
-   ```
+### Step 1: Install Windows CLI
 
-## What Gets Installed
+**PowerShell (Recommended):**
+```powershell
+# Run as Administrator
+.\install.ps1
+```
 
-- **WorkFlo CLI** (`cli/`) - Command-line interface for workflow enforcement
-- **WorkFlo API** (`api/`) - Backend API server for real-time validation
-- **WorkFlo Web** (`web/`) - Next.js frontend for dashboard and configuration
-- **Configuration** - Default settings with SQLite database setup
-- **Desktop Shortcuts** - Quick access to CLI and API server
+**Batch File:**
+```cmd
+# Run as Administrator
+install.bat
+```
+
+### Step 2: Set Up WSL API Service
+
+In your **WSL terminal**:
+```bash
+# Navigate to WorkFlo source directory
+cd /path/to/WorkFlo
+
+# Install .NET 9 SDK (if not already installed)
+wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-9.0
+
+# Start the API service
+dotnet run --project src/WorkFlo.Api/WorkFlo.Api.csproj
+```
+
+### Step 3: Start Web Interface (Optional)
+
+In another **WSL terminal**:
+```bash
+cd /path/to/WorkFlo/src/web
+npm install
+npm run dev:windows
+```
+
+### Step 4: Verify Installation
+
+In **Windows PowerShell/Command Prompt**:
+```cmd
+# Check CLI installation
+workflo --version
+
+# Check WSL service status
+"C:\Program Files\WorkFlo\wsl-service.ps1" status
+
+# Install git hooks in your repository
+cd your-git-repository
+workflo install
+```
+
+## What Gets Installed on Windows
+
+- **WorkFlo CLI** (`C:\Program Files\WorkFlo\cli\`) - Command-line interface
+- **Configuration** (`workflo-config.json`) - WSL API connection settings
+- **Service Manager** (`wsl-service.ps1`) - WSL service status and management
+- **Desktop Shortcuts** - Quick access to CLI and web interface
 - **System PATH** - Global access to `workflo` command
 
 ## Installation Details
 
-### Default Installation Path
+### Windows Components
 ```
 C:\Program Files\WorkFlo\
-├── cli/           # Command-line interface
-├── api/           # API server
-├── web/           # Web frontend
-├── data/          # SQLite database directory
-└── workflo-config.json
+├── cli\                    # Windows CLI binaries
+├── workflo-config.json     # WSL API configuration
+├── wsl-service.ps1         # Service management script
+└── uninstall.ps1           # Removal script
 ```
 
-### System Changes
-- Adds `C:\Program Files\WorkFlo\cli` to system PATH
-- Creates desktop shortcuts for CLI and API
-- Optionally installs API as Windows service
-
-## Post-Installation Setup
-
-### 1. Verify Installation
-Open a new terminal and run:
-```cmd
-workflo --help
+### WSL Components (User Managed)
 ```
-
-### 2. Initialize in Git Repository
-Navigate to your git repository and run:
-```cmd
-workflo install
+/path/to/WorkFlo/           # WSL WorkFlo source directory
+├── src/WorkFlo.Api/        # API service
+├── src/web/                # Web interface
+└── ...                     # Full WorkFlo source
 ```
-This sets up git hooks for commit validation.
-
-### 3. Start API Server
-**Option A: Manual Start**
-```cmd
-workflo serve
-```
-
-**Option B: Install as Windows Service**
-Run as administrator:
-```cmd
-"C:\Program Files\WorkFlo\install-service.bat"
-```
-
-### 4. Access Web Interface
-Once the API is running, access the web interface at:
-- http://localhost:5016 (API endpoints)
-- Deploy the web frontend separately or serve static files
-
-## Database Setup
-
-WorkFlo uses SQLite by default with automatic database creation:
-- **Database Location**: `C:\Program Files\WorkFlo\data\workflo.db`
-- **Auto-Migration**: Enabled by default
-- **No Manual Setup Required**: Database is created on first run
 
 ## Configuration
 
-Edit `workflo-config.json` to customize settings:
+### Automatic WSL Detection
+The installer automatically detects your WSL IP address and configures the CLI to connect to:
+- **API Service**: `http://WSL_IP:5000`
+- **Web Interface**: `http://WSL_IP:3000`
 
+### Manual Configuration
+If automatic detection fails, edit the configuration:
 ```json
 {
-  "ApiUrl": "http://localhost:5016",
-  "WebUrl": "http://localhost:3000",
-  "DefaultSettings": {
-    "AutoStartApi": true,
-    "EnableLogging": true,
-    "LogLevel": "Information",
-    "DatabaseProvider": "SQLite"
-  },
-  "Database": {
-    "ConnectionString": "Data Source=C:\\Program Files\\WorkFlo\\data\\workflo.db",
-    "AutoMigrate": true
+  "ApiUrl": "http://YOUR_WSL_IP:5000",
+  "WebUrl": "http://YOUR_WSL_IP:3000",
+  "WSLIntegration": {
+    "Enabled": true,
+    "HostIP": "YOUR_WSL_IP",
+    "ApiPort": 5000,
+    "WebPort": 3000,
+    "AutoDetectIP": true
   }
 }
+```
+
+### Find Your WSL IP
+```bash
+# In WSL terminal
+hostname -I
+```
+
+## Service Management
+
+### Check Status
+```powershell
+# PowerShell
+& "C:\Program Files\WorkFlo\wsl-service.ps1" status
+
+# Command Prompt
+"C:\Program Files\WorkFlo\wsl-service.ps1" status
+```
+
+### Get Start Instructions
+```powershell
+& "C:\Program Files\WorkFlo\wsl-service.ps1" start
 ```
 
 ## Usage Examples
@@ -151,21 +155,78 @@ workflo --help
 # Install git hooks in current repository
 workflo install
 
-# Start API server
-workflo serve
+# Validate commit message
+workflo validate commit-msg "feat: add new feature"
 
 # Run quality checks
 workflo quality check
 
-# Validate commit message
-workflo validate commit-msg "feat: add new feature"
+# Check service status
+"C:\Program Files\WorkFlo\wsl-service.ps1" status
 ```
 
 ### Git Hook Integration
 After running `workflo install`, the following hooks are active:
 - **pre-commit**: Validates code quality and TDD cycles
-- **commit-msg**: Enforces conventional commit message format
+- **commit-msg**: Enforces conventional commit message format  
 - **pre-push**: Runs comprehensive validation before push
+
+All validation is performed by the WSL API service.
+
+## Network Configuration
+
+### Windows Firewall
+If you experience connectivity issues:
+```powershell
+# Run as Administrator
+New-NetFirewallRule -DisplayName "WSL WorkFlo API" -Direction Inbound -Protocol TCP -LocalPort 5000 -Action Allow
+New-NetFirewallRule -DisplayName "WSL WorkFlo Web" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow
+```
+
+### Test Connectivity
+```powershell
+# Test API connection
+Invoke-WebRequest -Uri "http://YOUR_WSL_IP:5000/health" -Method GET
+
+# Test web interface
+Start-Process "http://YOUR_WSL_IP:3000"
+```
+
+## Building from Source
+
+### For Developers: Building Windows CLI Releases
+
+**From Windows (PowerShell):**
+```powershell
+.\scripts\windows\build-release.ps1
+```
+
+**From Linux/macOS:**
+```bash
+./scripts/windows/build-release.sh
+```
+
+This creates a Windows CLI distribution in `build/windows/` with:
+- Self-contained CLI executable
+- Installation scripts
+- WSL setup documentation
+- Configuration templates
+
+## System Requirements
+
+### Windows Requirements
+- **OS**: Windows 10/11 with WSL2 enabled
+- **Architecture**: x64 (64-bit)
+- **RAM**: 1GB for CLI (additional for WSL)
+- **Disk**: 200MB for CLI installation
+- **Network**: WSL-Windows network connectivity
+
+### WSL Requirements
+- **WSL Version**: WSL2 recommended
+- **Linux Distribution**: Ubuntu 20.04+ or compatible
+- **.NET SDK**: Version 9.0+
+- **Node.js**: Version 18+ (for web interface)
+- **RAM**: 2GB minimum for API service
 
 ## Troubleshooting
 
@@ -175,32 +236,38 @@ After running `workflo install`, the following hooks are active:
 - Restart your terminal after installation
 - Verify PATH includes `C:\Program Files\WorkFlo\cli`
 
-**2. "Access denied" during installation**
+**2. "WSL API not responding"**
+- Check if WSL is running: `wsl --list --running`
+- Verify API service is started in WSL
+- Check WSL IP connectivity
+
+**3. "Access denied during installation"**
 - Run installation script as administrator
 - Ensure you have write permissions to Program Files
 
-**3. API server won't start**
-- Check if port 5016 is available
-- Verify no firewall blocking the application
-- Check logs in the installation directory
+**4. "WSL IP detection failed"**
+- Manually find WSL IP: `wsl hostname -I`
+- Update configuration file with correct IP
+- Restart WSL if network issues persist
 
-**4. Database connection issues**
-- Ensure `data` directory exists and is writable
-- Check database connection string in config file
-- Verify SQLite support is available
+**5. "Firewall blocking connections"**
+- Add Windows Firewall rules (see Network Configuration)
+- Check corporate/antivirus firewall settings
+- Verify WSL networking is enabled
 
 ### Log Files
 - **CLI Logs**: Console output during command execution
-- **API Logs**: Written to console when running `workflo serve`
-- **Service Logs**: Windows Event Viewer when running as service
+- **API Logs**: WSL terminal output from API service
+- **Web Logs**: WSL terminal output from web dev server
+- **Installation Logs**: PowerShell/Command Prompt output
 
 ## Uninstallation
 
-To remove WorkFlo completely:
+To remove WorkFlo CLI from Windows:
 
 **PowerShell:**
 ```powershell
-C:\Program Files\WorkFlo\uninstall.ps1
+& "C:\Program Files\WorkFlo\uninstall.ps1"
 ```
 
 **Batch:**
@@ -209,35 +276,20 @@ C:\Program Files\WorkFlo\uninstall.ps1
 ```
 
 This will:
-- Stop and remove Windows service
-- Remove from system PATH
-- Delete desktop shortcuts
+- Remove CLI from system PATH
+- Delete desktop shortcuts  
 - Remove installation directory
-- Clean up registry entries
-
-## System Requirements
-
-- **OS**: Windows 10/11 or Windows Server 2019+
-- **Architecture**: x64 (64-bit)
-- **RAM**: 2GB minimum, 4GB recommended
-- **Disk**: 500MB free space
-- **Network**: Internet access for initial setup and updates
-
-## Security Notes
-
-- Installation requires administrator privileges
-- API server runs on localhost by default
-- SQLite database is stored locally
-- No external dependencies or telemetry
-- All communication is local unless configured otherwise
+- **Note**: WSL API service is not affected
 
 ## Support
 
 For issues or questions:
 1. Check the troubleshooting section above
-2. Review the main WorkFlo documentation
-3. Contact the development team
+2. Review `TROUBLESHOOTING.md` for detailed solutions
+3. Check WSL service status and logs
+4. Verify network connectivity between Windows and WSL
 
 ---
 
-**WorkFlo - Enforcing excellence in development workflows**
+**WorkFlo - Enforcing excellence in development workflows**  
+*Windows CLI with WSL API Integration*
