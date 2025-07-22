@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using WorkFlo.Tests.Common.Helpers;
 
 namespace WorkFlo.Api.Tests.Helpers;
 

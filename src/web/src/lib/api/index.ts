@@ -1,5 +1,5 @@
 // Generated API client exports
-export * from './workflo-client';
+export * from './anchor-client';
 
 // Re-export commonly used types
-export { WorkFloApiClient } from './workflo-client';
+export { WorkFloApiClient } from './anchor-client';

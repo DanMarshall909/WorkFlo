@@ -8,7 +8,7 @@ namespace WorkFlo.Tests.Common.Helpers;
 /// Test OAuth service that doesn't make external HTTP calls
 /// Used for integration testing to avoid dependency on external OAuth providers
 /// </summary>
-internal sealed class TestOAuthService : IOAuthService
+public sealed class TestOAuthService : IOAuthService
 {
     public string ProviderName { get; }
 
