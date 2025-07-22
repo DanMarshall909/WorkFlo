@@ -1,6 +1,6 @@
 @echo off
-:: WorkFlo Windows Installation Script (Batch Version)
-:: This script installs WorkFlo CLI and API on Windows systems
+:: WorkFlo Windows CLI Installation Script (Batch Version)
+:: This script installs WorkFlo CLI on Windows systems to connect to WSL API
 
 setlocal enabledelayedexpansion
 
@@ -12,12 +12,29 @@ if %errorLevel% neq 0 (
     exit /b 1
 )
 
-echo WorkFlo Installation Script
-echo =========================
+echo WorkFlo CLI Installation Script (WSL Integration)
+echo ================================================
 
 :: Set default installation path
 set "INSTALL_PATH=%ProgramFiles%\WorkFlo"
 
+:: Function to detect WSL IP address
+:DetectWSLIP
+set "WSL_IP=172.20.208.1"
+echo Detecting WSL network configuration...
+
+:: Try to find WSL network adapter info
+for /f "tokens=*" %%i in ('wsl hostname -I 2^>nul') do set "WSL_IP=%%i"
+if defined WSL_IP (
+    :: Trim whitespace
+    for /f "tokens=* delims= " %%a in ("!WSL_IP!") do set "WSL_IP=%%a"
+    echo WSL Host IP detected: !WSL_IP!
+) else (
+    echo Could not detect WSL IP automatically. Using default: !WSL_IP!
+)
+goto :continue
+
+:continue
 :: Check if already installed
 if exist "%INSTALL_PATH%" (
     echo WorkFlo appears to be already installed at %INSTALL_PATH%
@@ -35,30 +52,12 @@ if exist "%INSTALL_PATH%" (
 echo Creating installation directory at %INSTALL_PATH%...
 mkdir "%INSTALL_PATH%" 2>nul
 
-:: Copy CLI binaries
+:: Copy CLI binaries only (API runs in WSL)
 echo Installing WorkFlo CLI...
 mkdir "%INSTALL_PATH%\cli" 2>nul
 xcopy /s /e /i /y "cli\*" "%INSTALL_PATH%\cli\" >nul
 if %errorLevel% neq 0 (
     echo Failed to copy CLI files.
-    goto :error
-)
-
-:: Copy API binaries
-echo Installing WorkFlo API...
-mkdir "%INSTALL_PATH%\api" 2>nul
-xcopy /s /e /i /y "api\*" "%INSTALL_PATH%\api\" >nul
-if %errorLevel% neq 0 (
-    echo Failed to copy API files.
-    goto :error
-)
-
-:: Copy Web frontend
-echo Installing WorkFlo Web frontend...
-mkdir "%INSTALL_PATH%\web" 2>nul
-xcopy /s /e /i /y "web\*" "%INSTALL_PATH%\web\" >nul
-if %errorLevel% neq 0 (
-    echo Failed to copy Web files.
     goto :error
 )
 
@@ -89,65 +88,125 @@ echo oLink.Save >> "%TEMP%\create_cli_shortcut.vbs"
 cscript //nologo "%TEMP%\create_cli_shortcut.vbs"
 del "%TEMP%\create_cli_shortcut.vbs"
 
-:: API shortcut
-echo Set oWS = WScript.CreateObject("WScript.Shell") > "%TEMP%\create_api_shortcut.vbs"
-echo sLinkFile = "%USERPROFILE%\Desktop\WorkFlo API Server.lnk" >> "%TEMP%\create_api_shortcut.vbs"
-echo Set oLink = oWS.CreateShortcut(sLinkFile) >> "%TEMP%\create_api_shortcut.vbs"
-echo oLink.TargetPath = "%INSTALL_PATH%\api\WorkFlo.Api.exe" >> "%TEMP%\create_api_shortcut.vbs"
-echo oLink.WorkingDirectory = "%INSTALL_PATH%\api" >> "%TEMP%\create_api_shortcut.vbs"
-echo oLink.Description = "WorkFlo API Server" >> "%TEMP%\create_api_shortcut.vbs"
-echo oLink.Save >> "%TEMP%\create_api_shortcut.vbs"
-cscript //nologo "%TEMP%\create_api_shortcut.vbs"
-del "%TEMP%\create_api_shortcut.vbs"
+:: Web Interface shortcut (points to WSL)
+echo Set oWS = WScript.CreateObject("WScript.Shell") > "%TEMP%\create_web_shortcut.vbs"
+echo sLinkFile = "%USERPROFILE%\Desktop\WorkFlo Web.lnk" >> "%TEMP%\create_web_shortcut.vbs"
+echo Set oLink = oWS.CreateShortcut(sLinkFile) >> "%TEMP%\create_web_shortcut.vbs"
+echo oLink.TargetPath = "http://!WSL_IP!:3000" >> "%TEMP%\create_web_shortcut.vbs"
+echo oLink.Description = "WorkFlo Web Interface (WSL)" >> "%TEMP%\create_web_shortcut.vbs"
+echo oLink.Save >> "%TEMP%\create_web_shortcut.vbs"
+cscript //nologo "%TEMP%\create_web_shortcut.vbs"
+del "%TEMP%\create_web_shortcut.vbs"
 
-:: Create service installation batch file
-echo Creating service installation script...
+:: Create WSL API configuration
+echo Creating WSL API configuration...
+(
+echo {
+echo   "ApiUrl": "http://!WSL_IP!:5000",
+echo   "WebUrl": "http://!WSL_IP!:3000",
+echo   "WSLIntegration": {
+echo     "Enabled": true,
+echo     "HostIP": "!WSL_IP!",
+echo     "ApiPort": 5000,
+echo     "WebPort": 3000,
+echo     "AutoDetectIP": true
+echo   },
+echo   "DefaultSettings": {
+echo     "EnableLogging": true,
+echo     "LogLevel": "Information"
+echo   }
+echo }
+) > "%INSTALL_PATH%\workflo-config.json"
+
+:: Create WSL service management batch file
+echo Creating WSL service management script...
 (
 echo @echo off
-echo :: WorkFlo API Service Installation
-echo :: Run this script as administrator to install WorkFlo API as a Windows service
+echo :: WorkFlo WSL Service Management
+echo :: This script helps check and manage the WorkFlo API service running in WSL
 echo.
-echo net session ^>nul 2^>^&1
-echo if %%errorLevel%% neq 0 ^(
-echo     echo This script requires administrator privileges. Please run as administrator.
-echo     pause
-echo     exit /b 1
-echo ^)
+echo setlocal enabledelayedexpansion
+echo set "WSL_IP=!WSL_IP!"
+echo set "API_URL=http://!WSL_IP!:5000"
+echo set "WEB_URL=http://!WSL_IP!:3000"
 echo.
-echo set "SERVICE_NAME=WorkFloAPI"
-echo set "SERVICE_DISPLAY_NAME=WorkFlo API Service"
-echo set "SERVICE_DESCRIPTION=WorkFlo AI-powered workflow enforcement API server"
-echo set "SERVICE_PATH=%INSTALL_PATH%\api\WorkFlo.Api.exe"
+echo if "%%1"=="" set "ACTION=status"
+echo if "%%1"=="status" set "ACTION=status"
+echo if "%%1"=="start" set "ACTION=start"
+echo if "%%1"=="stop" set "ACTION=stop"
+echo if "%%1"=="restart" set "ACTION=restart"
 echo.
-echo :: Check if service already exists
-echo sc query %%SERVICE_NAME%% ^>nul 2^>^&1
+echo if "%%ACTION%%"=="status" goto :status
+echo if "%%ACTION%%"=="start" goto :start
+echo if "%%ACTION%%"=="stop" goto :stop
+echo if "%%ACTION%%"=="restart" goto :restart
+echo goto :help
+echo.
+echo :status
+echo echo WorkFlo WSL Service Status
+echo echo =========================
+echo.
+echo :: Test API service
+echo curl -s -o nul -w "API Service: %%{http_code}" "%%API_URL%%/health" 2^>nul
 echo if %%errorLevel%% equ 0 ^(
-echo     echo Service %%SERVICE_NAME%% already exists. Stopping and removing...
-echo     sc stop %%SERVICE_NAME%%
-echo     sc delete %%SERVICE_NAME%%
-echo     timeout /t 2 /nobreak ^>nul
-echo ^)
-echo.
-echo :: Install service
-echo echo Installing WorkFlo API as Windows service...
-echo sc create %%SERVICE_NAME%% binPath= "%%SERVICE_PATH%%" DisplayName= "%%SERVICE_DISPLAY_NAME%%" start= auto
-echo if %%errorLevel%% equ 0 ^(
-echo     sc description %%SERVICE_NAME%% "%%SERVICE_DESCRIPTION%%"
-echo     echo Service installed successfully. Starting service...
-echo     sc start %%SERVICE_NAME%%
-echo     echo WorkFlo API service is now running.
+echo     echo  - Running
 echo ^) else ^(
-echo     echo Failed to install service.
+echo     echo  - Not responding
 echo ^)
+echo.
+echo :: Test Web service
+echo curl -s -o nul -w "Web Service: %%{http_code}" "%%WEB_URL%%" 2^>nul
+echo if %%errorLevel%% equ 0 ^(
+echo     echo  - Running
+echo ^) else ^(
+echo     echo  - Not responding
+echo ^)
+echo goto :instructions
+echo.
+echo :start
+echo echo Starting WorkFlo services in WSL...
+echo goto :instructions
+echo.
+echo :stop
+echo echo To stop WorkFlo services, use Ctrl+C in the WSL terminals where they're running.
+echo goto :end
+echo.
+echo :restart
+echo echo To restart WorkFlo services:
+echo echo 1. Use Ctrl+C to stop services in WSL terminals
+echo echo 2. Restart using the start instructions below
+echo goto :instructions
+echo.
+echo :instructions
+echo echo.
+echo echo To start WorkFlo API in WSL:
+echo echo 1. Open WSL terminal
+echo echo 2. Navigate to WorkFlo directory
+echo echo 3. Run: dotnet run --project src/WorkFlo.Api/WorkFlo.Api.csproj
+echo echo.
+echo echo For web interface:
+echo echo 1. In WSL, navigate to src/web/
+echo echo 2. Run: npm run dev:windows
+echo echo 3. Access from Windows: %%WEB_URL%%
+echo goto :end
+echo.
+echo :help
+echo echo Usage: %%~n0 [status^|start^|stop^|restart]
+echo echo   status  - Check if services are running ^(default^)
+echo echo   start   - Show instructions to start services
+echo echo   stop    - Show instructions to stop services
+echo echo   restart - Show instructions to restart services
+echo.
+echo :end
 echo pause
-) > "%INSTALL_PATH%\install-service.bat"
+) > "%INSTALL_PATH%\wsl-service.bat"
 
 :: Create uninstall script
 echo Creating uninstall script...
 (
 echo @echo off
 echo :: WorkFlo Uninstall Script
-echo :: This script removes WorkFlo from your system
+echo :: This script removes WorkFlo CLI from your system
 echo.
 echo net session ^>nul 2^>^&1
 echo if %%errorLevel%% neq 0 ^(
@@ -159,14 +218,6 @@ echo.
 echo echo WorkFlo Uninstall Script
 echo echo =======================
 echo.
-echo :: Stop and remove service if it exists
-echo sc query WorkFloAPI ^>nul 2^>^&1
-echo if %%errorLevel%% equ 0 ^(
-echo     echo Stopping and removing WorkFlo API service...
-echo     sc stop WorkFloAPI
-echo     sc delete WorkFloAPI
-echo ^)
-echo.
 echo :: Remove from PATH
 echo echo Removing from system PATH...
 echo for /f "tokens=2*" %%%%a in ^('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH 2^^^>nul'^) do set "CURRENT_PATH=%%%%b"
@@ -176,56 +227,39 @@ echo.
 echo :: Remove desktop shortcuts
 echo echo Removing desktop shortcuts...
 echo del "%%USERPROFILE%%\Desktop\WorkFlo CLI.lnk" 2^>nul
-echo del "%%USERPROFILE%%\Desktop\WorkFlo API Server.lnk" 2^>nul
+echo del "%%USERPROFILE%%\Desktop\WorkFlo Web.lnk" 2^>nul
 echo.
 echo :: Remove installation directory
 echo echo Removing installation directory...
 echo rmdir /s /q "%INSTALL_PATH%" 2^>nul
 echo.
-echo echo WorkFlo has been uninstalled successfully.
+echo echo WorkFlo CLI has been uninstalled successfully.
+echo echo Note: WorkFlo API service in WSL was not affected.
 echo echo Please restart your terminal to update PATH changes.
 echo pause
 ) > "%INSTALL_PATH%\uninstall.bat"
 
-:: Create default configuration
-echo Creating default configuration...
-(
-echo {
-echo   "ApiUrl": "http://localhost:5016",
-echo   "WebUrl": "http://localhost:3000",
-echo   "DefaultSettings": {
-echo     "AutoStartApi": true,
-echo     "EnableLogging": true,
-echo     "LogLevel": "Information",
-echo     "DatabaseProvider": "SQLite"
-echo   },
-echo   "Database": {
-echo     "ConnectionString": "Data Source=%INSTALL_PATH%\\data\\workflo.db",
-echo     "AutoMigrate": true
-echo   }
-echo }
-) > "%INSTALL_PATH%\workflo-config.json"
-
-:: Create data directory for SQLite database
-echo Creating data directory...
-mkdir "%INSTALL_PATH%\data" 2>nul
-
 echo.
 echo Installation completed successfully!
-echo =========================
+echo ====================================
 echo Installation Path: %INSTALL_PATH%
 echo CLI Executable: %INSTALL_PATH%\cli\WorkFlo.Cli.exe
-echo API Executable: %INSTALL_PATH%\api\WorkFlo.Api.exe
-echo Web Frontend: %INSTALL_PATH%\web
-echo Database: %INSTALL_PATH%\data\workflo.db (SQLite)
+echo WSL API URL: http://!WSL_IP!:5000
+echo WSL Web URL: http://!WSL_IP!:3000
 echo.
 echo Next Steps:
 echo 1. Restart your terminal to use 'workflo' command globally
-echo 2. Run 'workflo --help' to see available commands
-echo 3. Run '%INSTALL_PATH%\install-service.bat' to install API as Windows service
+echo 2. Set up WorkFlo API service in WSL (see instructions below)
+echo 3. Run '%INSTALL_PATH%\wsl-service.bat status' to check WSL services
 echo 4. Navigate to your git repository and run 'workflo install' to setup git hooks
 echo.
-echo To uninstall, run: %INSTALL_PATH%\uninstall.bat
+echo WSL Setup Instructions:
+echo 1. Open WSL terminal
+echo 2. Navigate to WorkFlo source directory
+echo 3. Run: dotnet run --project src/WorkFlo.Api/WorkFlo.Api.csproj
+echo 4. For web interface: cd src/web ^&^& npm run dev:windows
+echo.
+echo To uninstall: %INSTALL_PATH%\uninstall.bat
 echo.
 pause
 goto :end
