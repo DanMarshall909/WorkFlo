@@ -33,7 +33,7 @@ public class ValidateCommandPreCommitTests
     {
         // Arrange
         var stagedFiles = new[] { "file1.txt", "file2.txt" };
-        var currentBranch = "dev";
+        var currentBranch = "master";
         
         _gitService.GetStagedFilesAsync().Returns(Task.FromResult(stagedFiles));
         _gitService.GetCurrentBranchAsync().Returns(Task.FromResult(currentBranch));

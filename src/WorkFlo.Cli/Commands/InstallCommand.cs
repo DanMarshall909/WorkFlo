@@ -51,7 +51,7 @@ internal sealed class InstallCommand
         await _console.WriteLineAsync(string.Empty).ConfigureAwait(false);
         await _console.WriteLineAsync("WorkFlo will now enforce:").ConfigureAwait(false);
         await _console.WriteLineAsync("  • Maximum 3 files per commit").ConfigureAwait(false);
-        await _console.WriteLineAsync("  • Commits only on 'dev' branch").ConfigureAwait(false);
+        await _console.WriteLineAsync("  • Commits only on 'master' branch").ConfigureAwait(false);
         await _console.WriteLineAsync("  • Conventional commit messages").ConfigureAwait(false);
     }
 }

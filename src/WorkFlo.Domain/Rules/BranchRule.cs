@@ -4,7 +4,7 @@ namespace WorkFlo.Domain.Rules;
 
 public class BranchRule : ICommitRule
 {
-    private const string RequiredBranch = "dev";
+    private const string RequiredBranch = "master";  // Trunk-based development
 
     public string Name => "Branch";
     public string Description => "Ensures commits are made on the correct branch";

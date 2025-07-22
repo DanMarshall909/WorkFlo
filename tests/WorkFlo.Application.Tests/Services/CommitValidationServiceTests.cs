@@ -22,7 +22,7 @@ public class CommitValidationServiceTests
         var stagedFiles = new[] { "file1.cs", "file2.cs", "file3.cs", "file4.cs" };
 
         // Act
-        var result = await _service.ValidatePreCommitAsync(stagedFiles, "dev");
+        var result = await _service.ValidatePreCommitAsync(stagedFiles, "master");
 
         // Assert
         result.IsFailure().Should().BeTrue();
@@ -40,7 +40,7 @@ public class CommitValidationServiceTests
 
         // Assert
         result.IsFailure().Should().BeTrue();
-        result.Error.Should().Contain("'dev' branch");
+        result.Error.Should().Contain("'master' branch");
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class CommitValidationServiceTests
         var stagedFiles = new[] { "file1.cs", "file2.cs" };
 
         // Act
-        var result = await _service.ValidatePreCommitAsync(stagedFiles, "dev");
+        var result = await _service.ValidatePreCommitAsync(stagedFiles, "master");
 
         // Assert
         result.IsSuccess.Should().BeTrue();
