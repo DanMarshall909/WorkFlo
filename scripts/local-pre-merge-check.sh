@@ -297,11 +297,11 @@ echo "=========================="
 
 if [ "$OVERALL_SUCCESS" = true ]; then
     echo -e "${GREEN}🎉 ALL CHECKS PASSED${NC}"
-    echo "✅ Ready to merge dev → main"
+    echo "✅ Ready to merge $TARGET_BRANCH → main"
     echo
     echo "To proceed with merge:"
     echo "  git checkout main"
-    echo "  git merge dev"
+    echo "  git merge $TARGET_BRANCH"
     echo "  git push origin main"
     exit 0
 else

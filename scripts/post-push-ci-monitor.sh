@@ -60,7 +60,7 @@ PR_NUMBER=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/
 
 if [[ -z "$PR_NUMBER" ]]; then
     print_warning "No open PR found for branch '$BRANCH'"
-    print_info "Create a PR when ready: gh pr create --base main --head dev"
+    print_info "Create a PR when ready: gh pr create --base main --head $BRANCH"
     print_info "Or manually: https://github.com/$REPO/compare/main...$BRANCH"
     exit 0
 fi
