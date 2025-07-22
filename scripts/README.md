@@ -4,7 +4,7 @@ This directory contains automation scripts to ensure code quality, enforce branc
 
 ## 🛡️ Push Rules Enforcement
 
-The repository enforces a strict dev branch strategy with comprehensive push rules. See [Push Rules Setup Guide](./README-push-rules.md) for complete installation and configuration.
+The repository follows a trunk-based development workflow with feature branches merging to master. See [Push Rules Setup Guide](./README-push-rules.md) for complete installation and configuration.
 
 ### Quick Setup
 

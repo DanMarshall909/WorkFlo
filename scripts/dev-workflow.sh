@@ -15,12 +15,13 @@ NC='\033[0m'
 echo -e "${BLUE}🏗️  WorkFlo Development Workflow (Free Tier Optimized)${NC}"
 echo "=================================================="
 
-# Check if on dev branch
+# Check if on the main development branch (trunk-based development)
 current_branch=$(git branch --show-current)
-if [[ "$current_branch" != "dev" ]]; then
-    echo -e "${YELLOW}⚠️  Not on dev branch. Switching to dev...${NC}"
-    git checkout dev
-    git pull origin dev
+TARGET_BRANCH="${WORKFLO_MAIN_BRANCH:-master}"  # Trunk-based development
+if [[ "$current_branch" != "$TARGET_BRANCH" ]]; then
+    echo -e "${YELLOW}⚠️  Not on $TARGET_BRANCH branch. Switching to $TARGET_BRANCH...${NC}"
+    git checkout "$TARGET_BRANCH"
+    git pull origin "$TARGET_BRANCH"
 fi
 
 # Run local CI first
@@ -63,17 +64,17 @@ fi
 # Offer to push
 echo ""
 echo -e "${BLUE}📋 Step 3: Push to Remote${NC}"
-read -p "Push to origin/dev? (y/N): " push_choice
+read -p "Push to origin/$TARGET_BRANCH? (y/N): " push_choice
 if [[ "$push_choice" =~ ^[Yy]$ ]]; then
-    git push origin dev
+    git push origin "$TARGET_BRANCH"
     echo ""
-    echo -e "${GREEN}🎉 Workflow complete! Changes pushed to dev branch.${NC}"
+    echo -e "${GREEN}🎉 Workflow complete! Changes pushed to $TARGET_BRANCH branch.${NC}"
 else
     echo -e "${YELLOW}ℹ️  Changes committed locally but not pushed.${NC}"
 fi
 
 echo ""
 echo -e "${BLUE}💡 Next steps:${NC}"
-echo "- Continue development on dev branch"
-echo "- When ready for release: create PR dev → main"
+echo "- Continue development on $TARGET_BRANCH branch"
+echo "- When ready: create PR to merge changes"
 echo "- GitHub Actions will run minimal CI on push"

@@ -15,7 +15,8 @@ if [[ -f "$PROJECT_ROOT/.workflow/config-loader.sh" ]]; then
     load_all_config
 else
     # Fallback to defaults if config system not available
-    export GIT_DEV_BRANCH="dev"
+    # TODO: Change to "master" after trunk-based migration
+    export GIT_DEV_BRANCH="${WORKFLO_MAIN_BRANCH:-dev}"
     export GIT_REQUIRE_SAFE_COMMIT="true"
     export ADHD_TDD_ENABLED="true"
     export ADHD_ALLOW_SKIP_DOCS="true"
@@ -240,7 +241,7 @@ if [[ $? -eq 0 ]]; then
     echo ""
     print_info "Next steps:"
     echo "  • Continue TDD cycle: Red → Green → Refactor → Cover → Commit"
-    echo "  • Push when ready: git push origin dev"
+    echo "  • Push when ready: git push origin $GIT_DEV_BRANCH"
     echo "  • Use ./scripts/start-work.sh before starting new features"
     echo ""
     print_info "TDD Cycle Reminder:"
