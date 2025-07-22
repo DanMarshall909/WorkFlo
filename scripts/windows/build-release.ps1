@@ -38,17 +38,30 @@ try {
         Write-Host "All tests passed!" -ForegroundColor Green
     }
 
-    # Build CLI only (API runs in WSL)
-    Write-Host "Building WorkFlo CLI for Windows x64..." -ForegroundColor Blue
+    # Build CLI as single-file executable (API runs in WSL)
+    Write-Host "Building WorkFlo CLI as single-file executable for Windows x64..." -ForegroundColor Blue
     dotnet publish src\WorkFlo.Cli\WorkFlo.Cli.csproj `
         -c Release `
         -r win-x64 `
         --self-contained `
-        -o "$OutputPath\cli" `
+        -p:PublishSingleFile=true `
+        -p:IncludeNativeLibrariesForSelfExtract=true `
+        -p:PublishTrimmed=false `
+        -o "$OutputPath" `
         --verbosity minimal
 
     if ($LASTEXITCODE -ne 0) {
         throw "CLI build failed"
+    }
+
+    # Rename to standard workflo.exe if needed
+    $cliExePath = Join-Path $OutputPath "WorkFlo.Cli.exe"
+    $standardExePath = Join-Path $OutputPath "workflo.exe"
+    if (Test-Path $cliExePath) {
+        if (Test-Path $standardExePath) {
+            Remove-Item $standardExePath -Force
+        }
+        Rename-Item $cliExePath $standardExePath
     }
 
     # Copy installation scripts and documentation
@@ -199,7 +212,7 @@ This setup provides the best of both worlds: native Windows CLI experience with 
         DotNetVersion = (dotnet --version)
         Architecture = "CLI-only build for WSL API connectivity"
         Components = @{
-            CLI = "WorkFlo.Cli.exe"
+            CLI = "workflo.exe (single-file)"
             API = "Runs in WSL"
             Web = "Accessible via WSL IP"
         }
@@ -208,16 +221,21 @@ This setup provides the best of both worlds: native Windows CLI experience with 
     $versionInfo | Out-File -FilePath "$OutputPath\VERSION.json" -Encoding UTF8
 
     # Calculate sizes
-    $cliSize = [math]::Round((Get-ChildItem "$OutputPath\cli" -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB, 1)
+    $exeSize = if (Test-Path "$OutputPath\workflo.exe") { 
+        [math]::Round((Get-Item "$OutputPath\workflo.exe").Length / 1MB, 1) 
+    } else { 
+        0 
+    }
 
     Write-Host ""
     Write-Host "Build completed successfully!" -ForegroundColor Green
     Write-Host "============================" -ForegroundColor Green
     Write-Host "Output Directory: $OutputPath" -ForegroundColor White
-    Write-Host "CLI Size: ${cliSize}MB" -ForegroundColor White
-    Write-Host "Architecture: CLI-only build for WSL integration" -ForegroundColor White
+    Write-Host "Single-file executable: workflo.exe (${exeSize}MB)" -ForegroundColor White
+    Write-Host "Architecture: Single-file CLI for WSL integration" -ForegroundColor White
     Write-Host ""
     Write-Host "Installation files:" -ForegroundColor Yellow
+    Write-Host "- workflo.exe (Single-file CLI executable)" -ForegroundColor White
     Write-Host "- install.ps1 (PowerShell installer)" -ForegroundColor White
     Write-Host "- install.bat (Batch installer)" -ForegroundColor White
     Write-Host "- README.md (Installation guide)" -ForegroundColor White
@@ -225,7 +243,7 @@ This setup provides the best of both worlds: native Windows CLI experience with 
     Write-Host "- WSL-SETUP-GUIDE.md (WSL configuration guide)" -ForegroundColor White
     Write-Host ""
     Write-Host "To test the build:" -ForegroundColor Yellow
-    Write-Host "1. Run: $OutputPath\cli\WorkFlo.Cli.exe --version" -ForegroundColor White
+    Write-Host "1. Run: $OutputPath\workflo.exe --version" -ForegroundColor White
     Write-Host "2. Set up WSL API service (see WSL-SETUP-GUIDE.md)" -ForegroundColor White
     Write-Host ""
     Write-Host "WSL Requirements:" -ForegroundColor Cyan

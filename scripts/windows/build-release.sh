@@ -70,14 +70,22 @@ if [ "$SKIP_TESTS" = false ]; then
     echo "All tests passed!"
 fi
 
-# Build CLI only (API runs in WSL)
-echo "Building WorkFlo CLI for Windows x64..."
+# Build CLI as single-file executable (API runs in WSL)
+echo "Building WorkFlo CLI as single-file executable for Windows x64..."
 dotnet publish src/WorkFlo.Cli/WorkFlo.Cli.csproj \
     -c Release \
     -r win-x64 \
     --self-contained \
-    -o "$OUTPUT_PATH/cli" \
+    -p:PublishSingleFile=true \
+    -p:IncludeNativeLibrariesForSelfExtract=true \
+    -p:PublishTrimmed=false \
+    -o "$OUTPUT_PATH" \
     --verbosity minimal
+
+# Rename to standard workflo.exe if needed
+if [ -f "$OUTPUT_PATH/WorkFlo.Cli.exe" ]; then
+    mv "$OUTPUT_PATH/WorkFlo.Cli.exe" "$OUTPUT_PATH/workflo.exe"
+fi
 
 # Copy installation scripts and documentation
 echo "Copying installation scripts and documentation..."
@@ -227,7 +235,7 @@ cat > "$OUTPUT_PATH/VERSION.json" << EOF
   "DotNetVersion": "$(dotnet --version)",
   "Architecture": "CLI-only build for WSL API connectivity",
   "Components": {
-    "CLI": "WorkFlo.Cli.exe",
+    "CLI": "workflo.exe (single-file)",
     "API": "Runs in WSL",
     "Web": "Accessible via WSL IP"
   }
@@ -235,16 +243,17 @@ cat > "$OUTPUT_PATH/VERSION.json" << EOF
 EOF
 
 # Calculate sizes
-CLI_SIZE=$(du -sm "$OUTPUT_PATH/cli" | cut -f1)
+EXE_SIZE=$(if [ -f "$OUTPUT_PATH/workflo.exe" ]; then du -sm "$OUTPUT_PATH/workflo.exe" | cut -f1; else echo "0"; fi)
 
 echo ""
 echo "Build completed successfully!"
 echo "============================"
 echo "Output Directory: $OUTPUT_PATH"
-echo "CLI Size: ${CLI_SIZE}MB"
-echo "Architecture: CLI-only build for WSL integration"
+echo "Single-file executable: workflo.exe (${EXE_SIZE}MB)"
+echo "Architecture: Single-file CLI for WSL integration"
 echo ""
 echo "Installation files:"
+echo "- workflo.exe (Single-file CLI executable)"
 echo "- install.ps1 (PowerShell installer)"
 echo "- install.bat (Batch installer)"
 echo "- README.md (Installation guide)"
@@ -252,7 +261,7 @@ echo "- TROUBLESHOOTING.md (Support guide)"
 echo "- WSL-SETUP-GUIDE.md (WSL configuration guide)"
 echo ""
 echo "To test the build:"
-echo "1. Run: $OUTPUT_PATH/cli/WorkFlo.Cli.exe --version (on Windows)"
+echo "1. Run: $OUTPUT_PATH/workflo.exe --version (on Windows)"
 echo "2. Set up WSL API service (see WSL-SETUP-GUIDE.md)"
 echo ""
 echo "WSL Requirements:"
