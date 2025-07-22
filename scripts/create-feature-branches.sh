@@ -14,6 +14,9 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Configure target branch for trunk-based development
+TARGET_BRANCH="${WORKFLO_MAIN_BRANCH:-master}"  # Trunk-based development
+
 log() {
     echo -e "${BLUE}[FEATURE-BRANCHES]${NC} $1"
 }
@@ -110,9 +113,9 @@ create_feature_branch() {
     
     log "Creating feature branch: feature/$branch_name"
     
-    # Ensure we're on main and up to date
-    git checkout main 2>/dev/null || git checkout master 2>/dev/null
-    git pull origin main 2>/dev/null || git pull origin master 2>/dev/null
+    # Ensure we're on target branch and up to date
+    git checkout "$TARGET_BRANCH"
+    git pull origin "$TARGET_BRANCH"
     
     # Create and checkout feature branch
     git checkout -b "feature/$branch_name"
