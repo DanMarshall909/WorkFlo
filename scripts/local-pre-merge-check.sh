@@ -35,11 +35,12 @@ log_warning() {
     echo -e "${YELLOW}⚠️  $1${NC}"
 }
 
-# Check if we're on dev branch
+# Check if we're on the main development branch
+TARGET_BRANCH="${WORKFLO_MAIN_BRANCH:-master}"  # Trunk-based development
 current_branch=$(git branch --show-current)
-if [ "$current_branch" != "dev" ]; then
-    log_warning "Not on dev branch. Current branch: $current_branch"
-    echo "This check is designed for dev → main merges."
+if [ "$current_branch" != "$TARGET_BRANCH" ]; then
+    log_warning "Not on $TARGET_BRANCH branch. Current branch: $current_branch"
+    echo "This check is designed for $TARGET_BRANCH → main merges."
     read -p "Continue anyway? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -281,12 +282,12 @@ else
     OVERALL_SUCCESS=false
 fi
 
-# Check if dev is ahead of main
-COMMITS_AHEAD=$(git rev-list --count main..dev 2>/dev/null || echo "0")
+# Check if development branch is ahead of main
+COMMITS_AHEAD=$(git rev-list --count main..$TARGET_BRANCH 2>/dev/null || echo "0")
 if [ "$COMMITS_AHEAD" -gt 0 ]; then
-    log_status 0 "Dev branch is $COMMITS_AHEAD commit(s) ahead of main"
+    log_status 0 "$TARGET_BRANCH branch is $COMMITS_AHEAD commit(s) ahead of main"
 else
-    log_warning "Dev branch is not ahead of main - nothing to merge"
+    log_warning "$TARGET_BRANCH branch is not ahead of main - nothing to merge"
 fi
 
 # Final Results
