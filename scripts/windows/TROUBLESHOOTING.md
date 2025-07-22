@@ -112,16 +112,16 @@ For corporate environments:
 # Check if WorkFlo CLI is in PATH
 $env:PATH -split ';' | Where-Object { $_ -like "*WorkFlo*" }
 
-# Should show: C:\Program Files\WorkFlo\cli
+# Should show: C:\Program Files\WorkFlo
 ```
 
 #### Option 3: Add to PATH Manually
 ```powershell
 # Temporary (current session only)
-$env:PATH += ";C:\Program Files\WorkFlo\cli"
+$env:PATH += ";C:\Program Files\WorkFlo"
 
 # Permanent (requires restart)
-[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\Program Files\WorkFlo\cli", "Machine")
+[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\Program Files\WorkFlo", "Machine")
 ```
 
 ### Issue: "Access Denied" During Installation
@@ -370,8 +370,8 @@ wsl --list --verbose
 
 # WorkFlo Installation
 Write-Host "`n=== WorkFlo Installation ===" -ForegroundColor Blue
-if (Test-Path "C:\Program Files\WorkFlo\cli\WorkFlo.Cli.exe") {
-    & "C:\Program Files\WorkFlo\cli\WorkFlo.Cli.exe" --version
+if (Test-Path "C:\Program Files\WorkFlo\workflo.exe") {
+    & "C:\Program Files\WorkFlo\workflo.exe" --version
 } else {
     Write-Host "WorkFlo CLI not found"
 }

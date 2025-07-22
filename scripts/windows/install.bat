@@ -52,22 +52,24 @@ if exist "%INSTALL_PATH%" (
 echo Creating installation directory at %INSTALL_PATH%...
 mkdir "%INSTALL_PATH%" 2>nul
 
-:: Copy CLI binaries only (API runs in WSL)
+:: Copy single-file CLI executable (API runs in WSL)
 echo Installing WorkFlo CLI...
-mkdir "%INSTALL_PATH%\cli" 2>nul
-xcopy /s /e /i /y "cli\*" "%INSTALL_PATH%\cli\" >nul
-if %errorLevel% neq 0 (
-    echo Failed to copy CLI files.
+if exist "workflo.exe" (
+    copy /y "workflo.exe" "%INSTALL_PATH%\workflo.exe" >nul
+) else if exist "cli\WorkFlo.Cli.exe" (
+    copy /y "cli\WorkFlo.Cli.exe" "%INSTALL_PATH%\workflo.exe" >nul
+) else (
+    echo WorkFlo CLI executable not found. Expected workflo.exe or cli\WorkFlo.Cli.exe
     goto :error
 )
 
 :: Add CLI to PATH
 echo Adding WorkFlo CLI to system PATH...
 for /f "tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH 2^>nul') do set "CURRENT_PATH=%%b"
-echo !CURRENT_PATH! | findstr /i "%INSTALL_PATH%\cli" >nul
+echo !CURRENT_PATH! | findstr /i "%INSTALL_PATH%" >nul
 if %errorLevel% neq 0 (
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH /t REG_EXPAND_SZ /d "!CURRENT_PATH!;%INSTALL_PATH%\cli" /f >nul
-    echo Added %INSTALL_PATH%\cli to system PATH.
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH /t REG_EXPAND_SZ /d "!CURRENT_PATH!;%INSTALL_PATH%" /f >nul
+    echo Added %INSTALL_PATH% to system PATH.
     echo Please restart your terminal to use the 'workflo' command globally.
 ) else (
     echo WorkFlo CLI path already exists in system PATH.
@@ -81,8 +83,8 @@ echo Set oWS = WScript.CreateObject("WScript.Shell") > "%TEMP%\create_cli_shortc
 echo sLinkFile = "%USERPROFILE%\Desktop\WorkFlo CLI.lnk" >> "%TEMP%\create_cli_shortcut.vbs"
 echo Set oLink = oWS.CreateShortcut(sLinkFile) >> "%TEMP%\create_cli_shortcut.vbs"
 echo oLink.TargetPath = "cmd.exe" >> "%TEMP%\create_cli_shortcut.vbs"
-echo oLink.Arguments = "/k ""cd /d %INSTALL_PATH%\cli && WorkFlo.Cli.exe --help""" >> "%TEMP%\create_cli_shortcut.vbs"
-echo oLink.WorkingDirectory = "%INSTALL_PATH%\cli" >> "%TEMP%\create_cli_shortcut.vbs"
+echo oLink.Arguments = "/k ""cd /d %INSTALL_PATH% && workflo.exe --help""" >> "%TEMP%\create_cli_shortcut.vbs"
+echo oLink.WorkingDirectory = "%INSTALL_PATH%" >> "%TEMP%\create_cli_shortcut.vbs"
 echo oLink.Description = "WorkFlo Command Line Interface" >> "%TEMP%\create_cli_shortcut.vbs"
 echo oLink.Save >> "%TEMP%\create_cli_shortcut.vbs"
 cscript //nologo "%TEMP%\create_cli_shortcut.vbs"
@@ -221,7 +223,7 @@ echo.
 echo :: Remove from PATH
 echo echo Removing from system PATH...
 echo for /f "tokens=2*" %%%%a in ^('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH 2^^^>nul'^) do set "CURRENT_PATH=%%%%b"
-echo set "NEW_PATH=!CURRENT_PATH:%INSTALL_PATH%\cli;=!"
+echo set "NEW_PATH=!CURRENT_PATH:%INSTALL_PATH%;=!"
 echo reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH /t REG_EXPAND_SZ /d "!NEW_PATH!" /f ^>nul
 echo.
 echo :: Remove desktop shortcuts
@@ -243,7 +245,7 @@ echo.
 echo Installation completed successfully!
 echo ====================================
 echo Installation Path: %INSTALL_PATH%
-echo CLI Executable: %INSTALL_PATH%\cli\WorkFlo.Cli.exe
+echo CLI Executable: %INSTALL_PATH%\workflo.exe
 echo WSL API URL: http://!WSL_IP!:5000
 echo WSL Web URL: http://!WSL_IP!:3000
 echo.

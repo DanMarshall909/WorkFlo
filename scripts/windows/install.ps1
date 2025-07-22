@@ -62,11 +62,16 @@ try {
     }
     New-Item -ItemType Directory -Path $InstallPath -Force | Out-Null
 
-    # Copy CLI binaries only (API runs in WSL)
+    # Copy single-file CLI executable (API runs in WSL)
     Write-Host "Installing WorkFlo CLI..." -ForegroundColor Blue
-    $cliPath = Join-Path $InstallPath "cli"
-    New-Item -ItemType Directory -Path $cliPath -Force | Out-Null
-    Copy-Item "cli\*" $cliPath -Recurse -Force
+    if (Test-Path "workflo.exe") {
+        Copy-Item "workflo.exe" "$InstallPath\workflo.exe" -Force
+    } elseif (Test-Path "cli\WorkFlo.Cli.exe") {
+        # Fallback for multi-file build
+        Copy-Item "cli\WorkFlo.Cli.exe" "$InstallPath\workflo.exe" -Force
+    } else {
+        throw "WorkFlo CLI executable not found. Expected workflo.exe or cli\WorkFlo.Cli.exe"
+    }
 
     # Detect WSL IP for API connectivity
     Write-Host "Detecting WSL network configuration..." -ForegroundColor Blue
@@ -77,10 +82,10 @@ try {
     if ($AddToPath) {
         Write-Host "Adding WorkFlo CLI to system PATH..." -ForegroundColor Blue
         $currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
-        if ($currentPath -notlike "*$cliPath*") {
-            $newPath = $currentPath + ";" + $cliPath
+        if ($currentPath -notlike "*$InstallPath*") {
+            $newPath = $currentPath + ";" + $InstallPath
             [Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")
-            Write-Host "Added $cliPath to system PATH. Please restart your terminal." -ForegroundColor Green
+            Write-Host "Added $InstallPath to system PATH. Please restart your terminal." -ForegroundColor Green
         } else {
             Write-Host "WorkFlo CLI path already exists in system PATH." -ForegroundColor Yellow
         }
@@ -94,8 +99,8 @@ try {
         $WshShell = New-Object -comObject WScript.Shell
         $cliShortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\WorkFlo CLI.lnk")
         $cliShortcut.TargetPath = "cmd.exe"
-        $cliShortcut.Arguments = "/k `"cd /d $cliPath && workflo.exe --help`""
-        $cliShortcut.WorkingDirectory = $cliPath
+        $cliShortcut.Arguments = "/k `"cd /d $InstallPath && workflo.exe --help`""
+        $cliShortcut.WorkingDirectory = $InstallPath
         $cliShortcut.Description = "WorkFlo Command Line Interface"
         $cliShortcut.Save()
 
@@ -216,7 +221,7 @@ Write-Host "=======================" -ForegroundColor Red
 # Remove from PATH
 Write-Host "Removing from system PATH..." -ForegroundColor Blue
 `$currentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
-`$newPath = `$currentPath -replace [regex]::Escape("$cliPath") + ";?", ""
+`$newPath = `$currentPath -replace [regex]::Escape("$InstallPath") + ";?", ""
 `$newPath = `$newPath -replace ";`$", ""
 [Environment]::SetEnvironmentVariable("PATH", `$newPath, "Machine")
 
@@ -239,7 +244,7 @@ Write-Host "Please restart your terminal to update PATH changes." -ForegroundCol
     Write-Host "Installation completed successfully!" -ForegroundColor Green
     Write-Host "====================================" -ForegroundColor Green
     Write-Host "Installation Path: $InstallPath" -ForegroundColor White
-    Write-Host "CLI Executable: $cliPath\WorkFlo.Cli.exe" -ForegroundColor White
+    Write-Host "CLI Executable: $InstallPath\workflo.exe" -ForegroundColor White
     Write-Host "WSL API URL: http://${wslIP}:5000" -ForegroundColor White
     Write-Host "WSL Web URL: http://${wslIP}:3000" -ForegroundColor White
     Write-Host ""

@@ -75,7 +75,7 @@ workflo install
 
 ## What Gets Installed on Windows
 
-- **WorkFlo CLI** (`C:\Program Files\WorkFlo\cli\`) - Command-line interface
+- **WorkFlo CLI** (`C:\Program Files\WorkFlo\workflo.exe`) - Single-file command-line interface
 - **Configuration** (`workflo-config.json`) - WSL API connection settings
 - **Service Manager** (`wsl-service.ps1`) - WSL service status and management
 - **Desktop Shortcuts** - Quick access to CLI and web interface
@@ -86,7 +86,7 @@ workflo install
 ### Windows Components
 ```
 C:\Program Files\WorkFlo\
-├── cli\                    # Windows CLI binaries
+├── workflo.exe             # Single-file CLI executable
 ├── workflo-config.json     # WSL API configuration
 ├── wsl-service.ps1         # Service management script
 └── uninstall.ps1           # Removal script
@@ -234,7 +234,7 @@ This creates a Windows CLI distribution in `build/windows/` with:
 
 **1. "workflo command not found"**
 - Restart your terminal after installation
-- Verify PATH includes `C:\Program Files\WorkFlo\cli`
+- Verify PATH includes `C:\Program Files\WorkFlo`
 
 **2. "WSL API not responding"**
 - Check if WSL is running: `wsl --list --running`
