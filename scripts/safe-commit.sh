@@ -58,11 +58,14 @@ if git diff --cached --quiet; then
     exit 1
 fi
 
-# Ensure we're on correct development branch (configurable)
+# Trunk-based development: Allow commits on master and feature branches, block production
 current_branch=$(git symbolic-ref HEAD | sed 's|refs/heads/||')
-if [[ "$current_branch" != "$GIT_DEV_BRANCH" ]]; then
-    print_error "COMMIT BLOCKED: Must be on $GIT_DEV_BRANCH branch"
-    echo "Switch to $GIT_DEV_BRANCH: git checkout $GIT_DEV_BRANCH"
+BLOCKED_BRANCHES=("main")  # Only block production branch
+
+if [[ " ${BLOCKED_BRANCHES[@]} " =~ " ${current_branch} " ]]; then
+    print_error "COMMIT BLOCKED: Direct commits to $current_branch not allowed"
+    echo "Create feature branch: git checkout -b feature/your-feature"
+    echo "Or work on master: git checkout $GIT_DEV_BRANCH"
     exit 1
 fi
 
