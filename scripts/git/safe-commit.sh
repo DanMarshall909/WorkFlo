@@ -6,8 +6,8 @@ set -e
 
 # Load workflow libraries first
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-source "$SCRIPT_DIR/lib/workflow-bootstrap.sh"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+source "$SCRIPT_DIR/../lib/workflow-bootstrap.sh"
 
 # Load workflow configuration
 if [[ -f "$PROJECT_ROOT/.workflow/config-loader.sh" ]]; then
