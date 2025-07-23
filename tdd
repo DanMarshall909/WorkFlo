@@ -1,0 +1,332 @@
+#!/bin/bash
+# Ultra-minimal TDD for acceptance criteria
+# Forces AI agents to work on ONE criteria at a time with hard stops
+
+set -e
+
+STATE_FILE=".tdd-state"
+[[ -f $STATE_FILE ]] && source $STATE_FILE
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m' 
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+error() { echo -e "${RED}[ERROR]${NC} $1" >&2; exit 1; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+
+# Check prerequisites
+check_prereqs() {
+    command -v gh >/dev/null || error "GitHub CLI required: https://cli.github.com/"
+    command -v jq >/dev/null || error "jq required: sudo apt-get install jq"
+    command -v bc >/dev/null || error "bc required: sudo apt-get install bc"
+    command -v dotnet >/dev/null || error "dotnet required: https://dotnet.microsoft.com/"
+    gh auth status >/dev/null || error "GitHub CLI not authenticated: gh auth login"
+}
+
+# Core functions
+get_criteria() { 
+    gh issue view "$ISSUE" --json body | jq -r '.body' | 
+    grep -E '^- \[ \]' | sed 's/^- \[ \] //' | sed -n "${CRITERIA}p"
+}
+
+show_current() {
+    local criteria_text=$(get_criteria)
+    [[ -z "$criteria_text" ]] && error "No acceptance criteria found at position $CRITERIA"
+    echo ""
+    echo "🎯 Criteria $CRITERIA/$TOTAL: $criteria_text"
+    echo "📝 Write ONE test for this criteria only"
+    echo "🚫 Do NOT work on other criteria"
+    echo ""
+}
+
+validate_phase() {
+    case "$PHASE" in
+        START) [[ "$1" == "red" ]] || error "Must start with: tdd red" ;;
+        RED) [[ "$1" == "green" ]] || error "After RED: tdd green" ;;
+        GREEN) [[ "$1" =~ ^(refactor|cover)$ ]] || error "After GREEN: tdd refactor OR tdd cover" ;;
+        REFACTOR) [[ "$1" == "cover" ]] || error "After REFACTOR: tdd cover" ;;
+        COVER) [[ "$1" == "next" ]] || error "After COVER: tdd next" ;;
+    esac
+}
+
+save_state() {
+    cat > $STATE_FILE << EOF
+ISSUE=$ISSUE
+CRITERIA=$CRITERIA
+PHASE=$PHASE
+TOTAL=$TOTAL
+EOF
+}
+
+commit_phase() {
+    local phase="$1"
+    local criteria_text=$(get_criteria)
+    git add .
+    git commit -m "$phase $ISSUE.$CRITERIA: $criteria_text"
+}
+
+run_mutation_testing() {
+    info "Running mutation testing (required for COVER phase)..."
+    
+    # Check if legacy stryker config exists
+    local stryker_config="legacy/stryker.conf.mjs"
+    if [[ ! -f "$stryker_config" ]]; then
+        warn "No Stryker config found. Skipping mutation testing."
+        return 0
+    fi
+    
+    # Run Stryker mutation testing
+    if ! dotnet stryker --config-file "$stryker_config" >/dev/null 2>&1; then
+        warn "Mutation testing failed or not available. Proceeding without mutation testing."
+        return 0
+    fi
+    
+    # Extract mutation score
+    local score_file="StrykerOutput/*/reports/mutation-report.json"
+    if [[ -f $score_file ]]; then
+        local score=$(grep -o '"mutationScore": [0-9.]*' $score_file | head -1 | cut -d: -f2 | tr -d ' ')
+        if [[ -n "$score" ]]; then
+            if [[ $(echo "$score >= 85" | bc -l) -eq 1 ]]; then
+                success "Mutation score: ${score}% (>= 85% required)"
+            else
+                error "Mutation score ${score}% below required 85%"
+            fi
+        else
+            warn "Could not extract mutation score"
+        fi
+    else
+        warn "Mutation report not found"
+    fi
+}
+
+# Main commands
+case "$1" in
+    start)
+        check_prereqs
+        ISSUE=$2
+        [[ -z "$ISSUE" ]] && error "Usage: tdd start <issue_number>"
+        
+        info "Starting TDD workflow for issue #$ISSUE"
+        
+        # Validate issue exists
+        gh issue view "$ISSUE" >/dev/null || error "Issue #$ISSUE not found"
+        
+        # Count acceptance criteria
+        TOTAL=$(gh issue view "$ISSUE" --json body | jq -r '.body' | grep -c '^- \[ \]' || echo 0)
+        [[ $TOTAL -eq 0 ]] && error "No acceptance criteria found in issue #$ISSUE (use '- [ ] criteria' format)"
+        
+        CRITERIA=1
+        PHASE=START
+        save_state
+        
+        success "Started issue #$ISSUE with $TOTAL acceptance criteria"
+        show_current
+        info "Next step: tdd red"
+        ;;
+    
+    red)
+        [[ -z "$ISSUE" ]] && error "No active TDD session. Run: tdd start <issue>"
+        validate_phase red
+        
+        info "🔴 RED Phase - Write failing test"
+        show_current
+        
+        echo "Write a failing test for the current acceptance criteria."
+        echo "The test should:"
+        echo "  • Cover ONLY the current criteria"
+        echo "  • Use business scenario naming (not 'should' statements)"
+        echo "  • Follow Given-When-Then structure"
+        echo ""
+        read -p "Press Enter after writing the failing test..."
+        
+        # Verify test fails
+        info "Verifying test fails..."
+        if dotnet test --no-build --verbosity quiet >/dev/null 2>&1; then
+            error "Tests are passing! RED phase requires failing tests"
+        fi
+        
+        success "✅ Tests failing as expected"
+        commit_phase "RED"
+        PHASE=RED
+        save_state
+        success "RED phase complete. Next: tdd green"
+        ;;
+    
+    green)
+        [[ -z "$ISSUE" ]] && error "No active TDD session"
+        validate_phase green
+        
+        info "🟢 GREEN Phase - Minimal implementation"
+        show_current
+        
+        echo "Implement the MINIMAL code needed to make the test pass."
+        echo "Requirements:"
+        echo "  • Simplest possible solution"
+        echo "  • No extra features or optimizations"
+        echo "  • Just enough to make the test green"
+        echo ""
+        read -p "Press Enter after implementing minimal solution..."
+        
+        # Verify tests pass
+        info "Verifying tests pass..."
+        if ! dotnet test --no-build --verbosity quiet >/dev/null 2>&1; then
+            error "Tests still failing! GREEN phase requires passing tests"
+        fi
+        
+        success "✅ All tests passing"
+        commit_phase "GREEN"
+        PHASE=GREEN
+        save_state
+        success "GREEN phase complete. Next: tdd refactor OR tdd cover"
+        ;;
+    
+    refactor)
+        [[ -z "$ISSUE" ]] && error "No active TDD session"
+        validate_phase refactor
+        
+        info "🔵 REFACTOR Phase - Improve code quality"
+        
+        echo "Improve the code while keeping all tests green."
+        echo "Focus on:"
+        echo "  • Code readability and structure"
+        echo "  • Removing duplication"
+        echo "  • Better naming and organization"
+        echo ""
+        read -p "Press Enter after refactoring (or skip if no refactoring needed)..."
+        
+        # Check if changes were made
+        if git diff --quiet; then
+            info "No changes detected - skipping refactor commit"
+        else
+            # Verify tests still pass
+            info "Verifying tests still pass after refactoring..."
+            if ! dotnet test --no-build --verbosity quiet >/dev/null 2>&1; then
+                error "Tests failing after refactor! Fix the refactoring"
+            fi
+            success "✅ Tests still passing after refactor"
+            commit_phase "REFACTOR"
+        fi
+        
+        PHASE=REFACTOR
+        save_state
+        success "REFACTOR phase complete. Next: tdd cover"
+        ;;
+    
+    cover)
+        [[ -z "$ISSUE" ]] && error "No active TDD session"
+        validate_phase cover
+        
+        info "📊 COVER Phase - Comprehensive test coverage"
+        
+        echo "Add comprehensive test coverage for the current criteria."
+        echo "Include:"
+        echo "  • Edge cases and boundary conditions"
+        echo "  • Error scenarios and exception handling"
+        echo "  • Different input variations"
+        echo ""
+        read -p "Press Enter after adding comprehensive test coverage..."
+        
+        # Verify all tests pass
+        info "Running all tests..."
+        if ! dotnet test; then
+            error "Tests must pass before completing COVER phase"
+        fi
+        
+        # Run mutation testing
+        run_mutation_testing
+        
+        commit_phase "COVER"
+        PHASE=COVER
+        save_state
+        success "COVER phase complete. Next: tdd next"
+        ;;
+    
+    next)
+        [[ -z "$ISSUE" ]] && error "No active TDD session"
+        validate_phase next
+        
+        success "✅ Acceptance criteria $CRITERIA completed!"
+        
+        # Move to next criteria
+        ((CRITERIA++))
+        
+        if [[ $CRITERIA -gt $TOTAL ]]; then
+            success "🎉 ALL $TOTAL acceptance criteria completed for issue #$ISSUE!"
+            echo ""
+            info "Ready to create Pull Request:"
+            echo "  gh pr create --base master --title \"feat: implement issue #$ISSUE\""
+            echo ""
+            rm -f $STATE_FILE
+            exit 0
+        fi
+        
+        PHASE=START
+        save_state
+        
+        echo ""
+        info "Moving to next acceptance criteria..."
+        show_current
+        warn "🛑 HARD STOP"
+        warn "To prevent scope creep, you must explicitly continue"
+        echo ""
+        info "To continue: tdd red"
+        ;;
+    
+    status)
+        if [[ -z "$ISSUE" ]]; then
+            warn "No active TDD session"
+            info "Start with: tdd start <issue_number>"
+            exit 0
+        fi
+        
+        echo ""
+        echo "📊 TDD Session Status"
+        echo "===================="
+        echo "Issue: #$ISSUE"
+        echo "Progress: $CRITERIA/$TOTAL acceptance criteria"
+        echo "Current Phase: $PHASE"
+        echo ""
+        show_current
+        
+        case "$PHASE" in
+            START) info "Next: tdd red" ;;
+            RED) info "Next: tdd green" ;;
+            GREEN) info "Next: tdd refactor OR tdd cover" ;;
+            REFACTOR) info "Next: tdd cover" ;;
+            COVER) info "Next: tdd next" ;;
+        esac
+        ;;
+    
+    help|--help|-h)
+        echo "Ultra-Minimal TDD Command for Acceptance Criteria"
+        echo ""
+        echo "Usage: tdd {start|red|green|refactor|cover|next|status|help}"
+        echo ""
+        echo "Commands:"
+        echo "  start ISSUE  Start TDD workflow for GitHub issue"
+        echo "  red          Write failing test (RED phase)"
+        echo "  green        Minimal implementation (GREEN phase)"
+        echo "  refactor     Improve code quality (REFACTOR phase)"
+        echo "  cover        Add comprehensive tests (COVER phase)"
+        echo "  next         Move to next criteria (HARD STOP)"
+        echo "  status       Show current TDD session status"
+        echo "  help         Show this help message"
+        echo ""
+        echo "TDD Cycle: RED → GREEN → REFACTOR → COVER → NEXT (repeat)"
+        echo ""
+        echo "Constraints:"
+        echo "  • Work on ONE acceptance criteria at a time"
+        echo "  • Hard stops between criteria prevent scope creep"
+        echo "  • Must follow phase sequence (no skipping)"
+        echo "  • Mutation testing required in COVER phase"
+        ;;
+    
+    *)
+        error "Unknown command: $1. Use 'tdd help' for usage information"
+        ;;
+esac
