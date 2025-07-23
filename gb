@@ -19,11 +19,11 @@ fi
 
 # Print bridge info
 echo -e "${BLUE}📋 WorkFlo GitHub Board Management${NC}"
-echo -e "${BLUE}Bridge: ./gb → scripts/gh-board-sync.sh${NC}"
+echo -e "${BLUE}Bridge: ./gb → scripts/github/gh-board-sync.sh${NC}"
 echo ""
 
 # Check if the target script exists
-BOARD_SCRIPT="./scripts/gh-board-sync.sh"
+BOARD_SCRIPT="./scripts/github/gh-board-sync.sh"
 if [[ ! -f "$BOARD_SCRIPT" ]]; then
     echo "❌ Error: Board sync script not found at $BOARD_SCRIPT" >&2
     exit 1
