@@ -128,7 +128,7 @@ EOF
 ### 🔴 CRITICAL ENFORCEMENT RULES
 
 - **ALWAYS prioritize fixing existing PRs over new features**
-- **ONLY work on `master` branch - NO feature branches**
+- **FEATURE-BASED BRANCHING** - Each GitHub issue gets its own feature branch with subissue tracking
 - **WORKFLOW-FIRST DEVELOPMENT** - CLI tools and git hooks must be developed together with API backend
 - **HOOK VALIDATION MANDATORY** - All git hooks must be tested in real git repositories
 - **TEST-FIRST development - write failing tests before implementation. ONE AT A TIME!**

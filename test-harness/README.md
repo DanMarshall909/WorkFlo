@@ -16,7 +16,7 @@ test-harness/
 ├── README.md                    # This file
 ├── setup-test-repo.sh          # Script to create isolated test repository
 ├── test-scenarios/             # Pre-defined test scenarios
-│   ├── dev-to-trunk-migration/ # Simulate dev→trunk migration
+│   ├── trunk-based-workflow/   # Test trunk-based development scenarios
 │   ├── feature-branch-workflow/ # Test feature branch development
 │   └── ci-cd-validation/       # Test GitHub Actions workflows
 ├── validation/                 # Validation scripts
@@ -35,9 +35,9 @@ test-harness/
    ./test-harness/setup-test-repo.sh
    ```
 
-2. **Run Migration Tests**:
+2. **Run Workflow Tests**:
    ```bash
-   ./test-harness/validation/test-migration.sh
+   ./test-harness/validation/test-workflows.sh
    ```
 
 3. **Test Safe Commit Behavior**:
@@ -52,10 +52,10 @@ test-harness/
 
 ## Test Scenarios
 
-### Scenario 1: Dev to Trunk Migration
-- Simulates repository with dev branch workflow
-- Tests migration scripts and validation
-- Verifies proper configuration changes
+### Scenario 1: Trunk-Based Development
+- Tests repository with trunk-based workflow
+- Validates feature branch creation and merging
+- Verifies proper master→main promotion
 
 ### Scenario 2: Feature Branch Workflow
 - Tests feature branch creation and commits
