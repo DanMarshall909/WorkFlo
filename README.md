@@ -1,87 +1,65 @@
-# WorkFlo
+# WorkFlo - Ultra-Minimal TDD Workflow
 
-**AI-powered workflow enforcement for development teams**
-
-WorkFlo is a comprehensive development workflow enforcement tool that combines intelligent git hooks, TDD validation, and AI-powered suggestions to maintain code quality and development standards.
-
-## Features
-
-- **Smart Git Hooks**: HTTP-based pre-commit, commit-msg, and pre-push validation
-- **TDD Workflow Enforcement**: Automated validation of Test-Driven Development cycles
-- **AI-Powered CLI**: Command-line interface with quality analysis and workflow automation
-- **Local API Server**: Real-time validation and communication between tools
-- **Configuration Management**: Flexible JSON-based configuration system
+AI-powered workflow enforcement system that constrains agents to **ONE acceptance criteria at a time** with hard stops.
 
 ## Quick Start
 
-### Installation
-
 ```bash
-# Install WorkFlo CLI globally
-dotnet tool install --global WorkFlo.Cli
+# Install prerequisites
+sudo apt-get install jq bc
 
-# Install git hooks in your repository
-workflo install
+# Start TDD workflow on a GitHub issue
+./tdd start <issue_number>
+
+# Follow the enforced TDD cycle
+./tdd red        # Write ONE failing test
+./tdd green      # Minimal implementation  
+./tdd refactor   # Improve code quality (optional)
+./tdd cover      # Add comprehensive tests + mutation testing
+./tdd next       # Move to next criteria (HARD STOP)
 ```
 
-### Usage
+## Core Constraint
 
-```bash
-# Start the API server
-workflo serve
+**🚫 Work on exactly ONE acceptance criteria, write ONE test, then STOP.**
 
-# Run quality checks
-workflo quality check
+This prevents AI agents from "running off" and doing multiple things at once.
 
-# Validate commit messages
-workflo validate commit-msg "feat: add new feature"
+## Repository Structure
+
+```
+/
+├── tdd              # Ultra-minimal TDD command (main workflow)
+├── CLAUDE.md        # Instructions for Claude Code
+├── README.md        # This file
+└── legacy/          # All previous complex scripts (archived)
 ```
 
-## Architecture
+## Key Features
 
-- **API Server**: ASP.NET Core with FastEndpoints
-- **CLI Tool**: .NET 9 with System.CommandLine
-- **Frontend**: Next.js with React and TypeScript
-- **Database**: Entity Framework Core with SQLite
+- **Progressive Disclosure**: Only current criteria visible to AI
+- **Hard Stops**: Explicit commands required between criteria  
+- **Phase Enforcement**: Must follow RED→GREEN→REFACTOR→COVER→NEXT
+- **Quality Gates**: Mutation testing (85% threshold) required
+- **Minimal Complexity**: Single 300-line script replaces entire complex system
 
-## Development
+## Requirements
 
-### Prerequisites
+- GitHub CLI (`gh`) with authentication
+- `jq` for JSON processing  
+- `bc` for calculations
+- .NET SDK for tests and mutation testing
 
-- .NET 9 SDK
-- Node.js 18+
-- Git
+## Issue Format
 
-### Building
+GitHub issues must have acceptance criteria in this format:
 
-```bash
-# Build backend
-dotnet build
-
-# Build frontend
-cd src/web && npm install && npm run build
+```markdown
+- [ ] First acceptance criteria
+- [ ] Second acceptance criteria  
+- [ ] Third acceptance criteria
 ```
-
-### Testing
-
-```bash
-# Run backend tests
-dotnet test
-
-# Run frontend tests
-cd src/web && npm test
-```
-
-## License
-
-**Copyright (c) 2025 Dan Marshall. All rights reserved.**
-
-This software is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited. See the [LICENSE](LICENSE) file for complete terms and conditions.
-
-## Contact
-
-For licensing inquiries or support, please contact Dan Marshall.
 
 ---
 
-*WorkFlo - Enforcing excellence in development workflows*
+**Built to constrain AI agents to focused, high-quality development with built-in stops to prevent scope creep.**
