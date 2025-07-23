@@ -1,1 +1,1 @@
-scripts/enhanced-start-work.sh
+scripts/workflow/enhanced-start-work.sh
