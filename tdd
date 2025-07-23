@@ -63,11 +63,28 @@ TOTAL=$TOTAL
 EOF
 }
 
+# Update board phase if board script exists
+update_board() {
+    local phase="$1"
+    local criteria_progress="$CRITERIA/$TOTAL"
+    
+    if [[ -x "./board" ]]; then
+        # Source the board script functions
+        source ./board
+        update_board_phase "$ISSUE" "$phase" "$criteria_progress" 2>/dev/null || true
+    fi
+}
+
 commit_phase() {
     local phase="$1"
     local criteria_text=$(get_criteria)
-    git add .
-    git commit -m "$phase $ISSUE.$CRITERIA: $criteria_text"
+    
+    # Auto-commit using git (internal to script)
+    if git add . && git commit -m "$phase $ISSUE.$CRITERIA: $criteria_text" >/dev/null 2>&1; then
+        success "💾 Auto-committed: $phase phase"
+    else
+        warn "⚠️  Auto-commit failed (continuing anyway)"
+    fi
 }
 
 run_mutation_testing() {
@@ -124,6 +141,12 @@ case "$1" in
         PHASE=START
         save_state
         
+        # Add to board if not already there and update phase
+        if command -v ./board >/dev/null; then
+            ./board list >/dev/null 2>&1 # Ensure board exists
+            # Board integration handled by board script
+        fi
+        
         success "Started issue #$ISSUE with $TOTAL acceptance criteria"
         show_current
         info "Next step: tdd red"
@@ -154,6 +177,7 @@ case "$1" in
         commit_phase "RED"
         PHASE=RED
         save_state
+        update_board "RED"
         success "RED phase complete. Next: tdd green"
         ;;
     
@@ -182,6 +206,7 @@ case "$1" in
         commit_phase "GREEN"
         PHASE=GREEN
         save_state
+        update_board "GREEN"
         success "GREEN phase complete. Next: tdd refactor OR tdd cover"
         ;;
     
@@ -214,6 +239,7 @@ case "$1" in
         
         PHASE=REFACTOR
         save_state
+        update_board "REFACTOR"
         success "REFACTOR phase complete. Next: tdd cover"
         ;;
     
@@ -243,6 +269,7 @@ case "$1" in
         commit_phase "COVER"
         PHASE=COVER
         save_state
+        update_board "COVER"
         success "COVER phase complete. Next: tdd next"
         ;;
     
@@ -257,9 +284,16 @@ case "$1" in
         
         if [[ $CRITERIA -gt $TOTAL ]]; then
             success "🎉 ALL $TOTAL acceptance criteria completed for issue #$ISSUE!"
+            
+            # Auto-complete issue on board
+            if [[ -x "./board" ]]; then
+                info "🔄 Auto-completing issue on board..."
+                ./board complete "$ISSUE" >/dev/null 2>&1 || warn "Board update failed"
+            fi
+            
             echo ""
-            info "Ready to create Pull Request:"
-            echo "  gh pr create --base master --title \"feat: implement issue #$ISSUE\""
+            info "✅ Issue #$ISSUE is complete and ready for PR"
+            info "💡 Next step: Create Pull Request when ready"
             echo ""
             rm -f $STATE_FILE
             exit 0
@@ -324,6 +358,13 @@ case "$1" in
         echo "  • Hard stops between criteria prevent scope creep"
         echo "  • Must follow phase sequence (no skipping)"
         echo "  • Mutation testing required in COVER phase"
+        echo "  • Auto-commits each phase, auto-updates board"
+        echo "  • Auto-completes issue when all criteria done"
+        echo ""
+        echo "Self-Contained Workflow:"
+        echo "  • No manual git/gh commands needed"
+        echo "  • Board management handled automatically"
+        echo "  • Focus only on writing tests and code"
         ;;
     
     *)
