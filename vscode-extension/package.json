@@ -1,0 +1,76 @@
+{
+  "name": "workflo-status",
+  "displayName": "WorkFlo TDD Status",
+  "description": "Display WorkFlo TDD session status and phase in VS Code with GitHub integration",
+  "version": "0.2.0",
+  "publisher": "workflo",
+  "icon": "icon.svg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dRAGster/dRAGster.git",
+    "directory": "WorkFlo/vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "workflo.showStatus",
+        "title": "Show WorkFlo Status",
+        "category": "WorkFlo"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "workflo",
+          "title": "WorkFlo TDD",
+          "icon": "$(pulse)"
+        }
+      ]
+    },
+    "views": {
+      "workflo": [
+        {
+          "id": "workfloStatus",
+          "type": "webview",
+          "name": "TDD Status",
+          "when": "workflo.active"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "WorkFlo",
+      "properties": {
+        "workflo.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh WorkFlo status"
+        },
+        "workflo.refreshInterval": {
+          "type": "number",
+          "default": 5000,
+          "description": "Status refresh interval in milliseconds"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^4.9.4"
+  }
+}
