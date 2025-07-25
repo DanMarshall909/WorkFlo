@@ -1,0 +1,28 @@
+# Build artifacts
+out/
+node_modules/
+
+# VS Code extension packaging
+*.vsix
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# npm debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json

@@ -251,7 +251,7 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
       return;
     }
 
-    const workFloPath = './WorkFlo/tdd';
+    const workFloPath = './tdd';
     try {
       console.log(`Starting TDD session for issue #${issueNumber}`);
       exec(`${workFloPath} start ${issueNumber}`, 
