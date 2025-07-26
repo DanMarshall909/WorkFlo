@@ -78,12 +78,111 @@ update_board() {
 commit_phase() {
     local phase="$1"
     local criteria_text=$(get_criteria)
+    local issue_title=$(gh issue view "$ISSUE" --json title | jq -r '.title' 2>/dev/null || echo "")
+    
+    # Create git subissue for test phases
+    local subissue_ref=""
+    if [[ "$phase" == "RED" ]]; then
+        subissue_ref="test: add failing test for criteria $CRITERIA"
+    elif [[ "$phase" == "COVER" ]]; then
+        subissue_ref="test: add comprehensive test coverage for criteria $CRITERIA"
+    fi
+    
+    # Enhanced commit message with proper linking
+    local commit_msg="$phase: criteria $CRITERIA - $criteria_text
+
+Issue: #$ISSUE - $issue_title
+Criteria: $CRITERIA/$TOTAL
+Phase: $phase
+Branch: $(git branch --show-current)
+
+$subissue_ref
+
+Changes:
+- TDD $phase phase implementation
+- Focus: $criteria_text
+
+Linked-to: #$ISSUE
+TDD-Phase: $phase
+Criteria-Progress: $CRITERIA/$TOTAL
+
+🤖 Generated with WorkFlo TDD automation"
     
     # Auto-commit using git (internal to script)
-    if git add . && git commit -m "$phase $ISSUE.$CRITERIA: $criteria_text" >/dev/null 2>&1; then
-        success "💾 Auto-committed: $phase phase"
+    if git add . && git commit -m "$commit_msg" >/dev/null 2>&1; then
+        success "💾 Auto-committed: $phase phase with issue linking"
+        
+        # Create GitHub subissue for test phases
+        if [[ "$phase" == "RED" || "$phase" == "COVER" ]]; then
+            create_test_subissue "$phase" "$criteria_text"
+        fi
     else
         warn "⚠️  Auto-commit failed (continuing anyway)"
+    fi
+}
+
+# Create git subissue for test-related phases
+create_test_subissue() {
+    local phase="$1"
+    local criteria_text="$2"
+    local subissue_title=""
+    local subissue_body=""
+    
+    if [[ "$phase" == "RED" ]]; then
+        subissue_title="Test: Add failing test for criteria $CRITERIA"
+        subissue_body="## Test Requirement
+
+Add failing test for acceptance criteria $CRITERIA:
+> $criteria_text
+
+### Test Guidelines
+- [ ] Test covers ONLY this specific criteria
+- [ ] Uses business scenario naming (not 'should' statements)  
+- [ ] Follows Given-When-Then structure
+- [ ] Test fails initially (RED phase requirement)
+
+### Linked to
+- Parent Issue: #$ISSUE
+- TDD Phase: RED
+- Criteria: $CRITERIA/$TOTAL
+
+This is a test subissue created automatically by WorkFlo TDD workflow."
+        
+    elif [[ "$phase" == "COVER" ]]; then
+        subissue_title="Test: Add comprehensive coverage for criteria $CRITERIA"
+        subissue_body="## Coverage Requirement
+
+Add comprehensive test coverage for acceptance criteria $CRITERIA:
+> $criteria_text
+
+### Coverage Guidelines
+- [ ] Edge cases and boundary conditions
+- [ ] Error scenarios and exception handling
+- [ ] Different input variations
+- [ ] Mutation testing score ≥ 85%
+
+### Linked to
+- Parent Issue: #$ISSUE
+- TDD Phase: COVER
+- Criteria: $CRITERIA/$TOTAL
+
+This is a test subissue created automatically by WorkFlo TDD workflow."
+    fi
+    
+    # Create the subissue if we have content
+    if [[ -n "$subissue_title" && -n "$subissue_body" ]]; then
+        info "Creating test subissue: $subissue_title"
+        if local subissue_url=$(gh issue create --title "$subissue_title" --body "$subissue_body" --label "test,subissue" 2>/dev/null); then
+            success "📝 Created test subissue: $subissue_url"
+            
+            # Link subissue to parent issue
+            local subissue_number=$(echo "$subissue_url" | grep -o '[0-9]*$')
+            if [[ -n "$subissue_number" ]]; then
+                gh issue comment "$ISSUE" --body "Related test subissue created: #$subissue_number" >/dev/null 2>&1 || true
+            fi
+        else
+            warn "Failed to create test subissue (continuing anyway)"
+        fi
     fi
 }
 
@@ -133,6 +232,35 @@ case "$1" in
         # Validate issue exists
         gh issue view "$ISSUE" >/dev/null || error "Issue #$ISSUE not found"
         
+        # Get issue title for branch naming
+        ISSUE_TITLE=$(gh issue view "$ISSUE" --json title | jq -r '.title')
+        BRANCH_NAME="feature/issue-${ISSUE}"
+        
+        # Check if we're already on the correct branch
+        CURRENT_BRANCH=$(git branch --show-current)
+        if [[ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]]; then
+            # Check if branch exists
+            if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
+                info "Switching to existing branch: $BRANCH_NAME"
+                git checkout "$BRANCH_NAME" || error "Failed to switch to branch $BRANCH_NAME"
+            else
+                info "Creating and switching to new branch: $BRANCH_NAME"
+                git checkout -b "$BRANCH_NAME" || error "Failed to create branch $BRANCH_NAME"
+                
+                # Link branch to issue immediately
+                info "Linking branch to issue #$ISSUE"
+                git commit --allow-empty -m "feat: initialize TDD workflow for issue #$ISSUE
+
+$ISSUE_TITLE
+
+Linked-to: #$ISSUE
+Branch: $BRANCH_NAME
+TDD-Session: START
+
+🤖 Generated with WorkFlo TDD automation" || warn "Failed to create initial commit"
+            fi
+        fi
+        
         # Count acceptance criteria
         TOTAL=$(gh issue view "$ISSUE" --json body | jq -r '.body' | grep -c '^- \[ \]' || echo 0)
         [[ $TOTAL -eq 0 ]] && error "No acceptance criteria found in issue #$ISSUE (use '- [ ] criteria' format)"
@@ -148,6 +276,7 @@ case "$1" in
         fi
         
         success "Started issue #$ISSUE with $TOTAL acceptance criteria"
+        success "Working on branch: $BRANCH_NAME"
         show_current
         info "Next step: tdd red"
         ;;

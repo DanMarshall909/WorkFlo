@@ -1,0 +1,38 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#2d5a87" stroke="#ffffff" stroke-width="4"/>
+  
+  <!-- TDD Cycle representation -->
+  <!-- Red phase -->
+  <circle cx="40" cy="40" r="12" fill="#ff6b6b" stroke="#ffffff" stroke-width="2"/>
+  <text x="40" y="46" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">R</text>
+  
+  <!-- Green phase -->
+  <circle cx="88" cy="40" r="12" fill="#51cf66" stroke="#ffffff" stroke-width="2"/>
+  <text x="88" y="46" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">G</text>
+  
+  <!-- Refactor phase -->
+  <circle cx="88" cy="88" r="12" fill="#339af0" stroke="#ffffff" stroke-width="2"/>
+  <text x="88" y="94" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">B</text>
+  
+  <!-- Cover phase -->
+  <circle cx="40" cy="88" r="12" fill="#845ef7" stroke="#ffffff" stroke-width="2"/>
+  <text x="40" y="94" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10" font-weight="bold">C</text>
+  
+  <!-- Center WorkFlo logo -->
+  <circle cx="64" cy="64" r="18" fill="#ffffff" stroke="#2d5a87" stroke-width="2"/>
+  <text x="64" y="70" text-anchor="middle" fill="#2d5a87" font-family="Arial, sans-serif" font-size="14" font-weight="bold">WF</text>
+  
+  <!-- Connecting arrows -->
+  <path d="M 52 40 L 76 40" stroke="#ffffff" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 88 52 L 88 76" stroke="#ffffff" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 76 88 L 52 88" stroke="#ffffff" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 40 76 L 40 52" stroke="#ffffff" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffffff"/>
+    </marker>
+  </defs>
+</svg>
