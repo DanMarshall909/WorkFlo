@@ -176,3 +176,17 @@
     [[ "$output" == *"Repairing workflow state"* ]]
     [[ "$output" == *"State integrity restored"* ]]
 }
+
+@test "automated_backup_and_restore_preserves_workflow_state_across_failures" {
+    # Given: TDD workflow with backup functionality enabled
+    # When: Backup and restore operations are triggered
+    # Then: System should automatically backup and restore workflow state
+    
+    # This test will fail until we implement automated backup and restore
+    export ENABLE_AUTO_BACKUP=true
+    run ./tdd backup-restore
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Creating workflow backup"* ]]
+    [[ "$output" == *"Backup completed successfully"* ]]
+    [[ "$output" == *"Restore functionality ready"* ]]
+}
