@@ -17,6 +17,7 @@ export async function run(): Promise<void> {
     mocha.addFile(path.resolve(testsRoot, 'state-file-parsing.test.js'));
     mocha.addFile(path.resolve(testsRoot, 'github-cli-integration.test.js'));
     mocha.addFile(path.resolve(testsRoot, 'code-coverage.test.js'));
+    mocha.addFile(path.resolve(testsRoot, 'ci-cd-integration.test.js'));
 
     try {
         return new Promise((resolve, reject) => {
