@@ -230,3 +230,16 @@
     [[ "$output" == *"Error handling configured"* ]]
     [[ "$output" == *"Validation complete"* ]]
 }
+
+@test "pr_linking_connects_to_originating_issue_and_subissues_for_traceability" {
+    # Given: A TDD workflow with parent issue and multiple subissues
+    # When: PR is created for the completed workflow
+    # Then: PR should link back to parent issue and reference all related subissues
+    
+    # This test will fail until we implement proper PR linking to issues and subissues
+    run ./tdd link-pr-issues 88
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Linking PR to parent issue"* ]]
+    [[ "$output" == *"Found related subissues"* ]]
+    [[ "$output" == *"PR linking complete"* ]]
+}
