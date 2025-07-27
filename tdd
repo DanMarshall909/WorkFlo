@@ -432,7 +432,7 @@ commit_phase() {
     esac
     
     # Create git subissue for test phases
-    local subissue_ref=""
+    local suisse_ref=""
     if [[ "$phase" == "RED" ]]; then
         subissue_ref="test: add failing test for criteria $CRITERIA"
     elif [[ "$phase" == "COVER" ]]; then
