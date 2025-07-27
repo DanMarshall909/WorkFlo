@@ -162,3 +162,17 @@
     [[ "$output" == *"Comprehensive logging active"* ]]
     [[ "$output" == *"Workflow visibility enhanced"* ]]
 }
+
+@test "state_corruption_detection_and_repair_maintains_workflow_integrity" {
+    # Given: TDD workflow state that may become corrupted
+    # When: State corruption is detected during workflow execution
+    # Then: System should detect corruption and repair state automatically
+    
+    # This test will fail until we implement state corruption detection and repair
+    export SIMULATE_STATE_CORRUPTION=true
+    run ./tdd repair-state
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"State corruption detected"* ]]
+    [[ "$output" == *"Repairing workflow state"* ]]
+    [[ "$output" == *"State integrity restored"* ]]
+}
