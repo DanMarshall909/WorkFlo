@@ -92,3 +92,17 @@
     [[ "$output" == *"Acceptance criteria verification:"* ]]
     [[ "$output" == *"Compliance status:"* ]]
 }
+
+@test "comprehensive_feature_workflow_documentation_generates_detailed_usage_and_integration_guide" {
+    # Given: A completed feature implementation with all acceptance criteria met
+    # When: Documentation generation is requested
+    # Then: Comprehensive workflow documentation should be created with usage examples
+    
+    # This test will fail until we implement comprehensive documentation generation
+    export MOCK_ISSUE=555
+    run ./tdd document $MOCK_ISSUE
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Generating comprehensive documentation"* ]]
+    [[ "$output" == *"Feature workflow guide:"* ]]
+    [[ "$output" == *"Usage examples:"* ]]
+}
