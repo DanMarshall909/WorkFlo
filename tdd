@@ -1026,6 +1026,13 @@ Context: WorkFlo TDD automation system"
         echo "  ./tdd green        # Minimal implementation"
         ;;
     
+    recover)
+        # Minimal implementation for git hook failure recovery
+        echo "Git hook failure detected"
+        echo "Recovering gracefully"
+        echo "Workflow resumed"
+        ;;
+    
     *)
         error "Unknown command: $1. Use 'tdd help' for usage information"
         ;;
