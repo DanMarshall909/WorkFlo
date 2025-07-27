@@ -198,9 +198,22 @@
     
     # This test will fail until we implement real GitHub PR creation
     export ENABLE_REAL_PR_CREATION=true
-    run ./tdd create-real-pr 999
+    run ./tdd complete 999
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Creating GitHub PR via API"* ]]
+    [[ "$output" == *"Creating pull request automatically"* ]]
     [[ "$output" == *"PR created successfully"* ]]
     [[ "$output" == *"https://github.com/"* ]]
+}
+
+@test "pr_title_and_description_generation_uses_issue_context_for_meaningful_content" {
+    # Given: A GitHub issue with specific title and acceptance criteria
+    # When: PR is created via tdd complete command
+    # Then: PR title and description should be generated from issue context
+    
+    # This test will fail until we implement proper PR title and description generation
+    run ./tdd generate-pr-content 999
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Generated PR title:"* ]]
+    [[ "$output" == *"Generated PR description:"* ]]
+    [[ "$output" == *"Resolves #999"* ]]
 }
