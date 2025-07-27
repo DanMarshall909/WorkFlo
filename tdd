@@ -576,7 +576,14 @@ case "$1" in
     start)
         check_prereqs
         ISSUE=$2
-        [[ -z "$ISSUE" ]] && error "Usage: tdd start <issue_number>"
+        NON_INTERACTIVE=false
+        
+        # Check for --non-interactive flag
+        if [[ "$3" == "--non-interactive" ]]; then
+            NON_INTERACTIVE=true
+        fi
+        
+        [[ -z "$ISSUE" ]] && error "Usage: tdd start <issue_number> [--non-interactive]"
         
         info "Starting TDD workflow for issue #$ISSUE"
         
