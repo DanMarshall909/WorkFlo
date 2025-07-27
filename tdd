@@ -859,16 +859,14 @@ TDD-Session: START
         echo "Creating pull request automatically"
         echo "All acceptance criteria completed"
         
-        # Get issue details for PR context
-        ISSUE_TITLE=$(gh issue view "$ISSUE" --json title --jq '.title' 2>/dev/null || echo "Issue #$ISSUE")
+        # Generate PR content using enhanced content generation
         CURRENT_BRANCH=$(git branch --show-current)
         
-        # Create PR using GitHub CLI
+        # Get enhanced PR title and description
         if command -v gh >/dev/null 2>&1; then
-            # Try to create actual PR, fallback to mock if it fails
-            PR_URL=$(gh pr create \
-                --title "feat: $ISSUE_TITLE" \
-                --body "Resolves #$ISSUE
+            ISSUE_TITLE=$(gh issue view "$ISSUE" --json title --jq '.title' 2>/dev/null || echo "Issue #$ISSUE")
+            PR_TITLE="feat: $ISSUE_TITLE"
+            PR_BODY="Resolves #$ISSUE
 
 This PR implements the acceptance criteria defined in issue #$ISSUE.
 
@@ -876,9 +874,17 @@ This PR implements the acceptance criteria defined in issue #$ISSUE.
 - Automated implementation via TDD workflow
 - All acceptance criteria completed and tested
 
+## Issue Context
+$ISSUE_TITLE
+
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
-Co-Authored-By: Claude <noreply@anthropic.com>" \
+Co-Authored-By: Claude <noreply@anthropic.com>"
+            
+            # Try to create actual PR, fallback to mock if it fails
+            PR_URL=$(gh pr create \
+                --title "$PR_TITLE" \
+                --body "$PR_BODY" \
                 --base master \
                 --head "$CURRENT_BRANCH" 2>/dev/null || echo "https://github.com/DanMarshall909/WorkFlo/pull/mock-$ISSUE")
             
@@ -1098,13 +1104,40 @@ Context: WorkFlo TDD automation system"
         ;;
     
     generate-pr-content)
-        # Minimal implementation for PR title and description generation
+        # Enhanced implementation for PR title and description generation
         ISSUE_NUM=$2
         validate_issue_param "$ISSUE_NUM" "generate-pr-content"
         
-        echo "Generated PR title: feat: Issue #$ISSUE_NUM"
-        echo "Generated PR description: This PR resolves issue #$ISSUE_NUM"
-        echo "Resolves #$ISSUE_NUM"
+        # Get issue details from GitHub
+        if command -v gh >/dev/null 2>&1; then
+            ISSUE_TITLE=$(gh issue view "$ISSUE_NUM" --json title --jq '.title' 2>/dev/null || echo "Issue #$ISSUE_NUM")
+            ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --json body --jq '.body' 2>/dev/null || echo "")
+            
+            # Generate meaningful PR title
+            PR_TITLE="feat: $ISSUE_TITLE"
+            echo "Generated PR title: $PR_TITLE"
+            
+            # Generate comprehensive PR description
+            echo "Generated PR description: Resolves #$ISSUE_NUM
+
+## Summary
+This PR implements the acceptance criteria defined in issue #$ISSUE_NUM.
+
+## Changes
+- Automated implementation via TDD workflow
+- All acceptance criteria completed and tested
+
+## Issue Context
+$ISSUE_TITLE
+
+🤖 Generated with [Claude Code](https://claude.ai/code)"
+            
+            echo "Resolves #$ISSUE_NUM"
+        else
+            echo "Generated PR title: feat: Issue #$ISSUE_NUM"
+            echo "Generated PR description: This PR resolves issue #$ISSUE_NUM"
+            echo "Resolves #$ISSUE_NUM"
+        fi
         ;;
     
     *)
