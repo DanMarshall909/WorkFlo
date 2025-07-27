@@ -25,7 +25,7 @@ interface WorkFloStatus {
 }
 
 // Simple markdown to HTML converter
-function markdownToHtml(markdown: string): string {
+export function markdownToHtml(markdown: string): string {
   if (!markdown) return '';
   
   return markdown
