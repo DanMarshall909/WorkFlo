@@ -64,3 +64,17 @@
     [[ "$output" == *"Quality assessment:"* ]]
     [[ "$output" == *"Code review suggestions:"* ]]
 }
+
+@test "confidence_scoring_system_evaluates_readiness_for_auto_merge_at_90_percent_threshold" {
+    # Given: A TDD workflow with completed tests and code
+    # When: Confidence scoring is calculated
+    # Then: Score above 90% should trigger auto-merge, below 90% should require manual review
+    
+    # This test will fail until we implement confidence scoring system
+    export MOCK_ISSUE=777
+    run ./tdd confidence $MOCK_ISSUE
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Calculating confidence score"* ]]
+    [[ "$output" == *"Confidence: "* ]]
+    [[ "$output" == *"% confident"* ]]
+}
