@@ -1097,6 +1097,16 @@ Context: WorkFlo TDD automation system"
         echo "Restore functionality ready"
         ;;
     
+    generate-pr-content)
+        # Minimal implementation for PR title and description generation
+        ISSUE_NUM=$2
+        validate_issue_param "$ISSUE_NUM" "generate-pr-content"
+        
+        echo "Generated PR title: feat: Issue #$ISSUE_NUM"
+        echo "Generated PR description: This PR resolves issue #$ISSUE_NUM"
+        echo "Resolves #$ISSUE_NUM"
+        ;;
+    
     *)
         error "Unknown command: $1. Use 'tdd help' for usage information"
         ;;
