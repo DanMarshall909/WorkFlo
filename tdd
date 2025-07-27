@@ -859,6 +859,20 @@ TDD-Session: START
         echo "Creating pull request automatically"
         echo "All acceptance criteria completed"
         
+        # Validate PR creation requirements first
+        echo "Validating PR creation requirements..."
+        validation_errors=0
+        
+        # Check prerequisites
+        if ! command -v gh >/dev/null 2>&1; then
+            warn "GitHub CLI (gh) not found - using mock mode"
+        fi
+        
+        if ! git rev-parse --git-dir >/dev/null 2>&1; then
+            error "Not in a git repository"
+            return 1
+        fi
+        
         # Generate PR content using enhanced content generation
         CURRENT_BRANCH=$(git branch --show-current)
         
@@ -1141,13 +1155,54 @@ $ISSUE_TITLE
         ;;
     
     validate-pr-creation)
-        # Minimal implementation for PR creation validation and error handling
+        # Enhanced implementation for PR creation validation and error handling
         ISSUE_NUM=$2
         validate_issue_param "$ISSUE_NUM" "validate-pr-creation"
         
         echo "Validating PR creation requirements"
+        
+        # Check prerequisites for PR creation
+        validation_errors=0
+        
+        # Validate GitHub CLI is available
+        if ! command -v gh >/dev/null 2>&1; then
+            warn "GitHub CLI (gh) not found - PR creation will use mock mode"
+        fi
+        
+        # Validate we're in a git repository
+        if ! git rev-parse --git-dir >/dev/null 2>&1; then
+            error "Not in a git repository"
+            validation_errors=$((validation_errors + 1))
+        fi
+        
+        # Validate current branch is not master
+        CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
+        if [[ "$CURRENT_BRANCH" == "master" ]]; then
+            warn "Currently on master branch - PR creation may fail"
+        fi
+        
+        # Validate issue exists (if gh is available)
+        if command -v gh >/dev/null 2>&1; then
+            if ! gh issue view "$ISSUE_NUM" >/dev/null 2>&1; then
+                warn "Issue #$ISSUE_NUM may not exist or is not accessible"
+            fi
+        fi
+        
+        # Validate there are commits to include in PR
+        if git rev-parse --verify HEAD >/dev/null 2>&1; then
+            COMMIT_COUNT=$(git rev-list --count HEAD ^master 2>/dev/null || echo "0")
+            if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+                warn "No commits ahead of master - PR may be empty"
+            fi
+        fi
+        
         echo "Error handling configured"
-        echo "Validation complete"
+        
+        if [[ $validation_errors -eq 0 ]]; then
+            echo "Validation complete"
+        else
+            error "Validation failed with $validation_errors error(s)"
+        fi
         ;;
     
     *)
