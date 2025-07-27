@@ -168,8 +168,15 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
   }
 
   private extractValue(lines: string[], key: string): string | undefined {
-    const line = lines.find(l => l.startsWith(`${key}=`));
-    return line ? line.split('=')[1]?.replace(/"/g, '') : undefined;
+    // Handle both simple format (KEY=value) and complex format with line numbers and arrows (     1→KEY=value)
+    const line = lines.find(l => l.startsWith(`${key}=`) || l.includes(`${key}=`));
+    if (!line) return undefined;
+    
+    const equalIndex = line.indexOf(`${key}=`);
+    if (equalIndex === -1) return undefined;
+    
+    const value = line.substring(equalIndex + key.length + 1);
+    return value?.replace(/"/g, '') || undefined;
   }
 
   private async fetchGitHubIssue(issueNumber: string, workspacePath: string) {
