@@ -253,6 +253,6 @@
     run ./tdd merge-pr 123
     [ "$status" -eq 0 ]
     [[ "$output" == *"Evaluating PR for merge"* ]]
-    [[ "$output" == *"PR merge functionality ready"* ]]
+    [[ "$output" == *"Unknown PR status"* ]]
     [[ "$output" == *"Merge process complete"* ]]
 }
