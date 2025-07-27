@@ -822,6 +822,15 @@ TDD-Session: START
         echo "PR #123"
         ;;
     
+    review)
+        ISSUE=$2
+        [[ -z "$ISSUE" ]] && error "Usage: tdd review <issue_number>"
+        
+        echo "Running AI code review"
+        echo "Quality assessment: 85/100"
+        echo "Code review suggestions: Consider extracting helper functions"
+        ;;
+    
     *)
         error "Unknown command: $1. Use 'tdd help' for usage information"
         ;;
