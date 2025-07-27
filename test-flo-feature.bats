@@ -134,3 +134,17 @@
     [[ "$output" == *"Retrying with backoff"* ]]
     [[ "$output" == *"Request succeeded after retry"* ]]
 }
+
+@test "offline_development_fallback_enables_local_workflow_without_github_connectivity" {
+    # Given: Development environment without GitHub connectivity
+    # When: TDD workflow is initiated in offline mode
+    # Then: System should fall back to local-only operations and continue workflow
+    
+    # This test will fail until we implement offline development fallback
+    export SIMULATE_OFFLINE_MODE=true
+    run ./tdd offline
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"GitHub unavailable, switching to offline mode"* ]]
+    [[ "$output" == *"Local workflow enabled"* ]]
+    [[ "$output" == *"Offline development ready"* ]]
+}
