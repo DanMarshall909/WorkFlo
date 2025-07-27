@@ -19,13 +19,78 @@ success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 
-# Check prerequisites
+# Detect project type
+detect_project_type() {
+    if [[ -f "package.json" ]]; then
+        echo "nodejs"
+    elif [[ -f "*.csproj" ]] || [[ -d "src" && -f src/*.csproj ]]; then
+        echo "dotnet"
+    elif [[ -f "run-tests" ]] || [[ -d "tests" ]] || find . -name "*.bats" -type f 2>/dev/null | grep -q .; then
+        echo "bash"
+    else
+        echo "bash"  # Default to bash for minimal projects
+    fi
+}
+
+# Check prerequisites based on project type
 check_prereqs() {
     command -v gh >/dev/null || error "GitHub CLI required: https://cli.github.com/"
     command -v jq >/dev/null || error "jq required: sudo apt-get install jq"
     command -v bc >/dev/null || error "bc required: sudo apt-get install bc"
-    command -v dotnet >/dev/null || error "dotnet required: https://dotnet.microsoft.com/"
+    
+    local project_type=$(detect_project_type)
+    case "$project_type" in
+        dotnet)
+            command -v dotnet >/dev/null || error "dotnet required: https://dotnet.microsoft.com/"
+            ;;
+        nodejs)
+            command -v npm >/dev/null || error "npm required: https://nodejs.org/"
+            ;;
+        bash)
+            command -v bats >/dev/null || warn "BATS recommended: https://bats-core.readthedocs.io/"
+            [[ -x "./run-tests" ]] || warn "run-tests script not found - tests may not work"
+            ;;
+    esac
+    
     gh auth status >/dev/null || error "GitHub CLI not authenticated: gh auth login"
+}
+
+# Run tests based on project type
+run_tests() {
+    local quiet_mode="${1:-false}"
+    local project_type=$(detect_project_type)
+    
+    case "$project_type" in
+        dotnet)
+            if [[ "$quiet_mode" == "true" ]]; then
+                dotnet test --no-build --verbosity quiet >/dev/null 2>&1
+            else
+                dotnet test
+            fi
+            ;;
+        nodejs)
+            if [[ "$quiet_mode" == "true" ]]; then
+                npm test >/dev/null 2>&1
+            else
+                npm test
+            fi
+            ;;
+        bash)
+            if [[ -x "./run-tests" ]]; then
+                if [[ "$quiet_mode" == "true" ]]; then
+                    ./run-tests >/dev/null 2>&1
+                else
+                    ./run-tests
+                fi
+            else
+                warn "No run-tests script found. Create ./run-tests or install BATS tests."
+                return 1
+            fi
+            ;;
+        *)
+            error "Unknown project type: $project_type"
+            ;;
+    esac
 }
 
 # Core functions
@@ -294,11 +359,10 @@ TDD-Session: START
         echo "  • Use business scenario naming (not 'should' statements)"
         echo "  • Follow Given-When-Then structure"
         echo ""
-        read -p "Press Enter after writing the failing test..."
         
         # Verify test fails
         info "Verifying test fails..."
-        if dotnet test --no-build --verbosity quiet >/dev/null 2>&1; then
+        if run_tests true; then
             error "Tests are passing! RED phase requires failing tests"
         fi
         
@@ -323,11 +387,10 @@ TDD-Session: START
         echo "  • No extra features or optimizations"
         echo "  • Just enough to make the test green"
         echo ""
-        read -p "Press Enter after implementing minimal solution..."
         
         # Verify tests pass
         info "Verifying tests pass..."
-        if ! dotnet test --no-build --verbosity quiet >/dev/null 2>&1; then
+        if ! run_tests true; then
             error "Tests still failing! GREEN phase requires passing tests"
         fi
         
@@ -351,7 +414,6 @@ TDD-Session: START
         echo "  • Removing duplication"
         echo "  • Better naming and organization"
         echo ""
-        read -p "Press Enter after refactoring (or skip if no refactoring needed)..."
         
         # Check if changes were made
         if git diff --quiet; then
@@ -359,7 +421,7 @@ TDD-Session: START
         else
             # Verify tests still pass
             info "Verifying tests still pass after refactoring..."
-            if ! dotnet test --no-build --verbosity quiet >/dev/null 2>&1; then
+            if ! run_tests true; then
                 error "Tests failing after refactor! Fix the refactoring"
             fi
             success "✅ Tests still passing after refactor"
@@ -384,11 +446,10 @@ TDD-Session: START
         echo "  • Error scenarios and exception handling"
         echo "  • Different input variations"
         echo ""
-        read -p "Press Enter after adding comprehensive test coverage..."
         
         # Verify all tests pass
         info "Running all tests..."
-        if ! dotnet test; then
+        if ! run_tests false; then
             error "Tests must pass before completing COVER phase"
         fi
         
