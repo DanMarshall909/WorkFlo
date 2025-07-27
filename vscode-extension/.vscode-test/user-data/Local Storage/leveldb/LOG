@@ -1,3 +1,3 @@
-2025/07/27-18:23:42.388 18327 Reusing MANIFEST /home/dan/code/WorkFlo/vscode-extension/.vscode-test/user-data/Local Storage/leveldb/MANIFEST-000001
-2025/07/27-18:23:42.394 18327 Recovering log #3
-2025/07/27-18:23:42.394 18327 Reusing old log /home/dan/code/WorkFlo/vscode-extension/.vscode-test/user-data/Local Storage/leveldb/000003.log 
+2025/07/27-18:25:18.977 18b93 Reusing MANIFEST /home/dan/code/WorkFlo/vscode-extension/.vscode-test/user-data/Local Storage/leveldb/MANIFEST-000001
+2025/07/27-18:25:18.983 18b93 Recovering log #3
+2025/07/27-18:25:18.983 18b93 Reusing old log /home/dan/code/WorkFlo/vscode-extension/.vscode-test/user-data/Local Storage/leveldb/000003.log 

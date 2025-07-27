@@ -77,6 +77,11 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
+  // Public getter for testing
+  public get status(): WorkFloStatus {
+    return this._status;
+  }
+
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
