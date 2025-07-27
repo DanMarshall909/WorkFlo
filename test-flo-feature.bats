@@ -293,3 +293,16 @@
     [ "$status" -eq 0 ]
     [[ "$output" == *"Updated"* ]]
 }
+
+@test "tdd_workflow_commands_execute_without_requiring_user_input" {
+    # Given: TDD workflow commands that may have interactive prompts
+    # When: TDD commands are executed in non-interactive mode
+    # Then: Commands should complete without waiting for user input
+    
+    # This test will fail until TDD workflow removes all interactive inputs
+    run ./tdd start 999 --non-interactive
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"read"* ]]
+    [[ "$output" != *"Enter"* ]]
+    [[ "$output" != *"continue"* ]]
+}
