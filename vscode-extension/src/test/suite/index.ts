@@ -10,8 +10,9 @@ export async function run(): Promise<void> {
 
     const testsRoot = path.resolve(__dirname, '..');
 
-    // Directly add the test file
+    // Directly add the test files
     mocha.addFile(path.resolve(testsRoot, 'extension.test.js'));
+    mocha.addFile(path.resolve(testsRoot, 'workflo-status-provider.test.js'));
 
     try {
         return new Promise((resolve, reject) => {

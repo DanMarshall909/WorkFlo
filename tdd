@@ -12,12 +12,161 @@ RED='\033[0;31m'
 GREEN='\033[0;32m' 
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 error() { echo -e "${RED}[ERROR]${NC} $1" >&2; exit 1; }
 success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+score() { echo -e "${PURPLE}[SCORE]${NC} $1"; }
+
+# Gamification scoring system
+SCORE_FILE=".tdd-scores"
+
+# Initialize score tracking
+init_scores() {
+    if [[ ! -f $SCORE_FILE ]]; then
+        cat > $SCORE_FILE << EOF
+PERFORMANCE_SCORE=100
+QUALITY_SCORE=100  
+EFFICIENCY_SCORE=100
+TOTAL_TESTS=0
+TOTAL_LINES=0
+TEST_RUNS=0
+FAILED_RUNS=0
+EOF
+    fi
+    source $SCORE_FILE
+}
+
+# Calculate performance score (based on test execution time and failure rate)
+calculate_performance_score() {
+    local test_time_start=$(date +%s%N)
+    local test_passed=1
+    
+    # Run tests and measure time (suppress output to avoid errors)
+    if ! run_tests true >/dev/null 2>&1; then
+        test_passed=0
+        FAILED_RUNS=$((FAILED_RUNS + 1))
+    fi
+    
+    local test_time_end=$(date +%s%N)
+    local test_duration=$(((test_time_end - test_time_start) / 1000000)) # Convert to milliseconds
+    
+    TEST_RUNS=$((TEST_RUNS + 1))
+    
+    # Performance score: faster tests and fewer failures = higher score
+    local failure_rate=0
+    if [[ $TEST_RUNS -gt 0 ]]; then
+        failure_rate=$((FAILED_RUNS * 100 / TEST_RUNS))
+    fi
+    local time_penalty=$((test_duration / 100)) # Penalty for slow tests
+    
+    PERFORMANCE_SCORE=$((100 - failure_rate - time_penalty))
+    [[ $PERFORMANCE_SCORE -lt 0 ]] && PERFORMANCE_SCORE=0
+    [[ $PERFORMANCE_SCORE -gt 100 ]] && PERFORMANCE_SCORE=100
+}
+
+# Calculate code quality score (based on line count, complexity heuristics)
+calculate_quality_score() {
+    local current_lines=0
+    local current_files=0
+    
+    # Count source code lines (exclude test files and generated files)
+    if [[ -d "src" ]]; then
+        current_lines=$(find src -name "*.ts" -o -name "*.js" -o -name "*.cs" -o -name "*.sh" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo 0)
+        current_files=$(find src -name "*.ts" -o -name "*.js" -o -name "*.cs" -o -name "*.sh" | wc -l)
+    else
+        current_lines=$(find . -maxdepth 2 -name "*.ts" -o -name "*.js" -o -name "*.cs" -o -name "*.sh" | grep -v node_modules | grep -v test | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo 0)
+        current_files=$(find . -maxdepth 2 -name "*.ts" -o -name "*.js" -o -name "*.cs" -o -name "*.sh" | grep -v node_modules | grep -v test | wc -l)
+    fi
+    
+    # Quality score: fewer lines per feature + reasonable file count = higher score
+    local lines_per_criteria=0
+    if [[ $CRITERIA -gt 0 ]]; then
+        lines_per_criteria=$((current_lines / CRITERIA))
+    else
+        lines_per_criteria=$current_lines
+    fi
+    local complexity_penalty=$((lines_per_criteria / 50)) # Penalty for verbose implementations
+    
+    QUALITY_SCORE=$((100 - complexity_penalty))
+    [[ $QUALITY_SCORE -lt 0 ]] && QUALITY_SCORE=0
+    [[ $QUALITY_SCORE -gt 100 ]] && QUALITY_SCORE=100
+    
+    TOTAL_LINES=$current_lines
+}
+
+# Calculate test efficiency score (based on test coverage vs test count)
+calculate_efficiency_score() {
+    local current_tests=0
+    
+    # Count test files and test functions
+    if [[ -d "test" ]] || [[ -d "tests" ]] || [[ -d "src/test" ]]; then
+        current_tests=$(find . -name "*.test.*" -o -name "*.spec.*" -o -name "*.bats" | xargs grep -c "test\|it\|should" 2>/dev/null | awk '{sum+=$1} END {print sum+0}')
+    fi
+    
+    # Efficiency score: fewer tests that cover more criteria = higher score  
+    local tests_per_criteria=0
+    if [[ $CRITERIA -gt 0 ]]; then
+        tests_per_criteria=$((current_tests / CRITERIA))
+    else
+        tests_per_criteria=$current_tests
+    fi
+    local efficiency_bonus=0
+    
+    # Bonus for having exactly the right number of tests (not too many, not too few)
+    if [[ $tests_per_criteria -ge 1 ]] && [[ $tests_per_criteria -le 3 ]]; then
+        efficiency_bonus=20
+    elif [[ $tests_per_criteria -ge 4 ]] && [[ $tests_per_criteria -le 6 ]]; then
+        efficiency_bonus=10
+    fi
+    
+    local efficiency_penalty=$((tests_per_criteria > 6 ? (tests_per_criteria - 6) * 5 : 0))
+    
+    EFFICIENCY_SCORE=$((80 + efficiency_bonus - efficiency_penalty))
+    [[ $EFFICIENCY_SCORE -lt 0 ]] && EFFICIENCY_SCORE=0
+    [[ $EFFICIENCY_SCORE -gt 100 ]] && EFFICIENCY_SCORE=100
+    
+    TOTAL_TESTS=$current_tests
+}
+
+# Save scores to file
+save_scores() {
+    cat > $SCORE_FILE << EOF
+PERFORMANCE_SCORE=$PERFORMANCE_SCORE
+QUALITY_SCORE=$QUALITY_SCORE
+EFFICIENCY_SCORE=$EFFICIENCY_SCORE
+TOTAL_TESTS=$TOTAL_TESTS
+TOTAL_LINES=$TOTAL_LINES
+TEST_RUNS=$TEST_RUNS
+FAILED_RUNS=$FAILED_RUNS
+EOF
+}
+
+# Display gamification scores
+show_scores() {
+    init_scores
+    calculate_performance_score
+    calculate_quality_score  
+    calculate_efficiency_score
+    save_scores
+    
+    local total_score=$(((PERFORMANCE_SCORE + QUALITY_SCORE + EFFICIENCY_SCORE) / 3))
+    
+    echo ""
+    score "🎮 GAMIFICATION SCORES"
+    score "━━━━━━━━━━━━━━━━━━━━━━━"
+    score "⚡ Performance: ${PERFORMANCE_SCORE}/100 (test speed & reliability)"
+    score "🎯 Code Quality: ${QUALITY_SCORE}/100 (minimal, clean implementation)"  
+    score "🧪 Test Efficiency: ${EFFICIENCY_SCORE}/100 (optimal test coverage)"
+    score "📊 Overall Score: ${total_score}/100"
+    score ""
+    score "📈 Metrics: ${TOTAL_TESTS} tests, ${TOTAL_LINES} lines, ${TEST_RUNS} runs"
+    echo ""
+}
 
 # Detect project type
 detect_project_type() {
@@ -517,6 +666,9 @@ TDD-Session: START
         echo ""
         show_current
         
+        # Show gamification scores
+        show_scores
+        
         case "$PHASE" in
             START) info "Next: tdd red" ;;
             RED) info "Next: tdd green" ;;
@@ -539,6 +691,7 @@ TDD-Session: START
         echo "  cover        Add comprehensive tests (COVER phase)"
         echo "  next         Move to next criteria (HARD STOP)"
         echo "  status       Show current TDD session status"
+        echo "  scores       Show gamification scores only"
         echo "  help         Show this help message"
         echo ""
         echo "TDD Cycle: RED → GREEN → REFACTOR → COVER → NEXT (repeat)"
@@ -555,6 +708,11 @@ TDD-Session: START
         echo "  • No manual git/gh commands needed"
         echo "  • Board management handled automatically"
         echo "  • Focus only on writing tests and code"
+        ;;
+    
+    scores)
+        # Display only gamification scores
+        show_scores
         ;;
     
     *)
