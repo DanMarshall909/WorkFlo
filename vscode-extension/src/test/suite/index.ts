@@ -13,6 +13,7 @@ export async function run(): Promise<void> {
     // Directly add the test files
     mocha.addFile(path.resolve(testsRoot, 'extension.test.js'));
     mocha.addFile(path.resolve(testsRoot, 'workflo-status-provider.test.js'));
+    mocha.addFile(path.resolve(testsRoot, 'markdown-parser.test.js'));
 
     try {
         return new Promise((resolve, reject) => {
