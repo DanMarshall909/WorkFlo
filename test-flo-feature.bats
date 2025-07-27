@@ -278,7 +278,7 @@
     # This test will fail until we remove interactive prompts from board create
     run ./board create --non-interactive
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Board created"* ]]
+    [[ "$output" == *"Created issue"* ]]
     [[ "$output" != *"Enter"* ]]
     [[ "$output" != *"Please provide"* ]]
 }

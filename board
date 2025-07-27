@@ -159,23 +159,32 @@ case "$1" in
         check_prereqs
         
         # Command line mode: board create --title "Title" --criteria "c1;c2;c3" --description "desc"
-        if [[ "$2" == "--title" ]]; then
-            title="$3"
-            shift 3
-            
-            criteria_str=""
-            description=""
-            
-            while [[ $# -gt 0 ]]; do
-                case $1 in
-                    --criteria) criteria_str="$2"; shift 2 ;;
-                    --description) description="$2"; shift 2 ;;
-                    *) error "Unknown option: $1" ;;
-                esac
-            done
-            
-            [[ -z "$title" ]] && error "Title is required"
-            [[ -z "$criteria_str" ]] && error "At least one criterion is required (use --criteria 'c1;c2;c3')"
+        # or non-interactive mode: board create --non-interactive
+        if [[ "$2" == "--title" ]] || [[ "$2" == "--non-interactive" ]]; then
+            if [[ "$2" == "--non-interactive" ]]; then
+                # Default values for non-interactive mode
+                title="Non-interactive Issue"
+                criteria_str="Default acceptance criterion"
+                description="Issue created in non-interactive mode"
+                shift 2
+            else
+                title="$3"
+                shift 3
+                
+                criteria_str=""
+                description=""
+                
+                while [[ $# -gt 0 ]]; do
+                    case $1 in
+                        --criteria) criteria_str="$2"; shift 2 ;;
+                        --description) description="$2"; shift 2 ;;
+                        *) error "Unknown option: $1" ;;
+                    esac
+                done
+                
+                [[ -z "$title" ]] && error "Title is required"
+                [[ -z "$criteria_str" ]] && error "At least one criterion is required (use --criteria 'c1;c2;c3')"
+            fi
             
             # Parse criteria (semicolon separated)
             IFS=';' read -ra criteria <<< "$criteria_str"
