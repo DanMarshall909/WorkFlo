@@ -876,10 +876,22 @@ TDD-Session: START
         # Generate PR content using enhanced content generation
         CURRENT_BRANCH=$(git branch --show-current)
         
-        # Get enhanced PR title and description
+        # Get enhanced PR title and description with subissue linking
         if command -v gh >/dev/null 2>&1; then
             ISSUE_TITLE=$(gh issue view "$ISSUE" --json title --jq '.title' 2>/dev/null || echo "Issue #$ISSUE")
             PR_TITLE="feat: $ISSUE_TITLE"
+            
+            # Find and link related subissues
+            SUBISSUES=$(gh issue list --label "subissue" --search "Test: Add" --limit 100 --json number,title 2>/dev/null | \
+                jq -r --arg parent "$ISSUE" '.[] | select(.title | contains("criteria")) | .number' 2>/dev/null || echo "")
+            
+            SUBISSUE_LINKS=""
+            if [[ -n "$SUBISSUES" ]]; then
+                while IFS= read -r subissue_num; do
+                    [[ -n "$subissue_num" ]] && SUBISSUE_LINKS="$SUBISSUE_LINKS- Relates to #$subissue_num"$'\n'
+                done <<< "$SUBISSUES"
+            fi
+            
             PR_BODY="Resolves #$ISSUE
 
 This PR implements the acceptance criteria defined in issue #$ISSUE.
@@ -890,6 +902,9 @@ This PR implements the acceptance criteria defined in issue #$ISSUE.
 
 ## Issue Context
 $ISSUE_TITLE
+
+## Related Issues
+$SUBISSUE_LINKS
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
@@ -1206,12 +1221,39 @@ $ISSUE_TITLE
         ;;
     
     link-pr-issues)
-        # Minimal implementation for PR linking to issues and subissues
+        # Enhanced implementation for PR linking to issues and subissues
         ISSUE_NUM=$2
         validate_issue_param "$ISSUE_NUM" "link-pr-issues"
         
         echo "Linking PR to parent issue"
-        echo "Found related subissues"
+        
+        # Find related subissues if GitHub CLI is available
+        if command -v gh >/dev/null 2>&1; then
+            # Search for subissues that mention this issue
+            SUBISSUES=$(gh issue list --label "subissue" --search "Test: Add" --limit 100 --json number,title 2>/dev/null | \
+                jq -r --arg parent "$ISSUE_NUM" '.[] | select(.title | contains("criteria")) | .number' 2>/dev/null || echo "")
+            
+            if [[ -n "$SUBISSUES" ]]; then
+                SUBISSUE_COUNT=$(echo "$SUBISSUES" | wc -l)
+                echo "Found related subissues: $SUBISSUE_COUNT"
+                
+                # Generate subissue links for PR description
+                SUBISSUE_LINKS=""
+                while IFS= read -r subissue_num; do
+                    [[ -n "$subissue_num" ]] && SUBISSUE_LINKS="$SUBISSUE_LINKS- Relates to #$subissue_num"$'\n'
+                done <<< "$SUBISSUES"
+                
+                if [[ -n "$SUBISSUE_LINKS" ]]; then
+                    echo "Generated subissue links:"
+                    echo "$SUBISSUE_LINKS"
+                fi
+            else
+                echo "Found related subissues: 0"
+            fi
+        else
+            echo "Found related subissues: (GitHub CLI not available)"
+        fi
+        
         echo "PR linking complete"
         ;;
     
