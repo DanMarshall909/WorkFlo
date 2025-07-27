@@ -136,16 +136,61 @@ calculate_efficiency_score() {
     TOTAL_TESTS=$current_tests
 }
 
+# Calculate LLM efficiency score (based on tokens per feature completed)
+calculate_llm_efficiency_score() {
+    # Track LLM interactions (increment when TDD commands are run)
+    LLM_INTERACTIONS=$((LLM_INTERACTIONS + 1))
+    
+    # Estimate tokens based on criteria complexity and current phase
+    local tokens_this_interaction=0
+    case "$PHASE" in
+        RED) tokens_this_interaction=300 ;;      # Writing tests
+        GREEN) tokens_this_interaction=500 ;;    # Implementation  
+        REFACTOR) tokens_this_interaction=200 ;; # Code improvement
+        COVER) tokens_this_interaction=400 ;;    # Comprehensive testing
+        *) tokens_this_interaction=100 ;;        # Basic commands
+    esac
+    
+    ESTIMATED_TOKENS=$((ESTIMATED_TOKENS + tokens_this_interaction))
+    
+    # LLM efficiency: fewer tokens per completed criteria = higher score
+    local tokens_per_criteria=0
+    if [[ $CRITERIA -gt 0 ]]; then
+        tokens_per_criteria=$((ESTIMATED_TOKENS / CRITERIA))
+    else
+        tokens_per_criteria=$ESTIMATED_TOKENS
+    fi
+    
+    # Efficiency bonus for staying under token budgets
+    local efficiency_bonus=0
+    if [[ $tokens_per_criteria -le 1000 ]]; then
+        efficiency_bonus=30  # Excellent efficiency
+    elif [[ $tokens_per_criteria -le 2000 ]]; then
+        efficiency_bonus=20  # Good efficiency
+    elif [[ $tokens_per_criteria -le 3000 ]]; then
+        efficiency_bonus=10  # Acceptable efficiency
+    fi
+    
+    local token_penalty=$((tokens_per_criteria / 100)) # Penalty for high token usage
+    
+    LLM_EFFICIENCY_SCORE=$((70 + efficiency_bonus - token_penalty))
+    [[ $LLM_EFFICIENCY_SCORE -lt 0 ]] && LLM_EFFICIENCY_SCORE=0
+    [[ $LLM_EFFICIENCY_SCORE -gt 100 ]] && LLM_EFFICIENCY_SCORE=100
+}
+
 # Save scores to file
 save_scores() {
     cat > $SCORE_FILE << EOF
 PERFORMANCE_SCORE=$PERFORMANCE_SCORE
 QUALITY_SCORE=$QUALITY_SCORE
 EFFICIENCY_SCORE=$EFFICIENCY_SCORE
+LLM_EFFICIENCY_SCORE=$LLM_EFFICIENCY_SCORE
 TOTAL_TESTS=$TOTAL_TESTS
 TOTAL_LINES=$TOTAL_LINES
 TEST_RUNS=$TEST_RUNS
 FAILED_RUNS=$FAILED_RUNS
+LLM_INTERACTIONS=$LLM_INTERACTIONS
+ESTIMATED_TOKENS=$ESTIMATED_TOKENS
 EOF
 }
 
@@ -155,19 +200,22 @@ show_scores() {
     calculate_performance_score
     calculate_quality_score  
     calculate_efficiency_score
+    calculate_llm_efficiency_score
     save_scores
     
-    local total_score=$(((PERFORMANCE_SCORE + QUALITY_SCORE + EFFICIENCY_SCORE) / 3))
+    local total_score=$(((PERFORMANCE_SCORE + QUALITY_SCORE + EFFICIENCY_SCORE + LLM_EFFICIENCY_SCORE) / 4))
     
     echo ""
     score "🎮 GAMIFICATION SCORES"
-    score "━━━━━━━━━━━━━━━━━━━━━━━"
+    score "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     score "⚡ Performance: ${PERFORMANCE_SCORE}/100 (test speed & reliability)"
     score "🎯 Code Quality: ${QUALITY_SCORE}/100 (minimal, clean implementation)"  
     score "🧪 Test Efficiency: ${EFFICIENCY_SCORE}/100 (optimal test coverage)"
+    score "🤖 LLM Efficiency: ${LLM_EFFICIENCY_SCORE}/100 (token optimization)"
     score "📊 Overall Score: ${total_score}/100"
     score ""
     score "📈 Metrics: ${TOTAL_TESTS} tests, ${TOTAL_LINES} lines, ${TEST_RUNS} runs"
+    score "🔤 LLM Usage: ${LLM_INTERACTIONS} interactions, ~${ESTIMATED_TOKENS} tokens"
     echo ""
 }
 
