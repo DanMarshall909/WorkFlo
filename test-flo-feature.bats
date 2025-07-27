@@ -106,3 +106,17 @@
     [[ "$output" == *"Feature workflow guide:"* ]]
     [[ "$output" == *"Usage examples:"* ]]
 }
+
+@test "git_hook_failure_recovery_gracefully_handles_failed_hooks_and_continues_workflow" {
+    # Given: A TDD workflow with git hooks that fail
+    # When: Git hook fails during commit or push operations
+    # Then: System should recover gracefully and continue TDD workflow
+    
+    # This test will fail until we implement git hook failure recovery
+    export SIMULATE_HOOK_FAILURE=true
+    run ./tdd recover
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Git hook failure detected"* ]]
+    [[ "$output" == *"Recovering gracefully"* ]]
+    [[ "$output" == *"Workflow resumed"* ]]
+}
