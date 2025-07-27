@@ -78,3 +78,17 @@
     [[ "$output" == *"Confidence: "* ]]
     [[ "$output" == *"% confident"* ]]
 }
+
+@test "ticket_specification_compliance_verification_validates_implementation_against_acceptance_criteria" {
+    # Given: An issue with specific acceptance criteria and implemented code
+    # When: Specification compliance verification is run
+    # Then: Verification should check if implementation matches all acceptance criteria
+    
+    # This test will fail until we implement ticket specification compliance verification
+    export MOCK_ISSUE=666
+    run ./tdd verify $MOCK_ISSUE
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Verifying ticket specification compliance"* ]]
+    [[ "$output" == *"Acceptance criteria verification:"* ]]
+    [[ "$output" == *"Compliance status:"* ]]
+}
