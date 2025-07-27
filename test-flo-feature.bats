@@ -269,3 +269,16 @@
     [[ "$output" == *"End-to-end PR creation test"* ]]
     [[ "$output" == *"Real GitHub integration validated"* ]]
 }
+
+@test "board_create_command_runs_without_interactive_prompts" {
+    # Given: A command line environment without interactive capabilities
+    # When: Board create command is executed
+    # Then: Command should complete without requiring user input
+    
+    # This test will fail until we remove interactive prompts from board create
+    run ./board create --non-interactive
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Board created"* ]]
+    [[ "$output" != *"Enter"* ]]
+    [[ "$output" != *"Please provide"* ]]
+}
