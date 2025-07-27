@@ -7,5 +7,21 @@
         "folders": [],
         "emptyWindows": []
     },
-    "windowControlHeight": 35
+    "windowControlHeight": 35,
+    "theme": "vs-dark",
+    "themeBackground": "#000c18",
+    "windowSplash": {
+        "zoomLevel": 0,
+        "baseTheme": "vs-dark",
+        "colorInfo": {
+            "foreground": "#cccccc",
+            "background": "#000c18",
+            "editorBackground": "#000c18",
+            "titleBarBackground": "#10192c",
+            "activityBarBackground": "#051336",
+            "sideBarBackground": "#060621",
+            "statusBarBackground": "#10192c",
+            "statusBarNoFolderBackground": "#10192c"
+        }
+    }
 }
