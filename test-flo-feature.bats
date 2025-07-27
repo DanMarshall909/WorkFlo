@@ -120,3 +120,17 @@
     [[ "$output" == *"Recovering gracefully"* ]]
     [[ "$output" == *"Workflow resumed"* ]]
 }
+
+@test "github_api_error_handling_retries_failed_requests_with_exponential_backoff" {
+    # Given: GitHub API requests that may fail due to rate limits or network issues
+    # When: API request fails with recoverable error
+    # Then: System should retry with exponential backoff and recover gracefully
+    
+    # This test will fail until we implement GitHub API error handling with retries
+    export SIMULATE_GITHUB_API_FAILURE=true
+    run ./tdd gh-retry
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"GitHub API request failed"* ]]
+    [[ "$output" == *"Retrying with backoff"* ]]
+    [[ "$output" == *"Request succeeded after retry"* ]]
+}
