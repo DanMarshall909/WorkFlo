@@ -7,6 +7,10 @@ set -e
 STATE_FILE=".tdd-state"
 [[ -f $STATE_FILE ]] && source $STATE_FILE
 
+# Debug mode for verbose output (set TDD_DEBUG=1 for debugging)
+DEBUG_MODE="${TDD_DEBUG:-0}"
+VERBOSE_OUTPUT="${TDD_VERBOSE:-0}"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m' 
@@ -17,10 +21,31 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 error() { echo -e "${RED}[ERROR]${NC} $1" >&2; exit 1; }
-success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+success() { 
+    if [[ $VERBOSE_OUTPUT == "1" || $DEBUG_MODE == "1" ]]; then
+        echo -e "${GREEN}[SUCCESS]${NC} $1"
+    else
+        echo -e "${GREEN}✅${NC} $1"
+    fi
+}
+warn() {
+    if [[ $VERBOSE_OUTPUT == "1" || $DEBUG_MODE == "1" ]]; then
+        echo -e "${YELLOW}[WARNING]${NC} $1"
+    else
+        echo -e "${YELLOW}⚠️${NC} $1"
+    fi
+}
+info() {
+    if [[ $VERBOSE_OUTPUT == "1" || $DEBUG_MODE == "1" ]]; then
+        echo -e "${BLUE}[INFO]${NC} $1"
+    else
+        echo -e "${BLUE}ℹ️${NC} $1"
+    fi
+}
 score() { echo -e "${PURPLE}[SCORE]${NC} $1"; }
+debug() {
+    [[ $DEBUG_MODE == "1" ]] && echo -e "${CYAN}[DEBUG]${NC} $1" >&2
+}
 
 # Gamification scoring system
 SCORE_FILE=".tdd-scores"
@@ -136,44 +161,55 @@ calculate_efficiency_score() {
     TOTAL_TESTS=$current_tests
 }
 
-# Calculate LLM efficiency score (based on tokens per feature completed)
+# Calculate LLM efficiency score (based on script output verbosity)
 calculate_llm_efficiency_score() {
-    # Track LLM interactions (increment when TDD commands are run)
+    # Track LLM interactions (script executions that consume tokens)
     LLM_INTERACTIONS=$((LLM_INTERACTIONS + 1))
     
-    # Estimate tokens based on criteria complexity and current phase
-    local tokens_this_interaction=0
+    # Estimate tokens based on script output verbosity
+    local script_output_chars=$(wc -c < <(printf "%s" "$(cat /tmp/tdd_output 2>/dev/null || echo '')"))
+    local tokens_from_output=$((script_output_chars / 4)) # ~4 chars per token estimate
+    
+    # Base token cost for script processing
+    local base_tokens=50
+    
+    # Phase-specific verbosity penalties 
+    local verbosity_penalty=0
     case "$PHASE" in
-        RED) tokens_this_interaction=300 ;;      # Writing tests
-        GREEN) tokens_this_interaction=500 ;;    # Implementation  
-        REFACTOR) tokens_this_interaction=200 ;; # Code improvement
-        COVER) tokens_this_interaction=400 ;;    # Comprehensive testing
-        *) tokens_this_interaction=100 ;;        # Basic commands
+        RED|GREEN) 
+            # These phases need minimal output - penalize verbosity
+            if [[ $tokens_from_output -gt 200 ]]; then
+                verbosity_penalty=$((tokens_from_output - 200))
+            fi
+            ;;
+        COVER) 
+            # Testing phase can be more verbose for debugging
+            if [[ $tokens_from_output -gt 500 ]]; then
+                verbosity_penalty=$(((tokens_from_output - 500) / 2))
+            fi
+            ;;
+        *) 
+            # Other phases: moderate verbosity allowed
+            if [[ $tokens_from_output -gt 300 ]]; then
+                verbosity_penalty=$(((tokens_from_output - 300) / 3))
+            fi
+            ;;
     esac
     
-    ESTIMATED_TOKENS=$((ESTIMATED_TOKENS + tokens_this_interaction))
+    ESTIMATED_TOKENS=$((ESTIMATED_TOKENS + base_tokens + tokens_from_output))
     
-    # LLM efficiency: fewer tokens per completed criteria = higher score
-    local tokens_per_criteria=0
-    if [[ $CRITERIA -gt 0 ]]; then
-        tokens_per_criteria=$((ESTIMATED_TOKENS / CRITERIA))
-    else
-        tokens_per_criteria=$ESTIMATED_TOKENS
+    # LLM efficiency: reward minimal script output
+    local verbosity_score=100
+    if [[ $verbosity_penalty -gt 0 ]]; then
+        verbosity_score=$((100 - (verbosity_penalty / 10)))
     fi
     
-    # Efficiency bonus for staying under token budgets
-    local efficiency_bonus=0
-    if [[ $tokens_per_criteria -le 1000 ]]; then
-        efficiency_bonus=30  # Excellent efficiency
-    elif [[ $tokens_per_criteria -le 2000 ]]; then
-        efficiency_bonus=20  # Good efficiency
-    elif [[ $tokens_per_criteria -le 3000 ]]; then
-        efficiency_bonus=10  # Acceptable efficiency
+    # Bonus for extremely concise output
+    if [[ $tokens_from_output -lt 100 ]]; then
+        verbosity_score=$((verbosity_score + 20))
     fi
     
-    local token_penalty=$((tokens_per_criteria / 100)) # Penalty for high token usage
-    
-    LLM_EFFICIENCY_SCORE=$((70 + efficiency_bonus - token_penalty))
+    LLM_EFFICIENCY_SCORE=$verbosity_score
     [[ $LLM_EFFICIENCY_SCORE -lt 0 ]] && LLM_EFFICIENCY_SCORE=0
     [[ $LLM_EFFICIENCY_SCORE -gt 100 ]] && LLM_EFFICIENCY_SCORE=100
 }
@@ -211,11 +247,11 @@ show_scores() {
     score "⚡ Performance: ${PERFORMANCE_SCORE}/100 (test speed & reliability)"
     score "🎯 Code Quality: ${QUALITY_SCORE}/100 (minimal, clean implementation)"  
     score "🧪 Test Efficiency: ${EFFICIENCY_SCORE}/100 (optimal test coverage)"
-    score "🤖 LLM Efficiency: ${LLM_EFFICIENCY_SCORE}/100 (token optimization)"
+    score "🤖 LLM Efficiency: ${LLM_EFFICIENCY_SCORE}/100 (output verbosity optimization)"
     score "📊 Overall Score: ${total_score}/100"
     score ""
     score "📈 Metrics: ${TOTAL_TESTS} tests, ${TOTAL_LINES} lines, ${TEST_RUNS} runs"
-    score "🔤 LLM Usage: ${LLM_INTERACTIONS} interactions, ~${ESTIMATED_TOKENS} tokens"
+    score "🔤 Script Output: ${LLM_INTERACTIONS} commands, ~${ESTIMATED_TOKENS} output tokens"
     echo ""
 }
 
