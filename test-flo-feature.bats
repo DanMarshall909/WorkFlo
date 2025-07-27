@@ -282,3 +282,18 @@
     [[ "$output" != *"Enter"* ]]
     [[ "$output" != *"Please provide"* ]]
 }
+
+@test "board_operations_accept_command_line_parameters_for_all_functions" {
+    # Given: All board operations (list, update, status) should work via command line
+    # When: Board operations are called with appropriate parameters
+    # Then: Commands should execute without requiring interactive input
+    
+    # This test will fail until all board operations support command-line parameters
+    run ./board list --format json
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"[" ]] || [[ "$output" == *"{"* ]]
+    
+    run ./board update 123 --status "In Progress" --field "TDD Phase=RED"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Updated"* ]]
+}
