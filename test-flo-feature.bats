@@ -148,3 +148,17 @@
     [[ "$output" == *"Local workflow enabled"* ]]
     [[ "$output" == *"Offline development ready"* ]]
 }
+
+@test "comprehensive_logging_and_debugging_provides_detailed_workflow_visibility" {
+    # Given: TDD workflow with debug and logging modes enabled
+    # When: Logging is activated during workflow execution
+    # Then: System should provide comprehensive logging and debugging information
+    
+    # This test will fail until we implement comprehensive logging and debugging
+    export TDD_DEBUG_MODE=true
+    run ./tdd debug-log
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Debug mode enabled"* ]]
+    [[ "$output" == *"Comprehensive logging active"* ]]
+    [[ "$output" == *"Workflow visibility enhanced"* ]]
+}
