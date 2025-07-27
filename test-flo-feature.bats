@@ -190,3 +190,17 @@
     [[ "$output" == *"Backup completed successfully"* ]]
     [[ "$output" == *"Restore functionality ready"* ]]
 }
+
+@test "real_github_pr_creation_replaces_mock_output_with_actual_api_calls" {
+    # Given: TDD workflow completion that should create a real PR
+    # When: PR creation is triggered via tdd complete command
+    # Then: System should make actual GitHub API calls instead of mock output
+    
+    # This test will fail until we implement real GitHub PR creation
+    export ENABLE_REAL_PR_CREATION=true
+    run ./tdd create-real-pr 999
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Creating GitHub PR via API"* ]]
+    [[ "$output" == *"PR created successfully"* ]]
+    [[ "$output" == *"https://github.com/"* ]]
+}
