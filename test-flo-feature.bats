@@ -50,3 +50,17 @@
     [[ "$output" == *"PR #"* ]]
     [[ "$output" == *"All acceptance criteria completed"* ]]
 }
+
+@test "ai_powered_code_review_analyzes_changes_and_provides_quality_assessment" {
+    # Given: Code changes have been made in a TDD cycle
+    # When: AI code review is triggered
+    # Then: Quality assessment and review comments should be generated
+    
+    # This test will fail until we implement AI-powered code review
+    export MOCK_ISSUE=999
+    run ./tdd review $MOCK_ISSUE
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Running AI code review"* ]]
+    [[ "$output" == *"Quality assessment:"* ]]
+    [[ "$output" == *"Code review suggestions:"* ]]
+}
