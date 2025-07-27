@@ -257,12 +257,13 @@ show_scores() {
 
 # Detect project type
 detect_project_type() {
-    if [[ -f "package.json" ]]; then
+    # Prioritize bash projects when run-tests exists (similar to lib/project-detection.sh)
+    if [[ -x "./run-tests" ]] || find . -name "*.bats" -type f 2>/dev/null | grep -q . || find . -name "test-*.sh" -type f 2>/dev/null | grep -q .; then
+        echo "bash"
+    elif [[ -f "package.json" ]]; then
         echo "nodejs"
     elif [[ -f "*.csproj" ]] || [[ -d "src" && -f src/*.csproj ]]; then
         echo "dotnet"
-    elif [[ -f "run-tests" ]] || [[ -d "tests" ]] || find . -name "*.bats" -type f 2>/dev/null | grep -q .; then
-        echo "bash"
     else
         echo "bash"  # Default to bash for minimal projects
     fi
@@ -294,7 +295,9 @@ check_prereqs() {
 # Run tests based on project type
 run_tests() {
     local quiet_mode="${1:-false}"
+    echo "DEBUG: run_tests called with quiet_mode=$quiet_mode"
     local project_type=$(detect_project_type)
+    echo "DEBUG: detected project_type=$project_type"
     
     case "$project_type" in
         dotnet)
@@ -314,7 +317,11 @@ run_tests() {
         bash)
             if [[ -x "./run-tests" ]]; then
                 if [[ "$quiet_mode" == "true" ]]; then
+                    echo "DEBUG: Running ./run-tests >/dev/null 2>&1"
                     ./run-tests >/dev/null 2>&1
+                    local exit_code=$?
+                    echo "DEBUG: ./run-tests exit code: $exit_code"
+                    return $exit_code
                 else
                     ./run-tests
                 fi
@@ -608,8 +615,12 @@ TDD-Session: START
         
         # Verify test fails
         info "Verifying test fails..."
+        echo "DEBUG: About to call run_tests true"
         if run_tests true; then
+            echo "DEBUG: run_tests returned 0 (success/passing)"
             error "Tests are passing! RED phase requires failing tests"
+        else
+            echo "DEBUG: run_tests returned non-zero (failure/failing tests)"
         fi
         
         success "✅ Tests failing as expected"

@@ -4,10 +4,11 @@
 
 set -e
 
-# Check if BATS is available
+# Check if BATS is available, fallback to shell script tests
+USE_BATS=true
 if ! command -v bats >/dev/null 2>&1; then
-    echo "Error: BATS not found. Install with: https://bats-core.readthedocs.io/en/stable/installation.html" >&2
-    exit 1
+    echo "Warning: BATS not found. Using shell script test fallback." >&2
+    USE_BATS=false
 fi
 
 # Find test files
@@ -59,13 +60,27 @@ case "${1:-}" in
         if [[ $# -gt 0 ]]; then
             exec bats "$@"
         else
-            test_files=($(find_test_files))
-            if [[ ${#test_files[@]} -eq 0 ]]; then
-                echo "No .bats test files found in tests/ or current directory" >&2
-                echo "Create test files with .bats extension" >&2
-                exit 1
+            if [[ "$USE_BATS" == "true" ]]; then
+                test_files=($(find_test_files))
+                if [[ ${#test_files[@]} -eq 0 ]]; then
+                    echo "No .bats test files found in tests/ or current directory" >&2
+                    echo "Create test files with .bats extension" >&2
+                    exit 1
+                fi
+                exec bats "${test_files[@]}"
+            else
+                # Fallback to shell script tests
+                if [[ -d "test" ]] && ls test/test-*.sh >/dev/null 2>&1; then
+                    echo "Running shell script tests..."
+                    for test_file in test/test-*.sh; do
+                        echo "Running: $test_file"
+                        bash "$test_file"
+                    done
+                else
+                    echo "No test files found (looking for test/test-*.sh)" >&2
+                    exit 1
+                fi
             fi
-            exec bats "${test_files[@]}"
         fi
         ;;
 esac
