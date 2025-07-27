@@ -243,3 +243,16 @@
     [[ "$output" == *"Found related subissues"* ]]
     [[ "$output" == *"PR linking complete"* ]]
 }
+
+@test "pr_merge_functionality_automates_merge_for_completed_workflows" {
+    # Given: A completed TDD workflow with all acceptance criteria met
+    # When: PR merge functionality is triggered for high-confidence workflows
+    # Then: System should automatically merge PR or provide merge capabilities
+    
+    # This test will fail until we implement PR merge functionality
+    run ./tdd merge-pr 123
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Evaluating PR for merge"* ]]
+    [[ "$output" == *"PR merge functionality ready"* ]]
+    [[ "$output" == *"Merge process complete"* ]]
+}
