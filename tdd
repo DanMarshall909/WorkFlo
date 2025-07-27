@@ -381,6 +381,16 @@ commit_phase() {
     local criteria_text=$(get_criteria)
     local issue_title=$(gh issue view "$ISSUE" --json title | jq -r '.title' 2>/dev/null || echo "")
     
+    # Map full phase names to 3-character abbreviations
+    local phase_abbrev=""
+    case "$phase" in
+        "RED") phase_abbrev="🔴RED" ;;
+        "GREEN") phase_abbrev="🟢GRN" ;;
+        "REFACTOR") phase_abbrev="🔵REF" ;;
+        "COVER") phase_abbrev="🟣COV" ;;
+        *) phase_abbrev="$phase" ;;
+    esac
+    
     # Create git subissue for test phases
     local subissue_ref=""
     if [[ "$phase" == "RED" ]]; then
@@ -390,7 +400,7 @@ commit_phase() {
     fi
     
     # Enhanced commit message with proper linking
-    local commit_msg="$phase: criteria $CRITERIA - $criteria_text
+    local commit_msg="$phase_abbrev: criteria $CRITERIA - $criteria_text
 
 Issue: #$ISSUE - $issue_title
 Criteria: $CRITERIA/$TOTAL
