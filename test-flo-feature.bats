@@ -47,7 +47,7 @@
     run ./tdd complete $MOCK_ISSUE
     [ "$status" -eq 0 ]
     [[ "$output" == *"Creating pull request automatically"* ]]
-    [[ "$output" == *"PR #"* ]]
+    [[ "$output" == *"https://github.com/"* ]]
     [[ "$output" == *"All acceptance criteria completed"* ]]
 }
 
