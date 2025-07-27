@@ -1,0 +1,7 @@
+{
+  "name": "workflo-root",
+  "private": true,
+  "scripts": {
+    "test": "cd vscode-extension && npm test"
+  }
+}
