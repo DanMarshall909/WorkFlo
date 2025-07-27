@@ -1,0 +1,508 @@
+#!/bin/bash
+# Flo - Universal TDD workflow toolkit
+# Works with any project type: APIs, MCPs, console tools, libraries
+# Streamlined commands for enhanced productivity
+
+set -e
+
+# Source required libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/project-detection.sh"
+
+# State management (backward compatibility with .tdd-state)
+STATE_FILE=".tdd-state"
+[[ -f $STATE_FILE ]] && source $STATE_FILE
+
+# Show usage information
+show_usage() {
+    echo "Flo - Universal TDD Workflow Toolkit"
+    echo ""
+    echo "Usage: flo <command> [options]"
+    echo ""
+    echo "TDD Workflow Commands:"
+    echo "  start <issue>     Start TDD workflow for GitHub issue"
+    echo "  red               Write failing test (RED phase)"
+    echo "  green             Minimal implementation (GREEN phase)"
+    echo "  refactor          Improve code quality (REFACTOR phase)"
+    echo "  cover             Add comprehensive tests (COVER phase)"
+    echo "  next              Move to next criteria (HARD STOP)"
+    echo "  status            Show current TDD session status"
+    echo ""
+    echo "Project Management:"
+    echo "  board list        List all issues on board"
+    echo "  board show <id>   Show issue details"
+    echo "  board create      Create new issue"
+    echo "  issue create [title] [description] [labels] [criteria...]  Create GitHub issue"
+    echo "  label create <name> [color] [description]                  Create GitHub label"
+    echo ""
+    echo "Quality & Testing:"
+    echo "  qc                Run quality checks"
+    echo "  test              Run project tests"
+    echo "  build             Build project"
+    echo ""
+    echo "Pull Request:"
+    echo "  pr create         Create pull request"
+    echo "  pr review         Review current changes"
+    echo ""
+    echo "Project Info:"
+    echo "  info              Show project type and available commands"
+    echo "  help              Show this help message"
+}
+
+# Show project information
+show_project_info() {
+    local project_type=$(detect_project_type)
+    local project_root=$(pwd)
+    
+    info "Project Information"
+    echo "==================="
+    echo ""
+    echo "📁 Location: $project_root"
+    echo "🔧 Type: $project_type"
+    echo ""
+    
+    if has_tests; then
+        echo "✅ Tests: Available"
+    else
+        echo "❌ Tests: Not found"
+    fi
+    
+    echo ""
+    info "Available Commands:"
+    get_project_commands "$project_type" | while IFS=: read -r cmd command; do
+        echo "  flo $cmd"
+    done
+}
+
+# Enhanced TDD commands with universal project support
+tdd_start() {
+    local issue="$1"
+    [[ -z "$issue" ]] && error "Usage: flo start <issue_number>"
+    
+    local project_type=$(detect_project_type)
+    info "Starting TDD workflow for issue #$issue ($project_type project)"
+    
+    # Delegate to existing tdd script with project context
+    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" start "$issue"
+}
+
+tdd_red() {
+    [[ -z "$ISSUE" ]] && error "No active TDD session. Run: flo start <issue>"
+    local project_type=$(detect_project_type)
+    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" red
+}
+
+tdd_green() {
+    [[ -z "$ISSUE" ]] && error "No active TDD session"
+    local project_type=$(detect_project_type)
+    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" green
+}
+
+tdd_refactor() {
+    [[ -z "$ISSUE" ]] && error "No active TDD session"
+    local project_type=$(detect_project_type)
+    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" refactor
+}
+
+tdd_cover() {
+    [[ -z "$ISSUE" ]] && error "No active TDD session"
+    local project_type=$(detect_project_type)
+    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" cover
+}
+
+tdd_next() {
+    [[ -z "$ISSUE" ]] && error "No active TDD session"
+    local project_type=$(detect_project_type)
+    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" next
+}
+
+tdd_status() {
+    local project_type=$(detect_project_type)
+    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" status
+}
+
+# Quality checks with project-specific commands
+run_quality_checks() {
+    local project_type=$(detect_project_type)
+    info "Running quality checks for $project_type project..."
+    
+    # Build project
+    local build_cmd=$(get_build_command "$project_type")
+    if [[ -n "$build_cmd" ]]; then
+        info "Building project: $build_cmd"
+        eval "$build_cmd" || error "Build failed"
+        success "Build passed"
+    fi
+    
+    # Run tests if available
+    if has_tests; then
+        local test_cmd=$(get_test_command "$project_type")
+        info "Running tests: $test_cmd"
+        eval "$test_cmd" || error "Tests failed"
+        success "Tests passed"
+    else
+        warn "No tests found"
+    fi
+    
+    success "Quality checks completed"
+}
+
+# Project-specific test and build commands
+run_tests() {
+    local project_type=$(detect_project_type)
+    local test_cmd=$(get_test_command "$project_type")
+    
+    if [[ -z "$test_cmd" ]]; then
+        error "No test command available for $project_type projects"
+    fi
+    
+    info "Running tests: $test_cmd"
+    eval "$test_cmd"
+}
+
+run_build() {
+    local project_type=$(detect_project_type)
+    local build_cmd=$(get_build_command "$project_type")
+    
+    if [[ -z "$build_cmd" ]]; then
+        error "No build command available for $project_type projects"
+    fi
+    
+    info "Building project: $build_cmd"
+    eval "$build_cmd"
+}
+
+# GitHub integration commands
+github_create_issue() {
+    local title="$1"
+    local description="$2"
+    local labels_input="$3"
+    shift 3
+    local criteria=("$@")
+    
+    # Check if using command line arguments
+    if [[ -n "$title" ]]; then
+        info "Creating GitHub issue: $title"
+    else
+        # Fall back to interactive mode
+        info "Creating GitHub issue with Flo workflow..."
+        
+        read -p "Issue title: " title
+        [[ -z "$title" ]] && error "Title is required"
+        
+        echo ""
+        read -p "Issue description (optional): " description
+        
+        echo ""
+        info "Enter labels (space-separated, empty to skip):"
+        read -p "Labels: " labels_input
+        
+        # Collect acceptance criteria interactively
+        echo ""
+        info "Enter acceptance criteria (one per line, empty line to finish):"
+        info "Each criterion will generate a separate test subissue"
+        echo ""
+        
+        criteria=()
+        while true; do
+            read -p "Criterion $((${#criteria[@]} + 1)): " criterion
+            [[ -z "$criterion" ]] && break
+            criteria+=("$criterion")
+        done
+        
+        if [[ ${#criteria[@]} -eq 0 ]]; then
+            error "At least one acceptance criterion is required for TDD workflow"
+        fi
+    fi
+    
+    # Auto-create labels if provided
+    if [[ -n "$labels_input" ]]; then
+        info "Validating and creating labels..."
+        local available_labels=$(gh label list --json name | jq -r '.[].name')
+        
+        for label in $labels_input; do
+            if ! echo "$available_labels" | grep -q "^$label$"; then
+                info "Creating missing label: $label"
+                auto_create_label "$label"
+            fi
+        done
+    fi
+    
+    # Build issue body with acceptance criteria
+    body="$description"
+    [[ -n "$description" ]] && body="$body\n\n"
+    body="${body}## Acceptance Criteria\n\n"
+    
+    for criterion in "${criteria[@]}"; do
+        body="${body}- [ ] $criterion\n"
+    done
+    
+    # Create the issue
+    local gh_args=("gh" "issue" "create" "--title" "$title" "--body" "$(echo -e "$body")")
+    if [[ -n "$labels_input" ]]; then
+        for label in $labels_input; do
+            gh_args+=("--label" "$label")
+        done
+    fi
+    
+    local issue_url=$("${gh_args[@]}")
+    local issue_num=$(echo "$issue_url" | grep -o '[0-9]*$')
+    
+    success "Created issue #$issue_num: $title"
+    info "Added ${#criteria[@]} acceptance criteria"
+    
+    # Auto-generate acceptance test subissues
+    if [[ ${#criteria[@]} -gt 0 ]]; then
+        info "Generating acceptance test subissues..."
+        
+        local criterion_count=1
+        for criterion in "${criteria[@]}"; do
+            create_acceptance_test_subissue "$issue_num" "$criterion_count" "$criterion"
+            ((criterion_count++))
+        done
+        
+        success "Generated ${#criteria[@]} acceptance test subissues"
+    fi
+    
+    # Add to board
+    "$SCRIPT_DIR/board" list >/dev/null 2>&1 # Ensure board exists
+    
+    echo ""
+    success "Ready for TDD workflow: flo start $issue_num"
+}
+
+# Create acceptance test subissue
+create_acceptance_test_subissue() {
+    local parent_issue="$1"
+    local criterion_number="$2"
+    local criterion_text="$3"
+    
+    # Generate test name (lowercase with spaces for title)
+    local test_name=$(echo "$criterion_text" | 
+        sed 's/[^a-zA-Z0-9 ]//g' |  # Remove special chars
+        tr '[:upper:]' '[:lower:]')  # Convert to lowercase
+    
+    local subissue_title="Test: ${test_name}"
+    
+    # Build subissue body with Given-When-Then structure
+    local subissue_body="## Test Specification
+
+**Parent Issue:** #$parent_issue  
+**Acceptance Criteria:** $criterion_number
+
+### Test Name
+\`${test_name}_should_work_correctly\`
+
+### Business Scenario
+$criterion_text
+
+## Test Structure
+
+### Given-When-Then Conditions
+- **Given:** [Context/preconditions for this test]
+- **When:** [Action or event being tested]  
+- **Then:** [Expected outcome or assertion]
+
+### Test Attributes
+- \`[Fact(DisplayName = \"$criterion_text\")]\`
+- \`[Trait(\"AcceptanceTest\", \"#$parent_issue\")]\`
+- \`[Trait(\"Given\", \"[specify context]\")]\`
+- \`[Trait(\"When\", \"[specify action]\")]\`
+- \`[Trait(\"Then\", \"[specify outcome]\")]\`
+
+## Implementation Notes
+- Test covers ONLY this specific acceptance criteria
+- Use business scenario naming (not 'should' statements)
+- Follow Given-When-Then structure in attributes
+- Test must fail initially (RED phase requirement)
+
+---
+*Auto-generated acceptance test for TDD workflow*"
+    
+    # Auto-create labels for subissues
+    local subissue_labels="test acceptance-test subissue"
+    for label in $subissue_labels; do
+        auto_create_label "$label"
+    done
+    
+    # Create the subissue
+    local subissue_url=$(gh issue create \
+        --title "$subissue_title" \
+        --body "$subissue_body" \
+        --label "test,acceptance-test,subissue" 2>/dev/null)
+    
+    if [[ $? -eq 0 ]]; then
+        local subissue_num=$(echo "$subissue_url" | grep -o '[0-9]*$')
+        info "  Created test subissue #$subissue_num: $test_name"
+        
+        # Link back to parent issue
+        gh issue comment "$parent_issue" --body "🧪 Acceptance test created: #$subissue_num - $test_name" >/dev/null 2>&1 || true
+    else
+        warn "Failed to create test subissue for criterion $criterion_number"
+    fi
+}
+
+# Auto-create label with smart defaults
+auto_create_label() {
+    local label_name="$1"
+    local color=""
+    local description=""
+    
+    # Smart defaults based on label name
+    case "$label_name" in
+        "test"|"tests")
+            color="28a745"
+            description="Test-related issues"
+            ;;
+        "acceptance-test"|"acceptance-tests")
+            color="0E8A16" 
+            description="Acceptance test subissues"
+            ;;
+        "subissue"|"sub-issue")
+            color="5319E7"
+            description="Subissue of larger feature"
+            ;;
+        "autonomous-tdd")
+            color="FF6B6B"
+            description="Autonomous TDD agent development"
+            ;;
+        "enhancement"|"feature")
+            color="A2EEEF"
+            description="New feature or enhancement"
+            ;;
+        "bug"|"bugfix")
+            color="D73A4A"
+            description="Bug fix"
+            ;;
+        *)
+            color="FBCA04"
+            description="Custom label"
+            ;;
+    esac
+    
+    gh label create "$label_name" --color "$color" --description "$description" >/dev/null 2>&1
+    success "Created label: $label_name"
+}
+
+github_create_label() {
+    local label_name="$1"
+    local label_color="${2:-0366d6}"
+    local label_description="$3"
+    
+    [[ -z "$label_name" ]] && error "Usage: flo label create <name> [color] [description]"
+    
+    # Check if label already exists
+    if gh label list --json name | jq -r '.[].name' | grep -q "^$label_name$"; then
+        warn "Label '$label_name' already exists"
+        return 0
+    fi
+    
+    info "Creating GitHub label: $label_name"
+    
+    # Build create command
+    local create_cmd="gh label create \"$label_name\" --color \"$label_color\""
+    if [[ -n "$label_description" ]]; then
+        create_cmd="$create_cmd --description \"$label_description\""
+    fi
+    
+    if eval "$create_cmd"; then
+        success "Created label: $label_name"
+    else
+        error "Failed to create label: $label_name"
+    fi
+}
+
+# Board management
+board_list() {
+    "$SCRIPT_DIR/board" list
+}
+
+board_show() {
+    local issue="$1"
+    [[ -z "$issue" ]] && error "Usage: flo board show <issue_number>"
+    "$SCRIPT_DIR/board" show "$issue"
+}
+
+board_create() {
+    "$SCRIPT_DIR/board" create
+}
+
+# Pull request management
+pr_create() {
+    info "Creating pull request..."
+    
+    # Check for pending changes
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        warn "You have uncommitted changes. Commit them first."
+        return 1
+    fi
+    
+    # Use gh to create PR
+    gh pr create --fill
+}
+
+pr_review() {
+    info "Reviewing current changes..."
+    
+    # Show git status and diff
+    git status
+    echo ""
+    git diff HEAD~1
+}
+
+# Main command dispatcher
+case "${1:-help}" in
+    # TDD workflow
+    start)          tdd_start "$2" ;;
+    red)            tdd_red ;;
+    green)          tdd_green ;;
+    refactor)       tdd_refactor ;;
+    cover)          tdd_cover ;;
+    next)           tdd_next ;;
+    status)         tdd_status ;;
+    
+    # Project management
+    board)
+        case "$2" in
+            list)   board_list ;;
+            show)   board_show "$3" ;;
+            create) board_create ;;
+            *)      error "Usage: flo board {list|show|create}" ;;
+        esac
+        ;;
+    
+    issue)
+        case "$2" in
+            create) github_create_issue "$3" "$4" "$5" "${@:6}" ;;
+            *)      error "Usage: flo issue create [title] [description] [labels] [criteria...]" ;;
+        esac
+        ;;
+    
+    label)
+        case "$2" in
+            create) github_create_label "$3" "$4" "$5" ;;
+            *)      error "Usage: flo label create <name> [color] [description]" ;;
+        esac
+        ;;
+    
+    # Quality & testing
+    qc)             run_quality_checks ;;
+    test)           run_tests ;;
+    build)          run_build ;;
+    
+    # Pull requests
+    pr)
+        case "$2" in
+            create) pr_create ;;
+            review) pr_review ;;
+            *)      error "Usage: flo pr {create|review}" ;;
+        esac
+        ;;
+    
+    # Information
+    info)           show_project_info ;;
+    help|--help|-h) show_usage ;;
+    
+    *)              error "Unknown command: $1. Use 'flo help' for usage information" ;;
+esac
