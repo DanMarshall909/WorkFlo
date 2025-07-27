@@ -36,3 +36,17 @@
     [[ "$output" == *"PR created"* ]]
     [[ "$output" == *"90% confident"* ]]
 }
+
+@test "tdd_completion_automatically_creates_pull_request_with_proper_metadata" {
+    # Given: TDD workflow has completed all acceptance criteria for an issue
+    # When: TDD workflow reaches completion state
+    # Then: Automated PR creation should be triggered with proper metadata
+    
+    # This test will fail until we implement automated PR creation after TDD completion
+    export MOCK_ISSUE=888
+    run ./tdd complete $MOCK_ISSUE
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Creating pull request automatically"* ]]
+    [[ "$output" == *"PR #"* ]]
+    [[ "$output" == *"All acceptance criteria completed"* ]]
+}
