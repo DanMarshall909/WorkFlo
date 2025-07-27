@@ -74,12 +74,22 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private _status: WorkFloStatus = { active: false };
   public onStatusChanged?: (status: WorkFloStatus) => void;
+  private _lastGitHubError?: Error;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
   // Public getter for testing
   public get status(): WorkFloStatus {
     return this._status;
+  }
+
+  // Methods for testing error handling
+  public getLastGitHubError(): Error | undefined {
+    return this._lastGitHubError;
+  }
+
+  public hasGitHubError(): boolean {
+    return this._lastGitHubError !== undefined;
   }
 
   public resolveWebviewView(
@@ -193,6 +203,7 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
         (error, stdout, stderr) => {
           if (error) {
             console.error('Error fetching GitHub issue:', error);
+            this._lastGitHubError = error;
             // Set fallback data to prevent empty display
             this._status.issueTitle = `Issue #${issueNumber}`;
             this._status.issueUrl = `https://github.com/owner/repo/issues/${issueNumber}`;
@@ -200,6 +211,8 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
             this.updateWebview();
             return;
           }
+          // Clear error on success
+          this._lastGitHubError = undefined;
           try {
             const issueData = JSON.parse(stdout);
             this._status.issueTitle = issueData.title;
@@ -235,10 +248,13 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
         (error, stdout, stderr) => {
           if (error) {
             console.error('Error fetching open issues:', error);
+            this._lastGitHubError = error;
             this._status.openIssues = [];
             this.updateWebview();
             return;
           }
+          // Clear error on success
+          this._lastGitHubError = undefined;
           try {
             const issuesData = JSON.parse(stdout);
             this._status.openIssues = issuesData;
