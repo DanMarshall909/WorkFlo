@@ -83,7 +83,20 @@ public class WorkflowMonitor
 {
     public string GetClaudeMdKeyPointsForViolation(WorkflowViolation violation)
     {
-        throw new NotImplementedException("GetClaudeMdKeyPointsForViolation not implemented");
+        // Minimal implementation - return CLAUDE.md key points for TDD workflow
+        return @"🚫 HARD RULE: Work on exactly ONE acceptance criteria, write ONE test, then STOP.
+
+Required sequence (no skipping allowed):
+1. RED → Write ONE failing test for current acceptance criteria
+2. GREEN → Minimal implementation to make test pass
+3. REFACTOR → Improve code quality (optional)
+4. COVER → Add comprehensive tests + mutation testing (85% threshold)
+5. NEXT → Hard stop, must explicitly continue to next criteria
+
+Key constraints:
+- Only ONE acceptance criteria is visible at a time
+- Hard stops between criteria prevent scope creep
+- Each phase requires explicit command to continue";
     }
 }
 
