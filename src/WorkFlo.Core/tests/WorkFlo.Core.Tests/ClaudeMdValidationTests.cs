@@ -100,6 +100,28 @@ public class ClaudeMdValidationTests
         Assert.False(result.MutationTestingExecuted);
         Assert.Contains("Mutation testing will be performed during PR submission", result.Message);
     }
+
+    [Fact]
+    public void ConfidenceScoring_WhenCalculatingForPR_UsesPostPRMutationResults()
+    {
+        // Given: A confidence calculator that processes PR-time results
+        var confidenceCalculator = new PrConfidenceCalculator();
+        var prResults = new PrValidationResults
+        {
+            TestsPassed = true,
+            CodeCoverage = 95,
+            ReviewScore = 88,
+            MutationScore = 85 // This will be calculated after PR creation
+        };
+        
+        // When: Calculating confidence score for PR
+        var result = confidenceCalculator.CalculateConfidence(prResults);
+        
+        // Then: Should use mutation score from PR validation, not TDD COVER phase
+        Assert.True(result.UsedPrMutationTesting);
+        Assert.Equal(85, result.MutationScore);
+        Assert.True(result.TotalScore >= 90); // Should meet confidence threshold
+    }
 }
 
 // Minimal implementation for mutation testing move (GREEN phase)
