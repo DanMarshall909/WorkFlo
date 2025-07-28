@@ -51,27 +51,71 @@ Please be thorough and critical in your analysis. Focus on providing actionable 
     local temp_file="/tmp/claude_review_$$"
     echo "$review_prompt" > "$temp_file"
     
-    # Use Claude Code to perform actual AI analysis
-    echo "🤖 Requesting real Claude AI analysis..."
-    if command -v claude-code >/dev/null 2>&1; then
-        # If Claude Code CLI is available, use it directly
-        claude-code analyze "$temp_file" 2>/dev/null || {
-            echo "⚠️ Claude Code CLI not available, using internal analysis"
-            perform_enhanced_analysis "$changes" "$branch" "$commit_msg"
-        }
+    # Check if we're in test mode to avoid real AI calls during testing
+    if [[ "${TDD_TEST_MODE:-0}" == "1" ]] || [[ "${CI:-}" == "true" ]] || [[ -n "${BATS_TEST_NAME:-}" ]]; then
+        echo "🧪 Test mode detected - using mock AI analysis"
+        perform_mock_analysis "$changes" "$branch" "$commit_msg"
     else
-        # Use Task tool integration if available
-        echo "📡 Invoking Claude Code Task tool for AI analysis..."
-        echo "Task: Code Review Analysis"
-        echo "Input: $temp_file"
-        echo ""
-        
-        # Call real analysis function
-        perform_enhanced_analysis "$changes" "$branch" "$commit_msg"
+        # Use Claude Code to perform actual AI analysis in production
+        echo "🤖 Requesting real Claude AI analysis..."
+        if command -v claude-code >/dev/null 2>&1; then
+            # If Claude Code CLI is available, use it directly
+            claude-code analyze "$temp_file" 2>/dev/null || {
+                echo "⚠️ Claude Code CLI not available, using enhanced analysis"
+                perform_enhanced_analysis "$changes" "$branch" "$commit_msg"
+            }
+        else
+            # Use Task tool integration if available
+            echo "📡 Invoking Claude Code Task tool for AI analysis..."
+            echo "Task: Code Review Analysis"
+            echo "Input: $temp_file"
+            echo ""
+            
+            # Call real analysis function
+            perform_enhanced_analysis "$changes" "$branch" "$commit_msg"
+        fi
     fi
     
     # Clean up
     rm -f "$temp_file" 2>/dev/null
+}
+
+# Simple mock analysis for tests to avoid real AI calls
+perform_mock_analysis() {
+    local changes="$1"
+    local branch="$2"
+    local commit_msg="$3"
+    
+    local line_count=$(echo "$changes" | wc -l)
+    local quality_score=85
+    
+    # Simple scoring for tests
+    if echo "$changes" | grep -qE "test|spec"; then
+        quality_score=90
+    fi
+    if [[ $line_count -gt 100 ]]; then
+        quality_score=80
+    fi
+    
+    echo "🏆 **Quality Score: ${quality_score}/100** (Mock Analysis)"
+    echo ""
+    echo "📊 **Code Quality Analysis:**"
+    echo "  • Architecture: Changes maintain good structure"
+    echo "  • Maintainability: Acceptable code changes"
+    echo ""
+    echo "🔒 **Security Review:**"
+    echo "  ✅ No security issues detected in mock analysis"
+    echo ""
+    echo "🧪 **Testing Assessment:**"
+    if echo "$changes" | grep -qE "test|spec"; then
+        echo "  ✅ Test coverage detected"
+    else
+        echo "  ⚠️ Consider adding tests"
+    fi
+    echo ""
+    echo "🎯 **Mock Analysis Complete**"
+    echo "  • Real AI analysis available in production mode"
+    echo "  • Set TDD_TEST_MODE=0 to use enhanced analysis"
 }
 
 # Perform enhanced AI-style analysis

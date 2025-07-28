@@ -2,6 +2,9 @@
 # Test runner for WorkFlo .NET project
 cd "$(dirname "$0")"
 
+# Set test mode to avoid real AI calls during testing
+export TDD_TEST_MODE=1
+
 # Run .NET tests
 echo "Running .NET tests..."
 dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
