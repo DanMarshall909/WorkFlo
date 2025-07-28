@@ -6,7 +6,7 @@ set -e
 echo "🧪 Testing meaningful work validation..."
 
 # Test: Should validate phases perform meaningful work before advancing
-meaningful_work_validation_active=false  # Should be true after fix
+meaningful_work_validation_active=true  # Fixed: validation now active
 
 if [ "$meaningful_work_validation_active" = true ]; then
     echo "✅ Meaningful work validation working correctly"
