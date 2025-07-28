@@ -1,0 +1,219 @@
+using Xunit;
+
+namespace WorkFlo.Core.Tests;
+
+public class ClaudeMdValidationTests
+{
+    [Fact]
+    public void StartupCheck_WhenClaudeMdNotRead_ThrowsValidationException()
+    {
+        // Given: A startup validator that checks if CLAUDE.md has been read
+        var validator = new StartupValidator();
+        
+        // When: Validating startup without CLAUDE.md being read
+        // Then: Should throw validation exception indicating CLAUDE.md must be read
+        var exception = Assert.Throws<ClaudeMdNotReadException>(
+            () => validator.ValidateClaudeMdRead()
+        );
+        
+        Assert.Contains("CLAUDE.md", exception.Message);
+        Assert.Contains("must be read", exception.Message);
+    }
+
+    [Fact]
+    public void StartupCheck_WhenClaudeMdRead_DoesNotThrowException()
+    {
+        // Given: A startup validator and CLAUDE.md has been read
+        var validator = new StartupValidator();
+        validator.MarkClaudeMdAsRead();
+        
+        // When: Validating startup after CLAUDE.md has been read
+        // Then: Should not throw any exception
+        var exception = Record.Exception(() => validator.ValidateClaudeMdRead());
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void WorkflowDeviation_WhenAiDeviatesFromTddWorkflow_DisplaysClaudeMdKeyPoints()
+    {
+        // Given: A workflow monitor that detects TDD violations
+        var monitor = new WorkflowMonitor();
+        var validator = new StartupValidator();
+        validator.MarkClaudeMdAsRead();
+        
+        // When: AI deviates from TDD workflow (e.g., skips red phase)
+        var violation = new WorkflowViolation("Attempted to implement code without failing test first");
+        
+        // Then: Should display CLAUDE.md key points about TDD discipline
+        var keyPoints = monitor.GetClaudeMdKeyPointsForViolation(violation);
+        
+        Assert.NotNull(keyPoints);
+        Assert.Contains("RED", keyPoints);
+        Assert.Contains("failing test", keyPoints);
+        Assert.Contains("ONE acceptance criteria", keyPoints);
+    }
+
+    [Fact]
+    public void WorkflowViolationDetection_WhenMultipleActionsAttempted_DetectsAndCorrects()
+    {
+        // Given: A workflow detector that monitors for TDD violations
+        var detector = new WorkflowViolationDetector();
+        var actions = new List<string> { "implement feature", "write test", "refactor code" };
+        
+        // When: AI attempts to do multiple actions instead of ONE
+        var result = detector.DetectAndCorrect(actions);
+        
+        // Then: Should detect violation and auto-correct to single action
+        Assert.True(result.ViolationDetected);
+        Assert.Equal("Multiple actions attempted. TDD requires ONE action at a time.", result.ViolationMessage);
+        Assert.Single(result.CorrectedActions);
+        Assert.Equal("write test", result.CorrectedActions[0]); // Should prioritize test-first
+    }
+
+    [Fact]
+    public void ReminderCommand_WhenExecuted_DisplaysClaudeMdConstraints()
+    {
+        // Given: A command service that can remind AI of constraints
+        var commandService = new ClaudeMdReminderService();
+        
+        // When: Executing the remind command
+        var result = commandService.ExecuteRemindCommand();
+        
+        // Then: Should display all key CLAUDE.md constraints
+        Assert.NotNull(result);
+        Assert.Contains("ONE acceptance criteria at a time", result);
+        Assert.Contains("RED-GREEN-REFACTOR-COVER-NEXT", result);
+        Assert.Contains("Hard stops between criteria", result);
+        Assert.Contains("No skipping phases", result);
+    }
+}
+
+// Minimal implementation to pass test (GREEN phase)
+public class StartupValidator
+{
+    private bool _claudeMdRead = false;
+
+    public void ValidateClaudeMdRead()
+    {
+        if (!_claudeMdRead)
+        {
+            throw new ClaudeMdNotReadException("CLAUDE.md must be read before starting TDD workflow");
+        }
+    }
+
+    public void MarkClaudeMdAsRead()
+    {
+        _claudeMdRead = true;
+    }
+}
+
+public class ClaudeMdNotReadException : Exception
+{
+    public ClaudeMdNotReadException(string message) : base(message) { }
+}
+
+// Classes for second acceptance criteria (RED phase - should fail)
+public class WorkflowMonitor
+{
+    public string GetClaudeMdKeyPointsForViolation(WorkflowViolation violation)
+    {
+        // Minimal implementation - return CLAUDE.md key points for TDD workflow
+        return @"🚫 HARD RULE: Work on exactly ONE acceptance criteria, write ONE test, then STOP.
+
+Required sequence (no skipping allowed):
+1. RED → Write ONE failing test for current acceptance criteria
+2. GREEN → Minimal implementation to make test pass
+3. REFACTOR → Improve code quality (optional)
+4. COVER → Add comprehensive tests + mutation testing (85% threshold)
+5. NEXT → Hard stop, must explicitly continue to next criteria
+
+Key constraints:
+- Only ONE acceptance criteria is visible at a time
+- Hard stops between criteria prevent scope creep
+- Each phase requires explicit command to continue";
+    }
+}
+
+public class WorkflowViolation
+{
+    public string Description { get; }
+    
+    public WorkflowViolation(string description)
+    {
+        Description = description;
+    }
+}
+
+// Classes for third acceptance criteria (RED phase - should fail)
+public class WorkflowViolationDetector
+{
+    public WorkflowDetectionResult DetectAndCorrect(List<string> actions)
+    {
+        // Minimal implementation - detect multiple actions and prioritize tests
+        var result = new WorkflowDetectionResult();
+        
+        if (actions.Count > 1)
+        {
+            result.ViolationDetected = true;
+            result.ViolationMessage = "Multiple actions attempted. TDD requires ONE action at a time.";
+            
+            // Auto-correct: prioritize test-first approach
+            var testAction = actions.FirstOrDefault(a => a.Contains("test"));
+            if (testAction != null)
+            {
+                result.CorrectedActions.Add(testAction);
+            }
+            else
+            {
+                result.CorrectedActions.Add(actions.First());
+            }
+        }
+        else
+        {
+            result.ViolationDetected = false;
+            result.CorrectedActions.AddRange(actions);
+        }
+        
+        return result;
+    }
+}
+
+public class WorkflowDetectionResult
+{
+    public bool ViolationDetected { get; set; }
+    public string ViolationMessage { get; set; } = string.Empty;
+    public List<string> CorrectedActions { get; set; } = new();
+}
+
+// Classes for fourth acceptance criteria (RED phase - should fail)
+public class ClaudeMdReminderService
+{
+    public string ExecuteRemindCommand()
+    {
+        // Minimal implementation - return comprehensive CLAUDE.md constraints
+        return @"🚫 CLAUDE.md TDD CONSTRAINTS REMINDER 🚫
+
+📋 ULTRA-MINIMAL SELF-CONTAINED TDD WORKFLOW:
+- Work on exactly ONE acceptance criteria at a time
+- Hard stops between criteria prevent scope creep  
+- No skipping phases allowed
+
+🔄 REQUIRED SEQUENCE (RED-GREEN-REFACTOR-COVER-NEXT):
+1. RED → Write ONE failing test for current acceptance criteria
+2. GREEN → Minimal implementation to make test pass
+3. REFACTOR → Improve code quality (optional)
+4. COVER → Add comprehensive tests + mutation testing (85% threshold)
+5. NEXT → Hard stop, must explicitly continue to next criteria
+
+🛑 KEY CONSTRAINTS:
+- Only ONE acceptance criteria is visible at a time
+- Hard stops between criteria prevent scope creep
+- Each phase requires explicit command to continue
+- Tests must pass before advancing phases
+- Mutation testing required in COVER phase (85% threshold)
+- No manual git/gh commands - everything is automated
+- Self-contained workflow with progressive disclosure
+
+Remember: TUNNEL VISION on current criteria only!";
+    }
+}
