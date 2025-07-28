@@ -9,12 +9,13 @@ load_ai_provider() {
     
     # Check if the specific provider exists
     if [[ -f "$provider_script" ]]; then
-        echo "Loading AI provider: $persona" >&2
+        # Only show loading message in debug mode
+        [[ "${DEBUG_MODE:-0}" == "1" ]] && echo "Loading AI provider: $persona" >&2
         source "$provider_script"
         export AI_PROVIDER="$persona"
         return 0
     else
-        echo "Warning: AI provider '$persona' not found, falling back to basic analysis" >&2
+        [[ "${DEBUG_MODE:-0}" == "1" ]] && echo "Warning: AI provider '$persona' not found, falling back to basic analysis" >&2
         source "ai-providers/fallback.sh"
         export AI_PROVIDER="fallback"
         return 1

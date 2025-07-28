@@ -26,28 +26,41 @@ check_prereqs() {
 
 # Get or create WorkFlo project board
 get_or_create_board() {
-    local repo_owner=$(gh repo view --json owner | jq -r '.owner.login')
+    local repo_owner
+    if ! repo_owner=$(gh repo view --json owner | jq -r '.owner.login' 2>/dev/null); then
+        error "Failed to get repository owner. Check GitHub CLI authentication: gh auth status"
+    fi
     
     # Check if WorkFlo board exists
-    local project_id=$(gh project list --owner "$repo_owner" --format json | \
-                      jq -r '.projects[] | select(.title == "WorkFlo TDD Board") | .id' | head -1)
+    local project_id
+    if ! project_id=$(gh project list --owner "$repo_owner" --format json 2>/dev/null | \
+                      jq -r '.projects[] | select(.title == "WorkFlo TDD Board") | .id' 2>/dev/null | head -1); then
+        warn "Failed to list existing projects. Attempting to create new board..."
+        project_id=""
+    fi
     
-    if [[ -z "$project_id" ]]; then
+    if [[ -z "$project_id" || "$project_id" == "null" ]]; then
         info "Creating WorkFlo TDD Board..."
         
-        # Create new project
-        project_id=$(gh project create --title "WorkFlo TDD Board" --owner "$repo_owner" --format json | jq -r '.id')
+        # Create new project with error handling
+        if ! project_id=$(gh project create --title "WorkFlo TDD Board" --owner "$repo_owner" --format json 2>/dev/null | jq -r '.id' 2>/dev/null); then
+            error "Failed to create WorkFlo TDD Board. Check GitHub permissions."
+        fi
         
-        # Add custom fields for TDD tracking
+        if [[ -z "$project_id" || "$project_id" == "null" ]]; then
+            error "Project creation returned invalid ID. Check GitHub API access."
+        fi
+        
+        # Add custom fields for TDD tracking with error handling
         gh project field-create "$project_id" --name "TDD Phase" --type "single_select" \
            --single-select-option "Not Started" \
            --single-select-option "RED" \
            --single-select-option "GREEN" \
            --single-select-option "REFACTOR" \
            --single-select-option "COVER" \
-           --single-select-option "Complete" >/dev/null 2>&1 || true
+           --single-select-option "Complete" >/dev/null 2>&1 || warn "Failed to create TDD Phase field"
         
-        gh project field-create "$project_id" --name "Criteria Progress" --type "text" >/dev/null 2>&1 || true
+        gh project field-create "$project_id" --name "Criteria Progress" --type "text" >/dev/null 2>&1 || warn "Failed to create Criteria Progress field"
         
         success "Created WorkFlo TDD Board (ID: $project_id)"
     fi
@@ -93,14 +106,23 @@ update_board_phase() {
 case "$1" in
     list)
         check_prereqs
-        project_id=$(get_or_create_board)
+        
+        # Get project ID with error handling
+        if ! project_id=$(get_or_create_board 2>/dev/null); then
+            error "Failed to access or create WorkFlo TDD Board"
+        fi
+        
+        if [[ -z "$project_id" || "$project_id" == "null" ]]; then
+            error "Invalid project ID returned. Check GitHub access permissions."
+        fi
         
         # Check for format parameter
         if [[ "$2" == "--format" && "$3" == "json" ]]; then
             # Output raw JSON for command-line processing
-            if [[ -n "$project_id" ]] && [[ "$project_id" != "null" ]]; then
-                gh project item-list "$project_id" --format json 2>/dev/null || echo "[]"
+            if gh project item-list "$project_id" --format json 2>/dev/null; then
+                : # Success, output already sent
             else
+                warn "Failed to retrieve project items"
                 echo "[]"
             fi
         else
@@ -109,20 +131,30 @@ case "$1" in
             echo "================="
             echo ""
             
-            # Show board URL
+            # Show board URL - extract numeric part from project ID
             repo_owner=$(gh repo view --json owner | jq -r '.owner.login')
-            echo "🔗 Board URL: https://github.com/users/$repo_owner/projects/$(echo $project_id | tr -d 'PVT_')"
+            project_number=$(echo "$project_id" | sed 's/.*-\([0-9]*\)$/\1/')
+            if [[ -n "$project_number" && "$project_number" =~ ^[0-9]+$ ]]; then
+                echo "🔗 Board URL: https://github.com/users/$repo_owner/projects/$project_number"
+            else
+                echo "🔗 Board URL: Project ID $project_id (URL generation failed)"
+            fi
             echo ""
             
             # List items on board with TDD phases
-            gh project item-list "$project_id" --format json | \
-            jq -r '.items[] | select(.content.type == "Issue") | 
-            "\(.content.number): \(.content.title) [\(.fieldValues.TDD_Phase // "Not Started")]"' | \
-            while read -r line; do
-                if [[ -n "$line" ]]; then
-                    echo "📋 Issue $line"
-                fi
-            done
+            if gh project item-list "$project_id" --format json >/dev/null 2>&1; then
+                gh project item-list "$project_id" --format json | \
+                jq -r '.items[] | select(.content.type == "Issue") | 
+                "\(.content.number): \(.content.title) [\(.fieldValues.TDD_Phase // "Not Started")]"' | \
+                while read -r line; do
+                    if [[ -n "$line" ]]; then
+                        echo "📋 Issue $line"
+                    fi
+                done
+            else
+                warn "Unable to list project items. Project may be empty or access may be restricted."
+                echo "📋 No issues found or project access limited"
+            fi
         fi
         
         echo ""
