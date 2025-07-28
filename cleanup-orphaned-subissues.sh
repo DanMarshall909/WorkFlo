@@ -17,9 +17,12 @@ fi
 closed_count=0
 skipped_count=0
 
-# Process each subissue
-echo "$subissues" | jq -r '.[] | .number' | while read -r issue_num; do
+# Process each subissue using process substitution to avoid subshell
+while read -r issue_num; do
     echo "🔍 Checking subissue #$issue_num..."
+    
+    # Rate limiting: brief pause between API calls to avoid hitting GitHub limits
+    sleep 0.1
     
     # Get issue details
     body=$(gh issue view "$issue_num" --json body --jq '.body' 2>/dev/null || echo "")
@@ -57,7 +60,7 @@ This subissue was automatically closed because:
         echo "📋 Issue #$issue_num: Parent #$parent_issue still $parent_state, keeping open"
         ((skipped_count++))
     fi
-done
+done < <(echo "$subissues" | jq -r '.[] | .number')
 
 echo ""
 echo "📊 Cleanup Summary:"
