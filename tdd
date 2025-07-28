@@ -358,10 +358,16 @@ run_tests() {
             ;;
         bash)
             if [[ -x "./run-tests" ]]; then
+                # During RED/GREEN phases, skip script tests to focus on .NET test failures
+                local test_env=""
+                if [[ "$PHASE" == "RED" || "$PHASE" == "GREEN" ]]; then
+                    test_env="TDD_SKIP_SCRIPT_TESTS=1"
+                fi
+                
                 if [[ "$quiet_mode" == "true" ]]; then
-                    ./run-tests >/dev/null 2>&1
+                    env $test_env ./run-tests >/dev/null 2>&1
                 else
-                    ./run-tests
+                    env $test_env ./run-tests
                 fi
             else
                 warn "No run-tests script found. Create ./run-tests or install BATS tests."
