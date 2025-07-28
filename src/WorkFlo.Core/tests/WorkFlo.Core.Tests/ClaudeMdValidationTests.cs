@@ -37,16 +37,19 @@ public class ClaudeMdValidationTests
 // Minimal implementation to pass test (GREEN phase)
 public class StartupValidator
 {
+    private bool _claudeMdRead = false;
+
     public void ValidateClaudeMdRead()
     {
-        // Minimal implementation - always throw for now
-        throw new ClaudeMdNotReadException("CLAUDE.md must be read before starting TDD workflow");
+        if (!_claudeMdRead)
+        {
+            throw new ClaudeMdNotReadException("CLAUDE.md must be read before starting TDD workflow");
+        }
     }
 
     public void MarkClaudeMdAsRead()
     {
-        // Not implemented yet - test should fail
-        throw new NotImplementedException("MarkClaudeMdAsRead not implemented");
+        _claudeMdRead = true;
     }
 }
 
