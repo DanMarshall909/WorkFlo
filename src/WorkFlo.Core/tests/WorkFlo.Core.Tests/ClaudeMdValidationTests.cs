@@ -190,6 +190,30 @@ public class ClaudeMdReminderService
 {
     public string ExecuteRemindCommand()
     {
-        throw new NotImplementedException("ExecuteRemindCommand not implemented");
+        // Minimal implementation - return comprehensive CLAUDE.md constraints
+        return @"🚫 CLAUDE.md TDD CONSTRAINTS REMINDER 🚫
+
+📋 ULTRA-MINIMAL SELF-CONTAINED TDD WORKFLOW:
+- Work on exactly ONE acceptance criteria at a time
+- Hard stops between criteria prevent scope creep  
+- No skipping phases allowed
+
+🔄 REQUIRED SEQUENCE (RED-GREEN-REFACTOR-COVER-NEXT):
+1. RED → Write ONE failing test for current acceptance criteria
+2. GREEN → Minimal implementation to make test pass
+3. REFACTOR → Improve code quality (optional)
+4. COVER → Add comprehensive tests + mutation testing (85% threshold)
+5. NEXT → Hard stop, must explicitly continue to next criteria
+
+🛑 KEY CONSTRAINTS:
+- Only ONE acceptance criteria is visible at a time
+- Hard stops between criteria prevent scope creep
+- Each phase requires explicit command to continue
+- Tests must pass before advancing phases
+- Mutation testing required in COVER phase (85% threshold)
+- No manual git/gh commands - everything is automated
+- Self-contained workflow with progressive disclosure
+
+Remember: TUNNEL VISION on current criteria only!";
     }
 }
