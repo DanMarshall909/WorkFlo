@@ -1,5 +1,6 @@
 #!/bin/bash
 # Test that TDD phases modify actual code files, not just .tdd-state
+# Related to issue #168: URGENT: Fix COVER and REFACTOR phases to perform actual work
 
 set -e
 

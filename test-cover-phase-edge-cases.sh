@@ -1,6 +1,7 @@
 #!/bin/bash
 # Comprehensive edge case tests for COVER phase functionality
 # Tests error scenarios, boundary conditions, and input variations
+# Related to issue #168: URGENT: Fix COVER and REFACTOR phases to perform actual work
 
 set -e
 

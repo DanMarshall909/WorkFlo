@@ -1,5 +1,6 @@
 #!/bin/bash
 # Test validation that phases perform meaningful work
+# Related to issue #168: URGENT: Fix COVER and REFACTOR phases to perform actual work
 
 set -e
 

@@ -1,6 +1,7 @@
 #!/bin/bash
 # Test for REFACTOR phase functionality validation  
 # Ensures REFACTOR phase improves code quality and structure
+# Related to issue #168: URGENT: Fix COVER and REFACTOR phases to perform actual work
 
 set -e
 

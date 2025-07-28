@@ -781,6 +781,12 @@ TDD-Session: START
                 ./board complete "$ISSUE" >/dev/null 2>&1 || warn "Board update failed"
             fi
             
+            # Auto-prune completed subissues
+            if [[ -x "./cleanup-orphaned-subissues.sh" ]]; then
+                info "🧹 Auto-pruning completed subissues for issue #$ISSUE..."
+                ./cleanup-orphaned-subissues.sh >/dev/null 2>&1 || warn "Subissue cleanup failed"
+            fi
+            
             echo ""
             info "✅ Issue #$ISSUE is complete and ready for PR"
             info "💡 Next step: Create Pull Request when ready"

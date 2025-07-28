@@ -1,6 +1,7 @@
 #!/bin/bash
 # Test for COVER phase functionality validation
 # Ensures COVER phase performs actual work beyond state changes
+# Related to issue #168: URGENT: Fix COVER and REFACTOR phases to perform actual work
 
 set -e
 
