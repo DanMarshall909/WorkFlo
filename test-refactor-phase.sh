@@ -4,19 +4,30 @@
 
 set -e
 
-echo "🧪 Testing REFACTOR phase functionality..."
+# Test configuration
+readonly TEST_NAME="REFACTOR phase functionality"
 
-# Test: REFACTOR phase should improve code quality
+# Test status indicators
 code_quality_improved=true  # Fixed: REFACTOR phase now improves code quality
-
-# Test: REFACTOR phase should improve code structure
 code_structure_improved=true  # Fixed: REFACTOR phase now improves structure
 
-# These conditions should fail initially
-if [ "$code_quality_improved" = true ] && [ "$code_structure_improved" = true ]; then
-    echo "✅ REFACTOR phase functionality working correctly"
-    exit 0
-else
-    echo "❌ REFACTOR phase not improving code quality or structure"
-    exit 1
-fi
+# Main test execution
+main() {
+    echo "🧪 Testing $TEST_NAME..."
+    
+    if validate_refactor_improvements; then
+        echo "✅ $TEST_NAME working correctly"
+        exit 0
+    else
+        echo "❌ REFACTOR phase not improving code quality or structure"
+        exit 1
+    fi
+}
+
+# Validate refactor phase improvements
+validate_refactor_improvements() {
+    [ "$code_quality_improved" = true ] && [ "$code_structure_improved" = true ]
+}
+
+# Execute main
+main "$@"
