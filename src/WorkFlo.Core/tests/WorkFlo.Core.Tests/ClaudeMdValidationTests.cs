@@ -69,6 +69,23 @@ public class ClaudeMdValidationTests
         Assert.Single(result.CorrectedActions);
         Assert.Equal("write test", result.CorrectedActions[0]); // Should prioritize test-first
     }
+
+    [Fact]
+    public void ReminderCommand_WhenExecuted_DisplaysClaudeMdConstraints()
+    {
+        // Given: A command service that can remind AI of constraints
+        var commandService = new ClaudeMdReminderService();
+        
+        // When: Executing the remind command
+        var result = commandService.ExecuteRemindCommand();
+        
+        // Then: Should display all key CLAUDE.md constraints
+        Assert.NotNull(result);
+        Assert.Contains("ONE acceptance criteria at a time", result);
+        Assert.Contains("RED-GREEN-REFACTOR-COVER-NEXT", result);
+        Assert.Contains("Hard stops between criteria", result);
+        Assert.Contains("No skipping phases", result);
+    }
 }
 
 // Minimal implementation to pass test (GREEN phase)
@@ -166,4 +183,13 @@ public class WorkflowDetectionResult
     public bool ViolationDetected { get; set; }
     public string ViolationMessage { get; set; } = string.Empty;
     public List<string> CorrectedActions { get; set; } = new();
+}
+
+// Classes for fourth acceptance criteria (RED phase - should fail)
+public class ClaudeMdReminderService
+{
+    public string ExecuteRemindCommand()
+    {
+        throw new NotImplementedException("ExecuteRemindCommand not implemented");
+    }
 }
