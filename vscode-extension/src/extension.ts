@@ -25,7 +25,7 @@ interface WorkFloStatus {
 }
 
 // Simple markdown to HTML converter
-function markdownToHtml(markdown: string): string {
+export function markdownToHtml(markdown: string): string {
   if (!markdown) return '';
   
   return markdown
@@ -74,8 +74,23 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private _status: WorkFloStatus = { active: false };
   public onStatusChanged?: (status: WorkFloStatus) => void;
+  private _lastGitHubError?: Error;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  // Public getter for testing
+  public get status(): WorkFloStatus {
+    return this._status;
+  }
+
+  // Methods for testing error handling
+  public getLastGitHubError(): Error | undefined {
+    return this._lastGitHubError;
+  }
+
+  public hasGitHubError(): boolean {
+    return this._lastGitHubError !== undefined;
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -163,8 +178,15 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
   }
 
   private extractValue(lines: string[], key: string): string | undefined {
-    const line = lines.find(l => l.startsWith(`${key}=`));
-    return line ? line.split('=')[1]?.replace(/"/g, '') : undefined;
+    // Handle both simple format (KEY=value) and complex format with line numbers and arrows (     1→KEY=value)
+    const line = lines.find(l => l.startsWith(`${key}=`) || l.includes(`${key}=`));
+    if (!line) return undefined;
+    
+    const equalIndex = line.indexOf(`${key}=`);
+    if (equalIndex === -1) return undefined;
+    
+    const value = line.substring(equalIndex + key.length + 1);
+    return value?.replace(/"/g, '') || undefined;
   }
 
   private async fetchGitHubIssue(issueNumber: string, workspacePath: string) {
@@ -181,6 +203,7 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
         (error, stdout, stderr) => {
           if (error) {
             console.error('Error fetching GitHub issue:', error);
+            this._lastGitHubError = error;
             // Set fallback data to prevent empty display
             this._status.issueTitle = `Issue #${issueNumber}`;
             this._status.issueUrl = `https://github.com/owner/repo/issues/${issueNumber}`;
@@ -188,6 +211,8 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
             this.updateWebview();
             return;
           }
+          // Clear error on success
+          this._lastGitHubError = undefined;
           try {
             const issueData = JSON.parse(stdout);
             this._status.issueTitle = issueData.title;
@@ -223,10 +248,13 @@ export class WorkFloStatusProvider implements vscode.WebviewViewProvider {
         (error, stdout, stderr) => {
           if (error) {
             console.error('Error fetching open issues:', error);
+            this._lastGitHubError = error;
             this._status.openIssues = [];
             this.updateWebview();
             return;
           }
+          // Clear error on success
+          this._lastGitHubError = undefined;
           try {
             const issuesData = JSON.parse(stdout);
             this._status.openIssues = issuesData;

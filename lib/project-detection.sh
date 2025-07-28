@@ -15,6 +15,11 @@ detect_project_type() {
     local project_root="${1:-$(pwd)}"
     local project_types=()
     
+    # Check for Bash projects first (prioritize when run-tests exists)
+    if [[ -x "$project_root/run-tests" ]] || find "$project_root" -name "*.bats" | head -1 | grep -q . || find "$project_root" -name "test-*.sh" | head -1 | grep -q .; then
+        project_types+=("bash")
+    fi
+    
     # Check for .NET projects
     if find "$project_root" -name "*.csproj" -o -name "*.sln" | head -1 | grep -q .; then
         # Analyze project files to determine specific type
@@ -104,6 +109,11 @@ get_project_commands() {
             echo "run:python main.py"
             echo "install:pip install -r requirements.txt"
             echo "lint:ruff check"
+            ;;
+        "bash")
+            echo "test:./run-tests"
+            echo "lint:shellcheck *.sh"
+            echo "format:shfmt -w *.sh"
             ;;
         "generic")
             echo "build:make"
