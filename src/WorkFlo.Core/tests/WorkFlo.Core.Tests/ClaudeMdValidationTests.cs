@@ -132,7 +132,32 @@ public class WorkflowViolationDetector
 {
     public WorkflowDetectionResult DetectAndCorrect(List<string> actions)
     {
-        throw new NotImplementedException("DetectAndCorrect not implemented");
+        // Minimal implementation - detect multiple actions and prioritize tests
+        var result = new WorkflowDetectionResult();
+        
+        if (actions.Count > 1)
+        {
+            result.ViolationDetected = true;
+            result.ViolationMessage = "Multiple actions attempted. TDD requires ONE action at a time.";
+            
+            // Auto-correct: prioritize test-first approach
+            var testAction = actions.FirstOrDefault(a => a.Contains("test"));
+            if (testAction != null)
+            {
+                result.CorrectedActions.Add(testAction);
+            }
+            else
+            {
+                result.CorrectedActions.Add(actions.First());
+            }
+        }
+        else
+        {
+            result.ViolationDetected = false;
+            result.CorrectedActions.AddRange(actions);
+        }
+        
+        return result;
     }
 }
 
