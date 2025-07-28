@@ -47,6 +47,10 @@ validate_issue_param() {
 load_config
 [[ -f $STATE_FILE ]] && source $STATE_FILE
 
+# Load AI provider system
+source ai-loader.sh
+load_ai_provider
+
 # Debug mode for verbose output (set TDD_DEBUG=1 for debugging)
 DEBUG_MODE="${TDD_DEBUG:-0}"
 VERBOSE_OUTPUT="${TDD_VERBOSE:-0}"
@@ -460,7 +464,7 @@ Criteria-Progress: $CRITERIA/$TOTAL
 
 🤖 Generated with WorkFlo TDD automation
 
-Co-Authored-By: ${PERSONA^} <noreply@${PERSONA}.ai>"
+$(generate_commit_message "$phase" "$CRITERIA" "$criteria_text" "$ISSUE" "$issue_title")"
     
     # Auto-commit using git (internal to script)
     if git add . && git commit -m "$commit_msg" >/dev/null 2>&1; then
@@ -828,7 +832,7 @@ TDD-Session: START
     help|--help|-h)
         echo "Ultra-Minimal TDD Command for Acceptance Criteria"
         echo ""
-        echo "Usage: tdd {start|red|green|refactor|cover|next|status|help}"
+        echo "Usage: tdd {start|red|green|refactor|cover|next|status|ai-switch|ai-list|help}"
         echo ""
         echo "Commands:"
         echo "  start ISSUE  Start TDD workflow for GitHub issue"
@@ -839,6 +843,8 @@ TDD-Session: START
         echo "  next         Move to next criteria (HARD STOP)"
         echo "  status       Show current TDD session status"
         echo "  scores       Show gamification scores only"
+        echo "  ai-switch    Switch AI provider (claude|gemini)"
+        echo "  ai-list      List available AI providers"
         echo "  help         Show this help message"
         echo ""
         echo "TDD Cycle: RED → GREEN → REFACTOR → COVER → NEXT (repeat)"
@@ -855,6 +861,23 @@ TDD-Session: START
         echo "  • No manual git/gh commands needed"
         echo "  • Board management handled automatically"
         echo "  • Focus only on writing tests and code"
+        ;;
+    
+    ai-switch)
+        NEW_PERSONA=$2
+        [[ -z "$NEW_PERSONA" ]] && error "Usage: tdd ai-switch <provider_name>"
+        
+        if switch_ai_provider "$NEW_PERSONA"; then
+            success "Switched to AI provider: $NEW_PERSONA"
+        else
+            error "Failed to switch AI provider"
+        fi
+        ;;
+    
+    ai-list)
+        echo "Current AI provider: ${AI_PROVIDER:-unknown}"
+        echo ""
+        list_ai_providers
         ;;
     
     scores)
@@ -916,9 +939,7 @@ $ISSUE_TITLE
 ## Related Issues
 $SUBISSUE_LINKS
 
-🤖 Generated with [${PERSONA^} Code](https://${PERSONA}.ai/code)
-
-Co-Authored-By: ${PERSONA^} <noreply@${PERSONA}.ai>"
+$(generate_pr_content "$ISSUE" "$ISSUE_TITLE")"
             
             # Check if we can push to remote (git push may be restricted in some environments)
             echo "🔄 Preparing to create GitHub PR..."
@@ -995,91 +1016,8 @@ Branch: $branch
 Recent commit: $commit_msg
 Context: WorkFlo TDD automation system"
 
-        # Use AI for code review
-        if [[ -n "$PERSONA" ]]; then
-            echo "🤖 Using ${PERSONA^} AI for code review..."
-            
-            # Save the prompt to a temporary file for Claude Code to process
-            temp_prompt="/tmp/ai_review_prompt_$$"
-            echo "$review_prompt" > "$temp_prompt"
-            
-            # Since we're running inside Claude Code, create a review message
-            echo "🔍 AI Code Review Analysis:"
-            echo ""
-            echo "Branch: $branch"
-            echo "Recent commit: $commit_msg"
-            echo "Changes: $(echo "$changes" | wc -l) lines modified"
-            echo ""
-            
-            # Analyze the changes with heuristics but enhanced
-            line_count=$(echo "$changes" | wc -l)
-            
-            # More sophisticated scoring
-            quality_score=85
-            if echo "$changes" | grep -qE "test|spec"; then
-                quality_score=$((quality_score + 5)) # Bonus for tests
-            fi
-            if echo "$changes" | grep -q "TODO\|FIXME\|HACK"; then
-                quality_score=$((quality_score - 10)) # Penalty for technical debt
-            fi
-            if [[ $line_count -gt 100 ]]; then
-                quality_score=$((quality_score - 15)) # Penalty for large changes
-            elif [[ $line_count -lt 20 ]]; then
-                quality_score=$((quality_score + 5)) # Bonus for focused changes
-            fi
-            
-            echo "Quality assessment: ${quality_score}/100"
-            echo "Code review suggestions:"
-            
-            # Enhanced analysis
-            if echo "$changes" | grep -q "^\+.*function\|^\+.*def\|^\+.*=>" && [[ $line_count -gt 30 ]]; then
-                echo "  • Consider breaking down large functions for better maintainability"
-            fi
-            if echo "$changes" | grep -q "^\+.*echo\|^\+.*console\.log\|^\+.*print" && ! echo "$changes" | grep -q "test\|debug"; then
-                echo "  • Review logging statements - consider if they're needed in production"
-            fi
-            if echo "$changes" | grep -qE "^\+.*if.*&&.*\|\||\+.*case.*\)"; then
-                echo "  • Complex conditional logic detected - consider simplification"
-            fi
-            if echo "$changes" | grep -q "^\+.*\#.*TODO\|^\+.*\#.*FIXME"; then
-                echo "  • Address TODO/FIXME comments before merging"
-            fi
-            if echo "$changes" | grep -q "^\+.*test\|^\+.*@test"; then
-                echo "  • ✅ Good TDD practice - tests are being added"
-            fi
-            if [[ $line_count -lt 10 ]]; then
-                echo "  • ✅ Focused, minimal change - excellent TDD discipline"
-            fi
-            
-            # Clean up
-            rm -f "$temp_prompt" 2>/dev/null
-        else
-            # Fallback: Basic static analysis
-            echo "⚠️  ${PERSONA^} AI not available, using basic analysis"
-            
-            line_count=$(echo "$changes" | wc -l)
-            complexity_score=$((100 - (line_count > 50 ? (line_count - 50) / 2 : 0)))
-            [[ $complexity_score -lt 60 ]] && complexity_score=60
-            [[ $complexity_score -gt 95 ]] && complexity_score=95
-            
-            echo "Quality assessment: ${complexity_score}/100"
-            echo "Code review suggestions:"
-            
-            # Basic heuristic analysis
-            if echo "$changes" | grep -q "function\|def\|=>" && [[ $line_count -gt 20 ]]; then
-                echo "  • Consider breaking down large functions into smaller ones"
-            fi
-            if echo "$changes" | grep -qE "TODO|FIXME|HACK"; then
-                echo "  • Address TODO/FIXME comments before committing"
-            fi
-            if echo "$changes" | grep -q "console.log\|echo.*debug\|print(" && ! echo "$changes" | grep -q "test"; then
-                echo "  • Remove debug statements before production"
-            fi
-            if [[ $line_count -lt 5 ]]; then
-                echo "  • Changes look minimal and focused - good TDD practice"
-            fi
-            echo "  • Consider adding tests for any new functionality"
-        fi
+        # Use modular AI system for code review
+        ai_review "$changes" "$branch" "$commit_msg"
         ;;
     
     confidence)
@@ -1203,7 +1141,7 @@ This PR implements the acceptance criteria defined in issue #$ISSUE_NUM.
 ## Issue Context
 $ISSUE_TITLE
 
-🤖 Generated with [${PERSONA^} Code](https://${PERSONA}.ai/code)"
+$(generate_pr_content "$ISSUE_NUM" "$ISSUE_TITLE")"
             
             echo "Resolves #$ISSUE_NUM"
         else

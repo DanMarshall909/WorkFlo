@@ -25,4 +25,4 @@ AI_REVIEW_TIMEOUT=30
 # Git operation caching
 GIT_CACHE_ENABLED=true
 GIT_CACHE_TTL=300  # 5 minutes
-PERSONA=claude
+PERSONA="claude"
