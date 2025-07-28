@@ -32,6 +32,26 @@ public class ClaudeMdValidationTests
         var exception = Record.Exception(() => validator.ValidateClaudeMdRead());
         Assert.Null(exception);
     }
+
+    [Fact]
+    public void WorkflowDeviation_WhenAiDeviatesFromTddWorkflow_DisplaysClaudeMdKeyPoints()
+    {
+        // Given: A workflow monitor that detects TDD violations
+        var monitor = new WorkflowMonitor();
+        var validator = new StartupValidator();
+        validator.MarkClaudeMdAsRead();
+        
+        // When: AI deviates from TDD workflow (e.g., skips red phase)
+        var violation = new WorkflowViolation("Attempted to implement code without failing test first");
+        
+        // Then: Should display CLAUDE.md key points about TDD discipline
+        var keyPoints = monitor.GetClaudeMdKeyPointsForViolation(violation);
+        
+        Assert.NotNull(keyPoints);
+        Assert.Contains("RED", keyPoints);
+        Assert.Contains("failing test", keyPoints);
+        Assert.Contains("ONE acceptance criteria", keyPoints);
+    }
 }
 
 // Minimal implementation to pass test (GREEN phase)
@@ -56,4 +76,23 @@ public class StartupValidator
 public class ClaudeMdNotReadException : Exception
 {
     public ClaudeMdNotReadException(string message) : base(message) { }
+}
+
+// Classes for second acceptance criteria (RED phase - should fail)
+public class WorkflowMonitor
+{
+    public string GetClaudeMdKeyPointsForViolation(WorkflowViolation violation)
+    {
+        throw new NotImplementedException("GetClaudeMdKeyPointsForViolation not implemented");
+    }
+}
+
+public class WorkflowViolation
+{
+    public string Description { get; }
+    
+    public WorkflowViolation(string description)
+    {
+        Description = description;
+    }
 }

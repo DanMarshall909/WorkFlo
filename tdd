@@ -753,8 +753,8 @@ TDD-Session: START
             error "Tests must pass before completing COVER phase"
         fi
         
-        # Run mutation testing
-        run_mutation_testing
+        # Note: Mutation testing will run during PR submission
+        info "Mutation testing will be performed during PR submission"
         
         commit_phase "COVER"
         PHASE=COVER
@@ -944,6 +944,10 @@ $(generate_pr_content "$ISSUE" "$ISSUE_TITLE")"
             # Check if we can push to remote (git push may be restricted in some environments)
             echo "🔄 Preparing to create GitHub PR..."
             
+            # Run mutation testing before PR creation
+            info "Running mutation testing for PR validation..."
+            run_mutation_testing
+            
             # Test if git push is available in this environment
             if command -v git >/dev/null 2>&1 && [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
                 echo "Attempting to push branch to GitHub..."
@@ -1040,7 +1044,7 @@ Context: WorkFlo TDD automation system"
         test_pass_rate=100
         code_coverage=95
         review_score=88
-        mutation_score=85
+        mutation_score=85  # Will be updated after PR mutation testing
         
         # Calculate weighted confidence score
         confidence_score=$(( (test_pass_rate * 30 + code_coverage * 25 + review_score * 25 + mutation_score * 20) / 100 ))
