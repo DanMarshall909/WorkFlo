@@ -12,3 +12,4 @@ echo "Running custom script tests..."
 ./test-cover-phase-edge-cases.sh
 ./test-refactor-phase.sh
 ./test-code-modification.sh
+./test-validation.sh
