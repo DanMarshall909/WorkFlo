@@ -131,3 +131,17 @@ setup() {
     run validate_issue_param "123" "test"
     [ "$status" -eq 0 ]
 }
+
+@test "cover_phase_adds_comprehensive_test_coverage_and_validates_mutation_testing" {
+    # Given: A repository with initial minimal tests
+    local initial_test_count=$(find . -name "*.test.*" -o -name "*.spec.*" -o -name "*.bats" 2>/dev/null | wc -l || echo 0)
+    
+    # When: COVER phase is executed (simulated)
+    # This test should FAIL initially because COVER phase doesn't actually add comprehensive tests
+    local comprehensive_coverage_added=false  # This should be true after fix
+    local mutation_testing_run=false          # This should be true after fix
+    
+    # Then: Should add comprehensive test coverage beyond initial minimal tests
+    [ "$comprehensive_coverage_added" = true ]
+    [ "$mutation_testing_run" = true ]
+}
