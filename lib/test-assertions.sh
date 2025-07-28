@@ -3,8 +3,8 @@
 # Provides structured assertions with clear error reporting
 
 # Global test state
-TEST_ERRORS=0
-TEST_ASSERTIONS=0
+TEST_ERRORS=${TEST_ERRORS:-0}
+TEST_ASSERTIONS=${TEST_ASSERTIONS:-0}
 
 # Assert that two values are equal
 assert_equals() {
@@ -81,7 +81,12 @@ test_summary() {
     echo "📊 Test Summary:"
     echo "   Assertions: $TEST_ASSERTIONS"
     echo "   Failures: $TEST_ERRORS"
-    echo "   Success Rate: $(( (TEST_ASSERTIONS - TEST_ERRORS) * 100 / TEST_ASSERTIONS ))%"
+    
+    if [ $TEST_ASSERTIONS -gt 0 ]; then
+        echo "   Success Rate: $(( (TEST_ASSERTIONS - TEST_ERRORS) * 100 / TEST_ASSERTIONS ))%"
+    else
+        echo "   Success Rate: N/A (no assertions)"
+    fi
     
     if [ $TEST_ERRORS -eq 0 ]; then
         echo "🎉 All tests passed!"

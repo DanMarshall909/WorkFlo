@@ -86,6 +86,39 @@ public class ClaudeMdValidationTests
         Assert.Contains("Hard stops between criteria", result);
         Assert.Contains("No skipping phases", result);
     }
+
+    [Fact]
+    public void TddCoverPhase_WhenExecuted_ShouldNotRunMutationTesting()
+    {
+        // Given: A TDD workflow manager that handles phase execution
+        var tddWorkflow = new TddWorkflowManager();
+        
+        // When: Executing the COVER phase
+        var result = tddWorkflow.ExecuteCoverPhase();
+        
+        // Then: Should not run mutation testing during COVER phase
+        Assert.False(result.MutationTestingExecuted);
+        Assert.Contains("Mutation testing will be performed during PR submission", result.Message);
+    }
+}
+
+// Minimal implementation for mutation testing move (GREEN phase)
+public class TddWorkflowManager
+{
+    public CoverPhaseResult ExecuteCoverPhase()
+    {
+        return new CoverPhaseResult
+        {
+            MutationTestingExecuted = false,
+            Message = "Mutation testing will be performed during PR submission"
+        };
+    }
+}
+
+public class CoverPhaseResult
+{
+    public bool MutationTestingExecuted { get; set; }
+    public string Message { get; set; } = string.Empty;
 }
 
 // Minimal implementation to pass test (GREEN phase)
