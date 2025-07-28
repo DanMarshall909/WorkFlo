@@ -5,3 +5,7 @@ This file provides guidance to Claude Code when working with the WorkFlo reposit
 ## Mandatory Reading. CRITICAL!
 
 YOU MUST read [AI_GUIDELINES.md](AI_GUIDELINES.md) at the start of every session.
+
+## Best Practices
+
+- don't try to continue using a workaround if a script doesn't work. fix it!

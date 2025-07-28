@@ -1,4 +1,19 @@
-#\!/bin/bash
+#!/bin/bash
 # Test runner for WorkFlo .NET project
 cd "$(dirname "$0")"
-exec dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
+
+# Set test mode to avoid real AI calls during testing
+export TDD_TEST_MODE=1
+
+# Run .NET tests
+echo "Running .NET tests..."
+dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
+
+# Run custom script tests
+echo "Running custom script tests..."
+./test-cover-phase.sh
+./test-cover-phase-edge-cases.sh
+./test-refactor-phase.sh
+./test-code-modification.sh
+./test-validation.sh
+./test-meaningful-work-validation.sh
