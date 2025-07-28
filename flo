@@ -14,6 +14,15 @@ source "$SCRIPT_DIR/lib/project-detection.sh"
 STATE_FILE=".tdd-state"
 [[ -f $STATE_FILE ]] && source $STATE_FILE
 
+# Load persona from config if available
+PERSONA="claude" # Default persona
+if [[ -f ".workflo-config" ]]; then
+    if grep -q "^PERSONA=" ".workflo-config"; then
+        PERSONA=$(grep "^PERSONA=" ".workflo-config" | cut -d'=' -f2)
+    fi
+fi
+export PERSONA
+
 # Show usage information
 show_usage() {
     echo "Flo - Universal TDD Workflow Toolkit"

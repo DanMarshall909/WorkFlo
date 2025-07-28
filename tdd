@@ -9,6 +9,11 @@ CONFIG_FILE=".workflo-config"
 
 # Load configuration with defaults
 load_config() {
+    # Load persona if set
+    PERSONA="claude" # Default persona
+    if grep -q "^PERSONA=" "$CONFIG_FILE" 2>/dev/null; then
+        PERSONA=$(grep "^PERSONA=" "$CONFIG_FILE" | cut -d'=' -f2)
+    fi
     # Set defaults first
     CONFIDENCE_WEIGHTS_TEST_PASS=30
     CONFIDENCE_WEIGHTS_COVERAGE=25
@@ -457,7 +462,9 @@ Linked-to: #$ISSUE
 TDD-Phase: $phase
 Criteria-Progress: $CRITERIA/$TOTAL
 
-🤖 Generated with WorkFlo TDD automation"
+🤖 Generated with WorkFlo TDD automation
+
+Co-Authored-By: ${PERSONA^} <noreply@${PERSONA}.ai>"
     
     # Auto-commit using git (internal to script)
     if git add . && git commit -m "$commit_msg" >/dev/null 2>&1; then
@@ -913,9 +920,9 @@ $ISSUE_TITLE
 ## Related Issues
 $SUBISSUE_LINKS
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
+🤖 Generated with [${PERSONA^} Code](https://${PERSONA}.ai/code)
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Co-Authored-By: ${PERSONA^} <noreply@${PERSONA}.ai>"
             
             # Check if we can push to remote (git push may be restricted in some environments)
             echo "🔄 Preparing to create GitHub PR..."
@@ -1200,7 +1207,7 @@ This PR implements the acceptance criteria defined in issue #$ISSUE_NUM.
 ## Issue Context
 $ISSUE_TITLE
 
-🤖 Generated with [Claude Code](https://claude.ai/code)"
+🤖 Generated with [${PERSONA^} Code](https://${PERSONA}.ai/code)"
             
             echo "Resolves #$ISSUE_NUM"
         else
