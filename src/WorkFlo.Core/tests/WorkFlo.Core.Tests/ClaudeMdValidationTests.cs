@@ -122,6 +122,19 @@ public class ClaudeMdValidationTests
         Assert.Equal(85, result.MutationScore);
         Assert.True(result.TotalScore >= 90); // Should meet confidence threshold
     }
+
+    [Fact]
+    public void ClaudeMdDocumentation_WhenMutationTestingMoved_DocumentsChangeCorrectly()
+    {
+        // Given: Documentation about mutation testing changes
+        var documentationService = new DocumentationService();
+        
+        // When: Checking if mutation testing move is documented
+        var isDocumented = documentationService.IsMutationTestingMoveDocumented();
+        
+        // Then: Should confirm the change is documented in CLAUDE.md
+        Assert.True(isDocumented);
+    }
 }
 
 // Minimal implementation for mutation testing move (GREEN phase)
@@ -176,6 +189,23 @@ public class ConfidenceResult
     public bool UsedPrMutationTesting { get; set; }
     public int MutationScore { get; set; }
     public int TotalScore { get; set; }
+}
+
+// Minimal implementation for documentation verification (GREEN phase)
+public class DocumentationService
+{
+    public bool IsMutationTestingMoveDocumented()
+    {
+        // Check if CLAUDE.md contains documentation about mutation testing move
+        var claudeMdPath = "/home/dan/code/WorkFlo/CLAUDE.md";
+        if (File.Exists(claudeMdPath))
+        {
+            var content = File.ReadAllText(claudeMdPath);
+            return content.Contains("mutation testing has been moved") && 
+                   content.Contains("PR submission time");
+        }
+        return false;
+    }
 }
 
 // Minimal implementation to pass test (GREEN phase)
