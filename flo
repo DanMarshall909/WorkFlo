@@ -76,7 +76,11 @@ switch_persona() {
     fi
 
     info "Switching to $persona persona..."
-    echo "PERSONA=$persona" > .workflo-config
+    if grep -q "^PERSONA=" .workflo-config; then
+        sed -i "s/^PERSONA=.*/PERSONA=$persona/" .workflo-config
+    else
+        echo "PERSONA=$persona" >> .workflo-config
+    fi
     success "Switched to $persona persona"
 }
 

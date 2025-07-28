@@ -9,32 +9,28 @@ CONFIG_FILE=".workflo-config"
 
 # Load configuration with defaults
 load_config() {
-    # Load persona if set
-    PERSONA="claude" # Default persona
-    if grep -q "^PERSONA=" "$CONFIG_FILE" 2>/dev/null; then
-        PERSONA=$(grep "^PERSONA=" "$CONFIG_FILE" | cut -d'=' -f2)
-    fi
-    # Set defaults first
-    CONFIDENCE_WEIGHTS_TEST_PASS=30
-    CONFIDENCE_WEIGHTS_COVERAGE=25
-    CONFIDENCE_WEIGHTS_REVIEW=25
-    CONFIDENCE_WEIGHTS_MUTATION=20
-    CONFIDENCE_THRESHOLD=90
-    MUTATION_THRESHOLD=85
-    LARGE_CHANGE_THRESHOLD=100
-    SMALL_CHANGE_THRESHOLD=20
-    QUALITY_BASE_SCORE=85
-    QUALITY_TEST_BONUS=5
-    QUALITY_TODO_PENALTY=10
-    QUALITY_LARGE_CHANGE_PENALTY=15
-    QUALITY_SMALL_CHANGE_BONUS=5
-    AI_REVIEW_RETRY_ATTEMPTS=3
-    AI_REVIEW_TIMEOUT=30
-    GIT_CACHE_ENABLED=true
-    GIT_CACHE_TTL=300
-    
-    # Override with config file if it exists
+    # Source config file first to load any existing settings
     [[ -f $CONFIG_FILE ]] && source $CONFIG_FILE
+
+    # Set defaults only if not already set by the config file
+    : ${PERSONA:="claude"} # Default persona
+    : ${CONFIDENCE_WEIGHTS_TEST_PASS:=30}
+    : ${CONFIDENCE_WEIGHTS_COVERAGE:=25}
+    : ${CONFIDENCE_WEIGHTS_REVIEW:=25}
+    : ${CONFIDENCE_WEIGHTS_MUTATION:=20}
+    : ${CONFIDENCE_THRESHOLD:=90}
+    : ${MUTATION_THRESHOLD:=85}
+    : ${LARGE_CHANGE_THRESHOLD:=100}
+    : ${SMALL_CHANGE_THRESHOLD:=20}
+    : ${QUALITY_BASE_SCORE:=85}
+    : ${QUALITY_TEST_BONUS:=5}
+    : ${QUALITY_TODO_PENALTY:=10}
+    : ${QUALITY_LARGE_CHANGE_PENALTY:=15}
+    : ${QUALITY_SMALL_CHANGE_BONUS:=5}
+    : ${AI_REVIEW_RETRY_ATTEMPTS:=3}
+    : ${AI_REVIEW_TIMEOUT:=30}
+    : ${GIT_CACHE_ENABLED:=true}
+    : ${GIT_CACHE_TTL:=300}
 }
 
 # Validation helper
@@ -999,9 +995,9 @@ Branch: $branch
 Recent commit: $commit_msg
 Context: WorkFlo TDD automation system"
 
-        # Use Claude Code directly for AI review
-        if [[ -n "$CLAUDE_CODE_SESSION" ]] || command -v claude >/dev/null 2>&1; then
-            echo "🤖 Using Claude AI for code review..."
+        # Use AI for code review
+        if [[ -n "$PERSONA" ]]; then
+            echo "🤖 Using ${PERSONA^} AI for code review..."
             
             # Save the prompt to a temporary file for Claude Code to process
             temp_prompt="/tmp/ai_review_prompt_$$"
@@ -1059,7 +1055,7 @@ Context: WorkFlo TDD automation system"
             rm -f "$temp_prompt" 2>/dev/null
         else
             # Fallback: Basic static analysis
-            echo "⚠️  Claude AI not available, using basic analysis"
+            echo "⚠️  ${PERSONA^} AI not available, using basic analysis"
             
             line_count=$(echo "$changes" | wc -l)
             complexity_score=$((100 - (line_count > 50 ? (line_count - 50) / 2 : 0)))
