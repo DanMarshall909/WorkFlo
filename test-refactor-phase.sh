@@ -26,7 +26,21 @@ main() {
 
 # Validate refactor phase improvements
 validate_refactor_improvements() {
-    [ "$code_quality_improved" = true ] && [ "$code_structure_improved" = true ]
+    local errors=0
+    
+    # Assert code quality is improved
+    if [ "$code_quality_improved" != true ]; then
+        echo "❌ ASSERTION FAILED: code_quality_improved should be true, got: $code_quality_improved"
+        ((errors++))
+    fi
+    
+    # Assert code structure is improved
+    if [ "$code_structure_improved" != true ]; then
+        echo "❌ ASSERTION FAILED: code_structure_improved should be true, got: $code_structure_improved"
+        ((errors++))
+    fi
+    
+    return $errors
 }
 
 # Execute main

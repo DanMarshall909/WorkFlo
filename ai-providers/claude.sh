@@ -12,6 +12,23 @@ ai_review() {
     local branch="$2"
     local commit_msg="$3"
     
+    # Input validation with detailed error messages
+    if [[ -z "$changes" ]]; then
+        echo "❌ ERROR: No code changes provided for analysis"
+        echo "Usage: ai_review <changes> <branch> <commit_msg>"
+        return 1
+    fi
+    
+    if [[ -z "$branch" ]]; then
+        echo "⚠️ WARNING: Branch name not provided, using 'unknown'"
+        branch="unknown"
+    fi
+    
+    if [[ -z "$commit_msg" ]]; then
+        echo "⚠️ WARNING: Commit message not provided, using 'no message'"
+        commit_msg="no message"
+    fi
+    
     echo "🤖 Performing real Claude AI code review..."
     
     # Create comprehensive review prompt for Claude Code
@@ -49,30 +66,53 @@ Please be thorough and critical in your analysis. Focus on providing actionable 
     
     # Save prompt to temporary file for Claude Code Task tool
     local temp_file="/tmp/claude_review_$$"
-    echo "$review_prompt" > "$temp_file"
+    
+    # Error handling for file operations
+    if ! echo "$review_prompt" > "$temp_file" 2>/dev/null; then
+        echo "❌ ERROR: Failed to create temporary file for AI analysis"
+        echo "Check permissions for /tmp directory"
+        return 1
+    fi
+    
+    # Verify file was created successfully
+    if [[ ! -f "$temp_file" ]]; then
+        echo "❌ ERROR: Temporary file creation failed"
+        return 1
+    fi
     
     # Check if we're in test mode to avoid real AI calls during testing
     if [[ "${TDD_TEST_MODE:-0}" == "1" ]] || [[ "${CI:-}" == "true" ]] || [[ -n "${BATS_TEST_NAME:-}" ]]; then
         echo "🧪 Test mode detected - using mock AI analysis"
-        perform_mock_analysis "$changes" "$branch" "$commit_msg"
+        
+        # Error handling for mock analysis
+        if ! perform_mock_analysis "$changes" "$branch" "$commit_msg"; then
+            echo "❌ ERROR: Mock analysis failed"
+            rm -f "$temp_file" 2>/dev/null
+            return 1
+        fi
     else
         # Use Claude Code to perform actual AI analysis in production
         echo "🤖 Requesting real Claude AI analysis..."
+        local analysis_success=false
+        
+        # Try Claude Code CLI first
         if command -v claude-code >/dev/null 2>&1; then
-            # If Claude Code CLI is available, use it directly
-            claude-code analyze "$temp_file" 2>/dev/null || {
-                echo "⚠️ Claude Code CLI not available, using enhanced analysis"
-                perform_enhanced_analysis "$changes" "$branch" "$commit_msg"
-            }
-        else
-            # Use Task tool integration if available
-            echo "📡 Invoking Claude Code Task tool for AI analysis..."
-            echo "Task: Code Review Analysis"
-            echo "Input: $temp_file"
-            echo ""
-            
-            # Call real analysis function
-            perform_enhanced_analysis "$changes" "$branch" "$commit_msg"
+            echo "🔧 Using Claude Code CLI..."
+            if claude-code analyze "$temp_file" 2>/dev/null; then
+                analysis_success=true
+            else
+                echo "⚠️ Claude Code CLI failed, falling back to enhanced analysis"
+            fi
+        fi
+        
+        # Fallback to enhanced analysis if CLI failed or unavailable
+        if [[ "$analysis_success" != true ]]; then
+            echo "📡 Using enhanced analysis fallback..."
+            if ! perform_enhanced_analysis "$changes" "$branch" "$commit_msg"; then
+                echo "❌ ERROR: All analysis methods failed"
+                rm -f "$temp_file" 2>/dev/null
+                return 1
+            fi
         fi
     fi
     
@@ -119,24 +159,49 @@ perform_mock_analysis() {
 }
 
 # Perform enhanced AI-style analysis
+# Analyzes code changes using sophisticated pattern matching and scoring algorithms
+# Arguments:
+#   $1 - changes: git diff output containing the code changes to analyze
+#   $2 - branch: the branch name where changes are made
+#   $3 - commit_msg: the commit message describing the changes
+# Returns: Detailed analysis output with scoring and recommendations
 perform_enhanced_analysis() {
     local changes="$1"
     local branch="$2" 
     local commit_msg="$3"
     
+    # Input validation for enhanced analysis
+    if [[ -z "$changes" ]]; then
+        echo "❌ ERROR: Enhanced analysis requires code changes"
+        return 1
+    fi
+    
     echo "🎯 **Quality Score Calculation:**"
     
-    # Advanced scoring algorithm
+    # Advanced scoring algorithm - starts with base score and applies modifiers
+    # Base score represents acceptable code quality without bonuses/penalties
     local base_score=75
-    local line_count=$(echo "$changes" | wc -l)
-    local file_count=$(echo "$changes" | grep -c "^diff --git" || echo 0)
+    # Safe calculation with error handling
+    local line_count
+    if ! line_count=$(echo "$changes" | wc -l 2>/dev/null); then
+        echo "⚠️ WARNING: Failed to count lines, using default"
+        line_count=0
+    fi
     
-    # Positive indicators
-    local test_bonus=0
-    local structure_bonus=0
-    local documentation_bonus=0
+    local file_count
+    if ! file_count=$(echo "$changes" | grep -c "^diff --git" 2>/dev/null || echo 0); then
+        echo "⚠️ WARNING: Failed to count files, using default"
+        file_count=0
+    fi
     
-    # Test coverage analysis
+    # Positive indicators - factors that improve code quality score
+    local test_bonus=0          # Bonus for adding tests (promotes TDD practices)
+    local structure_bonus=0     # Bonus for good code organization
+    local documentation_bonus=0 # Bonus for adding comments/documentation
+    
+    # Test coverage analysis - detects various test patterns in added lines
+    # Looks for: test functions, @test decorators, .test/.spec files
+    # Rationale: Adding tests indicates good TDD discipline and quality assurance
     if echo "$changes" | grep -qE "^\+.*test.*\(|^\+.*@test|^\+.*\.test\.|^\+.*\.spec\."; then
         test_bonus=15
         echo "  ✅ +15 points: Test coverage added"
@@ -180,10 +245,12 @@ perform_enhanced_analysis() {
         echo "  ❌ -12 points: Technical debt introduced"
     fi
     
-    # Calculate final score
+    # Calculate final score using weighted algorithm
+    # Formula: base_score + positive_indicators - negative_penalties
+    # Constraints: score must be between 0-100 (clamped to valid range)
     local final_score=$((base_score + test_bonus + structure_bonus + documentation_bonus - complexity_penalty - size_penalty - quality_penalty))
-    [[ $final_score -lt 0 ]] && final_score=0
-    [[ $final_score -gt 100 ]] && final_score=100
+    [[ $final_score -lt 0 ]] && final_score=0      # Floor at 0
+    [[ $final_score -gt 100 ]] && final_score=100  # Ceiling at 100
     
     echo ""
     echo "🏆 **Final Quality Score: ${final_score}/100**"

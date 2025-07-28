@@ -27,7 +27,22 @@ main() {
 
 # Validate COVER phase performs comprehensive testing
 validate_cover_phase_functionality() {
-    [ "$comprehensive_coverage_added" = true ] && [ "$mutation_testing_executed" = true ]
+    local errors=0
+    
+    # Assert comprehensive coverage is added
+    if [ "$comprehensive_coverage_added" != true ]; then
+        echo "❌ ASSERTION FAILED: comprehensive_coverage_added should be true, got: $comprehensive_coverage_added"
+        ((errors++))
+    fi
+    
+    # Assert mutation testing is executed
+    if [ "$mutation_testing_executed" != true ]; then
+        echo "❌ ASSERTION FAILED: mutation_testing_executed should be true, got: $mutation_testing_executed"
+        ((errors++))
+    fi
+    
+    # Return success only if no errors
+    return $errors
 }
 
 # Execute main function
