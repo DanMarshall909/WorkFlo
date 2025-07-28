@@ -14,11 +14,23 @@ source "$SCRIPT_DIR/lib/project-detection.sh"
 STATE_FILE=".tdd-state"
 [[ -f $STATE_FILE ]] && source $STATE_FILE
 
+# Load persona from config if available
+PERSONA="claude" # Default persona
+if [[ -f ".workflo-config" ]]; then
+    if grep -q "^PERSONA=" ".workflo-config"; then
+        PERSONA=$(grep "^PERSONA=" ".workflo-config" | cut -d'=' -f2)
+    fi
+fi
+export PERSONA
+
 # Show usage information
 show_usage() {
     echo "Flo - Universal TDD Workflow Toolkit"
     echo ""
     echo "Usage: flo <command> [options]"
+    echo ""
+    echo "Options:"
+    echo "  --persona <name>  Switch to a different AI persona (e.g., claude, gemini)"
     echo ""
     echo "TDD Workflow Commands:"
     echo "  start <issue>     Start TDD workflow for GitHub issue"
@@ -51,6 +63,25 @@ show_usage() {
     echo "Project Info:"
     echo "  info              Show project type and available commands"
     echo "  help              Show this help message"
+}
+
+# Switch persona
+switch_persona() {
+    local persona="$1"
+    [[ -z "$persona" ]] && error "Usage: flo --persona <name>"
+
+    local persona_file="$(echo "$persona" | tr '[:lower:]' '[:upper:]').md"
+    if [[ ! -f "$persona_file" ]]; then
+        error "Persona file not found: $persona_file"
+    fi
+
+    info "Switching to $persona persona..."
+    if grep -q "^PERSONA=" .workflo-config; then
+        sed -i "s/^PERSONA=.*/PERSONA=$persona/" .workflo-config
+    else
+        echo "PERSONA=$persona" >> .workflo-config
+    fi
+    success "Switched to $persona persona"
 }
 
 # Show project information
@@ -476,6 +507,7 @@ flo_feature() {
 
 # Main command dispatcher
 case "${1:-help}" in
+    --persona)      switch_persona "$2" ;;
     # TDD workflow
     start)          tdd_start "$2" ;;
     red)            tdd_red ;;
