@@ -85,7 +85,7 @@ generate_pr_content() {
     local issue="$1"
     local issue_title="$2"
     
-    echo "🤖 Generated with [Gemini AI](https://gemini.google.com)
+    echo "🤖 Generated with [Gemini AI](https://gemini.google.com/)
 
 Co-Authored-By: Gemini <noreply@gemini.ai>"
 }

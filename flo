@@ -70,7 +70,7 @@ switch_persona() {
     local persona="$1"
     [[ -z "$persona" ]] && error "Usage: flo --persona <name>"
 
-    local persona_file="${persona^^}.md"
+    local persona_file="$(echo "$persona" | tr '[:lower:]' '[:upper:]').md"
     if [[ ! -f "$persona_file" ]]; then
         error "Persona file not found: $persona_file"
     fi

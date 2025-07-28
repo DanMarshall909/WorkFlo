@@ -951,16 +951,26 @@ $(generate_pr_content "$ISSUE" "$ISSUE_TITLE")"
                     echo "✅ Branch pushed successfully"
                     
                     # Now try to create actual PR
+                    set +e  # Temporarily disable exit on error for PR creation
                     PR_URL=$(gh pr create \
                         --title "$PR_TITLE" \
                         --body "$PR_BODY" \
                         --base master \
-                        --head "$CURRENT_BRANCH" 2>/dev/null)
+                        --head "$CURRENT_BRANCH" 2>&1)
+                    set -e  # Re-enable exit on error
                     
-                    if [[ $? -eq 0 && -n "$PR_URL" ]]; then
+                    PR_CREATE_STATUS=$?
+                    
+                    if [[ $PR_CREATE_STATUS -eq 0 && ! "$PR_URL" =~ "already exists" ]]; then
                         echo "✅ Real PR created successfully: $PR_URL"
+                    elif echo "$PR_URL" | grep -q "already exists"; then
+                        # Extract existing PR URL from error message
+                        EXISTING_PR_URL=$(echo "$PR_URL" | grep -o 'https://github.com/[^[:space:]]*')
+                        echo "✅ PR already exists: $EXISTING_PR_URL"
+                        PR_URL="$EXISTING_PR_URL"
                     else
-                        warn "PR creation failed"
+                        warn "PR creation failed with status $PR_CREATE_STATUS"
+                        echo "Error output: $PR_URL"
                         echo "📋 Complete manually: gh pr create --title \"$PR_TITLE\" --body \"$PR_BODY\" --base master"
                         PR_URL="https://github.com/DanMarshall909/WorkFlo/pull/mock-$ISSUE"
                     fi

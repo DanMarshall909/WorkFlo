@@ -92,7 +92,7 @@ generate_commit_message() {
     local issue="$4"
     local issue_title="$5"
     
-    echo "Co-Authored-By: Claude <noreply@claude.ai>"
+    echo "Co-Authored-By: Claude <noreply@anthropic.com>"
 }
 
 # Claude-specific PR content generation
