@@ -26,3 +26,6 @@ Thumbs.db
 .vscode/settings.json
 .vscode/launch.json
 .vscode/extensions.json
+
+# VS Code Test Runner downloaded binaries
+.vscode-test/
