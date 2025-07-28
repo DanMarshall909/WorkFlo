@@ -143,6 +143,41 @@ public class CoverPhaseResult
     public string Message { get; set; } = string.Empty;
 }
 
+// Minimal implementation for confidence scoring (GREEN phase)
+public class PrConfidenceCalculator
+{
+    public ConfidenceResult CalculateConfidence(PrValidationResults prResults)
+    {
+        // Calculate confidence using PR-time mutation testing results
+        var totalScore = (prResults.TestsPassed ? 30 : 0) + 
+                        (prResults.CodeCoverage * 25 / 100) + 
+                        (prResults.ReviewScore * 25 / 100) + 
+                        (prResults.MutationScore * 20 / 100);
+
+        return new ConfidenceResult
+        {
+            UsedPrMutationTesting = true,
+            MutationScore = prResults.MutationScore,
+            TotalScore = totalScore
+        };
+    }
+}
+
+public class PrValidationResults
+{
+    public bool TestsPassed { get; set; }
+    public int CodeCoverage { get; set; }
+    public int ReviewScore { get; set; }
+    public int MutationScore { get; set; }
+}
+
+public class ConfidenceResult
+{
+    public bool UsedPrMutationTesting { get; set; }
+    public int MutationScore { get; set; }
+    public int TotalScore { get; set; }
+}
+
 // Minimal implementation to pass test (GREEN phase)
 public class StartupValidator
 {
