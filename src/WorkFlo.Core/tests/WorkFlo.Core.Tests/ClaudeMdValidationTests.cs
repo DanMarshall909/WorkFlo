@@ -52,6 +52,23 @@ public class ClaudeMdValidationTests
         Assert.Contains("failing test", keyPoints);
         Assert.Contains("ONE acceptance criteria", keyPoints);
     }
+
+    [Fact]
+    public void WorkflowViolationDetection_WhenMultipleActionsAttempted_DetectsAndCorrects()
+    {
+        // Given: A workflow detector that monitors for TDD violations
+        var detector = new WorkflowViolationDetector();
+        var actions = new List<string> { "implement feature", "write test", "refactor code" };
+        
+        // When: AI attempts to do multiple actions instead of ONE
+        var result = detector.DetectAndCorrect(actions);
+        
+        // Then: Should detect violation and auto-correct to single action
+        Assert.True(result.ViolationDetected);
+        Assert.Equal("Multiple actions attempted. TDD requires ONE action at a time.", result.ViolationMessage);
+        Assert.Single(result.CorrectedActions);
+        Assert.Equal("write test", result.CorrectedActions[0]); // Should prioritize test-first
+    }
 }
 
 // Minimal implementation to pass test (GREEN phase)
@@ -108,4 +125,20 @@ public class WorkflowViolation
     {
         Description = description;
     }
+}
+
+// Classes for third acceptance criteria (RED phase - should fail)
+public class WorkflowViolationDetector
+{
+    public WorkflowDetectionResult DetectAndCorrect(List<string> actions)
+    {
+        throw new NotImplementedException("DetectAndCorrect not implemented");
+    }
+}
+
+public class WorkflowDetectionResult
+{
+    public bool ViolationDetected { get; set; }
+    public string ViolationMessage { get; set; } = string.Empty;
+    public List<string> CorrectedActions { get; set; } = new();
 }
