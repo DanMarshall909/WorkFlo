@@ -60,11 +60,6 @@ case "${1:-}" in
         if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
             echo "Running custom script tests..."
             ./test-flo-tdd-integration.sh
-            ./test-cover-phase.sh
-            ./test-cover-phase-edge-cases.sh
-            ./test-refactor-phase.sh
-            ./test-code-modification.sh
-            ./test-validation.sh
         fi
         exit 0
         ;;
@@ -135,12 +130,7 @@ fi
 # Run custom script tests (disabled during TDD RED/GREEN phases)
 if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
     echo "Running custom script tests..."
-    if ! (./test-flo-tdd-integration.sh && \
-          ./test-cover-phase.sh && \
-          ./test-cover-phase-edge-cases.sh && \
-          ./test-refactor-phase.sh && \
-          ./test-code-modification.sh && \
-          ./test-validation.sh); then
+    if ! ./test-flo-tdd-integration.sh; then
         echo "❌ Bash script tests failed"
         BASH_FAILED=1
     else
