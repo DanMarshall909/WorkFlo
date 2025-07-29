@@ -84,3 +84,22 @@ case "${1:-}" in
         fi
         ;;
 esac
+
+# Run .NET tests
+echo "Running .NET tests..."
+if ! dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/; then
+    echo "❌ .NET tests failed"
+    exit 1
+fi
+
+# Run custom script tests (disabled during TDD RED/GREEN phases)
+if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
+    echo "Running custom script tests..."
+    ./test-flo-tdd-integration.sh
+    ./test-cover-phase.sh
+    ./test-cover-phase-edge-cases.sh
+    ./test-refactor-phase.sh
+    ./test-code-modification.sh
+    ./test-validation.sh
+    # ./test-meaningful-work-validation.sh # Temporarily disabled due to hang
+fi
