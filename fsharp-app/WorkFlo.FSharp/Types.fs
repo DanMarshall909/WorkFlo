@@ -90,6 +90,44 @@ let addTwoNumbers (str1: string) (str2: string) : int option =
         tryParseInt str2
         |> Option.map (fun y -> x + y))  // Try second parse and add
 
+/// Lesson 31: Advanced Option Patterns - Configuration Management
+/// TypeScript: config.threshold || 85 (runtime errors if config is null)
+/// F# Option: Explicit handling with defaultValue
+type ConfigOptions = {
+    ConfidenceThreshold: int option
+    MutationThreshold: int option  
+    Persona: string option
+    Debug: bool option
+}
+
+let getThresholdOrDefault (config: ConfigOptions) : int =
+    config.ConfidenceThreshold |> Option.defaultValue 85
+
+/// Lesson 32: Option.filter - Safe predicate checking
+/// TypeScript: if (user && user.age && user.age >= 18) { ... }
+/// F# Option: Chain filters safely without null checks
+let validateAdultAge (ageStr: string option) : int option =
+    ageStr
+    |> Option.bind tryParseInt           // Convert string to int if Some
+    |> Option.filter (fun age -> age >= 18)  // Keep only if adult
+
+/// Lesson 33: Working with multiple Options - applicative style
+let createUserScore (name: string option) (score: string option) : string option =
+    match name, score with
+    | Some n, Some s -> Some $"{n}: {s}"
+    | _ -> None  // If either is None, result is None
+
+/// Lesson 34: Option.traverse - Transform list of Options
+let parseAllScores (scores: string list) : int list option =
+    let rec traverse acc remaining =
+        match remaining with
+        | [] -> Some (List.rev acc)  // All parsed successfully
+        | head :: tail ->
+            match tryParseInt head with
+            | Some value -> traverse (value :: acc) tail
+            | None -> None  // One failed, entire operation fails
+    traverse [] scores
+
 /// TRY THIS IN F# INTERACTIVE:
 /// 
 /// let state = { Issue = "123"; Criteria = 1; Phase = Start; Total = 3 }
@@ -97,13 +135,31 @@ let addTwoNumbers (str1: string) (str2: string) : int option =
 /// printfn "Original: %A" state.Criteria    // Still 1!  
 /// printfn "New: %A" nextState.Criteria     // Now 2!
 /// 
-/// // Option examples:
+/// // Basic Option examples:
 /// tryParseInt "123"        // Some 123
 /// tryParseInt "abc"        // None
 /// doubleIfValid "5"        // Some 10
 /// doubleIfValid "abc"      // None
 /// addTwoNumbers "3" "4"    // Some 7
 /// addTwoNumbers "3" "abc"  // None
+///
+/// // Advanced Option examples:
+/// let config = { ConfidenceThreshold = Some 90; MutationThreshold = None; Persona = Some "teacher"; Debug = None }
+/// getThresholdOrDefault config                    // 90
+/// getThresholdOrDefault { config with ConfidenceThreshold = None }  // 85 (default)
+///
+/// validateAdultAge (Some "25")      // Some 25
+/// validateAdultAge (Some "16")      // None (too young)
+/// validateAdultAge (Some "abc")     // None (not a number)
+/// validateAdultAge None             // None (no age provided)
+///
+/// createUserScore (Some "Alice") (Some "95")   // Some "Alice: 95"
+/// createUserScore (Some "Bob") None            // None
+/// createUserScore None (Some "85")             // None
+///
+/// parseAllScores ["85"; "90"; "78"]    // Some [85; 90; 78]
+/// parseAllScores ["85"; "abc"; "78"]   // None (one invalid score fails all)
 /// 
 /// Notice: No null reference exceptions possible!
 /// Option forces you to handle the "no value" case explicitly!
+/// Every operation is composable and predictable!

@@ -8,6 +8,9 @@
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="Core.fs" />
+    <Compile Include="AsyncCore.fs" />
+    <Compile Include="Computation.fs" />
+    <Compile Include="Advanced.fs" />
     <Compile Include="Commands.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
