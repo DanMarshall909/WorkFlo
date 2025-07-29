@@ -6,7 +6,10 @@ import * as state from '../core/state';
 import * as git from '../core/git';
 import * as testing from '../core/testing';
 import * as scoring from '../core/scoring';
-import { Context, Result, Ok, Err, PhaseValidationError, TddState } from '../core/types';
+import { Context } from '../types/core/context';
+import { Result, Ok, Err } from '../types/core/result';
+import { PhaseValidationError } from '../types/errors';
+import { TddState } from '../types/domain/tdd';
 
 // Command type definitions
 export type TddCommand = (args: string[], context: Context) => Promise<Result<void>>;

@@ -3,7 +3,7 @@
 // Functional TDD application entry point
 
 import * as logger from './core/logger';
-import { Context } from './core/types';
+import { Context } from './types/core/context';
 import {
   startCommand,
   redCommand,

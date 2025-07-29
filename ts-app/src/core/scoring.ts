@@ -2,7 +2,8 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
-import { GameScores, Result, Ok, Err } from './types';
+import { GameScores } from '../types/domain/scoring';
+import { Result, Ok, Err } from '../types/core/result';
 
 export const defaultScores: GameScores = {
   PERFORMANCE_SCORE: 100,

@@ -2,7 +2,9 @@
 
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
-import { ProjectType, TestResult, Result, Ok, Err, TestExecutionError } from './types';
+import { ProjectType, TestResult } from '../types/services/testing';
+import { Result, Ok, Err } from '../types/core/result';
+import { TestExecutionError } from '../types/errors';
 
 // Project detection
 export const hasBatsTests = (): boolean => {

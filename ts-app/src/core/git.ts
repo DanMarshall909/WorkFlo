@@ -1,7 +1,9 @@
 // Functional git and GitHub operations
 
 import { execSync } from 'child_process';
-import { Result, Ok, Err, GitHubApiError, IssueData } from './types';
+import { Result, Ok, Err } from '../types/core/result';
+import { GitHubApiError } from '../types/errors';
+import { IssueData } from '../types/services/git';
 
 // Git operations
 export const getCurrentBranch = (): Result<string> => {

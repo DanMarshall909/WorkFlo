@@ -1,7 +1,8 @@
 // Functional configuration management
 
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { WorkFloConfig, Result, Ok, Err } from './types';
+import { WorkFloConfig } from '../types/core/config';
+import { Result, Ok, Err } from '../types/core/result';
 
 export const defaultConfig: WorkFloConfig = {
   PERSONA: 'claude',

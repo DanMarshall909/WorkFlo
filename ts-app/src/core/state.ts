@@ -1,7 +1,8 @@
 // Functional state management
 
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
-import { TddState, TddPhase, Result, Ok, Err } from './types';
+import { TddState, TddPhase } from '../types/domain/tdd';
+import { Result, Ok, Err } from '../types/core/result';
 
 export const parseStateContent = (content: string): Partial<TddState> => {
   const state: any = {};
