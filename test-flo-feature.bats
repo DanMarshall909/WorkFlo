@@ -51,19 +51,7 @@
     [[ "$output" == *"All acceptance criteria completed"* ]]
 }
 
-@test "ai_powered_code_review_analyzes_changes_and_provides_quality_assessment" {
-    # Given: Code changes have been made in a TDD cycle
-    # When: AI code review is triggered
-    # Then: Quality assessment and review comments should be generated
-    
-    # This test will fail until we implement AI-powered code review
-    export MOCK_ISSUE=999
-    run ./tdd review $MOCK_ISSUE
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Running AI code review"* ]]
-    [[ "$output" == *"Quality Score"* ]]
-    [[ "$output" == *"Code Quality Analysis"* ]]
-}
+# Moved to test-flo-integration.bats (requires GitHub auth)
 
 @test "confidence_scoring_system_evaluates_readiness_for_auto_merge_at_90_percent_threshold" {
     # Given: A TDD workflow with completed tests and code
@@ -270,41 +258,8 @@
     [[ "$output" == *"Real GitHub integration validated"* ]]
 }
 
-@test "board_create_command_runs_without_interactive_prompts" {
-    # Given: A command line environment without interactive capabilities
-    # When: Board create command is executed
-    # Then: Command should complete without requiring user input
-    
-    # This test will fail until we remove interactive prompts from board create
-    run ./board create --non-interactive
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"SUCCESS"* ]]
-    [[ "$output" != *"Enter"* ]]
-    [[ "$output" != *"Please provide"* ]]
-}
+# Moved to test-flo-integration.bats (requires GitHub auth)
 
-@test "board_operations_accept_command_line_parameters_for_all_functions" {
-    # Given: All board operations (list, update, status) should work via command line
-    # When: Board operations are called with appropriate parameters
-    # Then: Commands should execute without requiring interactive input
-    
-    # Test update command (simpler test)
-    run ./board update 123 --status "In Progress"
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Updated issue #123"* ]]
-}
+# Moved to test-flo-integration.bats (requires GitHub auth)
 
-@test "tdd_workflow_commands_execute_without_requiring_user_input" {
-    # Given: TDD workflow commands that may have interactive prompts
-    # When: TDD commands are executed in non-interactive mode
-    # Then: Commands should complete without waiting for user input
-    
-    # This test will fail until TDD workflow removes all interactive inputs
-    # Test with a flag that should be recognized (even if command fails due to missing issue)
-    run ./tdd start 999 --non-interactive
-    # Command may fail due to missing issue, but should show it's trying to start workflow
-    [[ "$output" == *"Starting TDD workflow"* ]]
-    [[ "$output" != *"read"* ]]
-    [[ "$output" != *"Enter"* ]]
-    [[ "$output" != *"continue"* ]]
-}
+# Moved to test-flo-integration.bats (requires GitHub auth)

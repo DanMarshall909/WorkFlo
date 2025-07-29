@@ -17,6 +17,7 @@ case "${1:-}" in
         echo "  --bats-only    Run only BATS tests"
         echo "  --dotnet-only  Run only .NET tests"
         echo "  --bash-only    Run only bash script tests"
+        echo "  --integration  Run integration tests (requires GitHub auth)"
         echo ""
         echo "Default: Run all test types"
         exit 0
@@ -31,6 +32,10 @@ case "${1:-}" in
                 done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
             fi
             while IFS= read -r -d '' file; do
+                # Skip integration tests unless explicitly requested
+                if [[ "$file" == *"integration"* ]] && [[ "${INCLUDE_INTEGRATION_TESTS:-}" != "1" ]]; then
+                    continue
+                fi
                 test_files+=("$file")
             done < <(find . -maxdepth 1 -name "*.bats" -type f -print0 2>/dev/null)
             
@@ -63,6 +68,22 @@ case "${1:-}" in
         fi
         exit 0
         ;;
+    --integration)
+        echo "Running integration tests (requires GitHub auth)..."
+        export INCLUDE_INTEGRATION_TESTS=1
+        if command -v bats >/dev/null 2>&1; then
+            if [[ -f "test-flo-integration.bats" ]]; then
+                bats test-flo-integration.bats
+            else
+                echo "No integration test file found"
+                exit 1
+            fi
+        else
+            echo "BATS not available"
+            exit 1
+        fi
+        exit 0
+        ;;
 esac
 
 # Run all tests by default
@@ -78,6 +99,10 @@ if command -v bats >/dev/null 2>&1; then
         done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
     fi
     while IFS= read -r -d '' file; do
+        # Skip integration tests unless explicitly requested
+        if [[ "$file" == *"integration"* ]] && [[ "${INCLUDE_INTEGRATION_TESTS:-}" != "1" ]]; then
+            continue
+        fi
         test_files+=("$file")
     done < <(find . -maxdepth 1 -name "*.bats" -type f -print0 2>/dev/null)
     

@@ -123,18 +123,7 @@ public class ClaudeMdValidationTests
         Assert.True(result.TotalScore >= 90); // Should meet confidence threshold
     }
 
-    [Fact]
-    public void ClaudeMdDocumentation_WhenMutationTestingMoved_DocumentsChangeCorrectly()
-    {
-        // Given: Documentation about mutation testing changes
-        var documentationService = new DocumentationService();
-        
-        // When: Checking if mutation testing move is documented
-        var isDocumented = documentationService.IsMutationTestingMoveDocumented();
-        
-        // Then: Should confirm the change is documented in CLAUDE.md
-        Assert.True(isDocumented);
-    }
+    // Removed useless documentation test - checking for specific text strings in CLAUDE.md provides no real value
 }
 
 // Minimal implementation for mutation testing move (GREEN phase)
@@ -191,22 +180,7 @@ public class ConfidenceResult
     public int TotalScore { get; set; }
 }
 
-// Minimal implementation for documentation verification (GREEN phase)
-public class DocumentationService
-{
-    public bool IsMutationTestingMoveDocumented()
-    {
-        // Check if CLAUDE.md contains documentation about mutation testing move
-        var claudeMdPath = "/home/dan/code/WorkFlo/CLAUDE.md";
-        if (File.Exists(claudeMdPath))
-        {
-            var content = File.ReadAllText(claudeMdPath);
-            return content.Contains("mutation testing has been moved from") && 
-                   content.Contains("PR submission time");
-        }
-        return false;
-    }
-}
+// Removed useless DocumentationService class
 
 // Minimal implementation to pass test (GREEN phase)
 public class StartupValidator
