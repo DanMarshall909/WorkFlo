@@ -11,7 +11,39 @@ on:
       - master
 
 jobs:
-  build-and-test:
+  workflo-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Install BATS
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bats
+
+    - name: Install GitHub CLI
+      run: |
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install gh
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y jq bc
+
+    - name: Run WorkFlo Tests
+      run: ./run-tests
+      env:
+        TDD_TEST_MODE: 1
+
+  vscode-extension:
     runs-on: ubuntu-latest
 
     steps:
