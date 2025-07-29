@@ -37,7 +37,7 @@ jobs:
     - name: Run tests
       run: |
         cd vscode-extension
-        npm run test
+        xvfb-run -a npm run test
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
