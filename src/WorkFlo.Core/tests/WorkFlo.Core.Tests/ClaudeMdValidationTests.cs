@@ -201,7 +201,7 @@ public class DocumentationService
         if (File.Exists(claudeMdPath))
         {
             var content = File.ReadAllText(claudeMdPath);
-            return content.Contains("mutation testing has been moved") && 
+            return content.Contains("mutation testing has been moved from") && 
                    content.Contains("PR submission time");
         }
         return false;

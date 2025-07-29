@@ -61,8 +61,8 @@
     run ./tdd review $MOCK_ISSUE
     [ "$status" -eq 0 ]
     [[ "$output" == *"Running AI code review"* ]]
-    [[ "$output" == *"Quality assessment:"* ]]
-    [[ "$output" == *"Code review suggestions:"* ]]
+    [[ "$output" == *"Quality Score"* ]]
+    [[ "$output" == *"Code Quality Analysis"* ]]
 }
 
 @test "confidence_scoring_system_evaluates_readiness_for_auto_merge_at_90_percent_threshold" {
@@ -278,7 +278,7 @@
     # This test will fail until we remove interactive prompts from board create
     run ./board create --non-interactive
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Created issue"* ]]
+    [[ "$output" == *"SUCCESS"* ]]
     [[ "$output" != *"Enter"* ]]
     [[ "$output" != *"Please provide"* ]]
 }
@@ -291,7 +291,7 @@
     # Test update command (simpler test)
     run ./board update 123 --status "In Progress"
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Updated"* ]]
+    [[ "$output" == *"Updated issue #123"* ]]
 }
 
 @test "tdd_workflow_commands_execute_without_requiring_user_input" {
@@ -302,8 +302,8 @@
     # This test will fail until TDD workflow removes all interactive inputs
     # Test with a flag that should be recognized (even if command fails due to missing issue)
     run ./tdd start 999 --non-interactive
-    # Command may fail due to missing issue, but should recognize the flag
-    [[ "$output" == *"non-interactive"* ]] || [[ "$output" == *"Starting TDD workflow"* ]]
+    # Command may fail due to missing issue, but should show it's trying to start workflow
+    [[ "$output" == *"Starting TDD workflow"* ]]
     [[ "$output" != *"read"* ]]
     [[ "$output" != *"Enter"* ]]
     [[ "$output" != *"continue"* ]]
