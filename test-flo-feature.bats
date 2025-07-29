@@ -7,6 +7,8 @@
     # Then: Should show feature command information
     
     run ./flo help
+    echo "Output: $output"
+    echo "Status: $status"
     [ "$status" -eq 0 ]
     [[ "$output" == *"feature"* ]]
 }
