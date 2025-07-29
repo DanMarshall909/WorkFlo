@@ -15,6 +15,7 @@ fi
 # Run custom script tests (disabled during TDD RED/GREEN phases)
 if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
     echo "Running custom script tests..."
+    ./test-flo-tdd-integration.sh
     ./test-cover-phase.sh
     ./test-cover-phase-edge-cases.sh
     ./test-refactor-phase.sh

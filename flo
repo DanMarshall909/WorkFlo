@@ -117,43 +117,256 @@ tdd_start() {
     local project_type=$(detect_project_type)
     info "Starting TDD workflow for issue #$issue ($project_type project)"
     
-    # Delegate to existing tdd script with project context
-    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" start "$issue"
+    # TDD functionality implemented directly in flo
+    # Load state management (backward compatibility with .tdd-state)
+    STATE_FILE=".tdd-state"
+    
+    check_prereqs() {
+        command -v gh >/dev/null || error "GitHub CLI required: https://cli.github.com/"
+        command -v jq >/dev/null || error "jq required: sudo apt-get install jq"
+        command -v bc >/dev/null || error "bc required: sudo apt-get install bc"
+        gh auth status >/dev/null || error "GitHub CLI not authenticated: gh auth login"
+    }
+    
+    save_state() {
+        cat > $STATE_FILE << EOF
+ISSUE=$ISSUE
+CRITERIA=$CRITERIA
+PHASE=$PHASE
+TOTAL=$TOTAL
+EOF
+    }
+    
+    check_prereqs
+    ISSUE=$issue
+    
+    info "Starting TDD workflow for issue #$ISSUE"
+    
+    # Validate issue exists
+    gh issue view "$ISSUE" >/dev/null || error "Issue #$ISSUE not found"
+    
+    # Get issue title for branch naming
+    ISSUE_TITLE=$(gh issue view "$ISSUE" --json title | jq -r '.title')
+    BRANCH_NAME="feature/issue-${ISSUE}"
+    
+    # Check if we're already on the correct branch
+    CURRENT_BRANCH=$(git branch --show-current)
+    if [[ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]]; then
+        # Check if branch exists
+        if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
+            info "Switching to existing branch: $BRANCH_NAME"
+            git checkout "$BRANCH_NAME" || error "Failed to switch to branch $BRANCH_NAME"
+        else
+            info "Creating and switching to new branch: $BRANCH_NAME"
+            git checkout -b "$BRANCH_NAME" || error "Failed to create branch $BRANCH_NAME"
+            
+            # Link branch to issue immediately
+            info "Linking branch to issue #$ISSUE"
+            git commit --allow-empty -m "feat: initialize TDD workflow for issue #$ISSUE
+
+$ISSUE_TITLE
+
+Linked-to: #$ISSUE
+Branch: $BRANCH_NAME
+TDD-Session: START
+
+🤖 Generated with WorkFlo TDD automation" || warn "Failed to create initial commit"
+        fi
+    fi
+    
+    # Count acceptance criteria
+    TOTAL=$(gh issue view "$ISSUE" --json body | jq -r '.body' | grep -c '^- \[ \]' || echo 0)
+    [[ $TOTAL -eq 0 ]] && error "No acceptance criteria found in issue #$ISSUE (use '- [ ] criteria' format)"
+    
+    CRITERIA=1
+    PHASE=START
+    save_state
+    
+    success "Started issue #$ISSUE with $TOTAL acceptance criteria"
+    success "Working on branch: $BRANCH_NAME"
+    info "Next step: flo red"
 }
 
 tdd_red() {
     [[ -z "$ISSUE" ]] && error "No active TDD session. Run: flo start <issue>"
-    local project_type=$(detect_project_type)
-    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" red
+    
+    info "🔴 RED Phase - Write failing test"
+    
+    echo "Write a failing test for the current acceptance criteria."
+    echo "The test should:"
+    echo "  • Cover ONLY the current criteria"
+    echo "  • Use business scenario naming (not 'should' statements)"
+    echo "  • Follow Given-When-Then structure"
+    echo ""
+    
+    # Verify test fails
+    info "Verifying test fails..."
+    if TDD_SKIP_SCRIPT_TESTS=1 ./run-tests >/dev/null 2>&1; then
+        error "Tests are passing! RED phase requires failing tests"
+    fi
+    
+    success "✅ Tests failing as expected"
+    PHASE=RED
+    cat > .tdd-state << EOF
+ISSUE=$ISSUE
+CRITERIA=$CRITERIA
+PHASE=$PHASE
+TOTAL=$TOTAL
+EOF
+    success "RED phase complete. Next: flo green"
 }
 
 tdd_green() {
     [[ -z "$ISSUE" ]] && error "No active TDD session"
-    local project_type=$(detect_project_type)
-    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" green
+    
+    info "🟢 GREEN Phase - Minimal implementation"
+    
+    echo "Implement the MINIMAL code needed to make the test pass."
+    echo "Requirements:"
+    echo "  • Simplest possible solution"
+    echo "  • No extra features or optimizations"
+    echo "  • Just enough to make the test green"
+    echo ""
+    
+    # Verify tests pass
+    info "Verifying tests pass..."
+    if ! TDD_SKIP_SCRIPT_TESTS=1 ./run-tests >/dev/null 2>&1; then
+        error "Tests still failing! GREEN phase requires passing tests"
+    fi
+    
+    success "✅ All tests passing"
+    PHASE=GREEN
+    cat > .tdd-state << EOF
+ISSUE=$ISSUE
+CRITERIA=$CRITERIA
+PHASE=$PHASE
+TOTAL=$TOTAL
+EOF
+    success "GREEN phase complete. Next: flo refactor OR flo cover"
 }
 
 tdd_refactor() {
     [[ -z "$ISSUE" ]] && error "No active TDD session"
-    local project_type=$(detect_project_type)
-    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" refactor
+    
+    info "🔵 REFACTOR Phase - Improve code quality"
+    
+    echo "Improve the code while keeping all tests green."
+    echo "Focus on:"
+    echo "  • Code readability and structure"
+    echo "  • Removing duplication"
+    echo "  • Better naming and organization"
+    echo ""
+    
+    # Check if changes were made
+    if git diff --quiet; then
+        info "No changes detected - skipping refactor commit"
+    else
+        # Verify tests still pass
+        info "Verifying tests still pass after refactoring..."
+        if ! TDD_SKIP_SCRIPT_TESTS=1 ./run-tests >/dev/null 2>&1; then
+            error "Tests failing after refactor! Fix the refactoring"
+        fi
+        success "✅ Tests still passing after refactor"
+    fi
+    
+    PHASE=REFACTOR
+    cat > .tdd-state << EOF
+ISSUE=$ISSUE
+CRITERIA=$CRITERIA
+PHASE=$PHASE
+TOTAL=$TOTAL
+EOF
+    success "REFACTOR phase complete. Next: flo cover"
 }
 
 tdd_cover() {
     [[ -z "$ISSUE" ]] && error "No active TDD session"
-    local project_type=$(detect_project_type)
-    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" cover
+    
+    info "📊 COVER Phase - Comprehensive test coverage"
+    
+    echo "Add comprehensive test coverage for the current criteria."
+    echo "Include:"
+    echo "  • Edge cases and boundary conditions"
+    echo "  • Error scenarios and exception handling"
+    echo "  • Different input variations"
+    echo ""
+    
+    # Verify all tests pass
+    info "Running all tests..."
+    if ! ./run-tests >/dev/null 2>&1; then
+        error "Tests must pass before completing COVER phase"
+    fi
+    
+    # Note: Mutation testing will run during PR submission
+    info "Mutation testing will be performed during PR submission"
+    
+    PHASE=COVER
+    cat > .tdd-state << EOF
+ISSUE=$ISSUE
+CRITERIA=$CRITERIA
+PHASE=$PHASE
+TOTAL=$TOTAL
+EOF
+    success "COVER phase complete. Next: flo next"
 }
 
 tdd_next() {
     [[ -z "$ISSUE" ]] && error "No active TDD session"
-    local project_type=$(detect_project_type)
-    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" next
+    
+    success "✅ Acceptance criteria $CRITERIA completed!"
+    
+    # Move to next criteria
+    ((CRITERIA++))
+    
+    if [[ $CRITERIA -gt $TOTAL ]]; then
+        success "🎉 ALL $TOTAL acceptance criteria completed for issue #$ISSUE!"
+        
+        echo ""
+        info "✅ Issue #$ISSUE is complete and ready for PR"
+        info "💡 Next step: Create Pull Request when ready"
+        echo ""
+        rm -f .tdd-state
+        exit 0
+    fi
+    
+    PHASE=START
+    cat > .tdd-state << EOF
+ISSUE=$ISSUE
+CRITERIA=$CRITERIA
+PHASE=$PHASE
+TOTAL=$TOTAL
+EOF
+    
+    echo ""
+    info "Moving to next acceptance criteria..."
+    warn "🛑 HARD STOP"
+    warn "To prevent scope creep, you must explicitly continue"
+    echo ""
+    info "To continue: flo red"
 }
 
 tdd_status() {
-    local project_type=$(detect_project_type)
-    PROJECT_TYPE="$project_type" "$SCRIPT_DIR/tdd" status
+    if [[ -z "$ISSUE" ]]; then
+        warn "No active TDD session"
+        info "Start with: flo start <issue_number>"
+        return 0
+    fi
+    
+    echo ""
+    echo "📊 TDD Session Status"
+    echo "===================="
+    echo "Issue: #$ISSUE"
+    echo "Progress: $CRITERIA/$TOTAL acceptance criteria"
+    echo "Current Phase: $PHASE"
+    echo ""
+    
+    case "$PHASE" in
+        START) info "Next: flo red" ;;
+        RED) info "Next: flo green" ;;
+        GREEN) info "Next: flo refactor OR flo cover" ;;
+        REFACTOR) info "Next: flo cover" ;;
+        COVER) info "Next: flo next" ;;
+    esac
 }
 
 # Quality checks with project-specific commands
