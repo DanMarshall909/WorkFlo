@@ -26,29 +26,91 @@ type Command =
 let executeCommand (cmd: Command) (context: Context) : Result<string, string> =
     match cmd with
     | Start issue -> 
-        // Pattern matching extracted the issue value for us!
-        Ok $"Starting TDD workflow for issue {issue}"
+        // Function composition: validate >> create >> save >> format
+        validateIssueNumber issue
+        |> Result.bind (fun validIssue ->
+            let newState = { Issue = string validIssue; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 3 }
+            saveState context.StateFile newState
+            |> Result.map (fun _ -> $"🚀 Started TDD workflow for issue {validIssue}\n📋 Current: Criteria 1/3 - START phase"))
     
     | Red -> 
-        Ok "🔴 RED Phase - Write failing test"
+        // Lesson 30: State-based command execution with function composition
+        loadState context.StateFile
+        |> Result.bind (function
+            | Some state when state.Phase = WorkFlo.Types.Start ->
+                let updatedState = { state with Phase = WorkFlo.Types.Red }
+                saveState context.StateFile updatedState
+                |> Result.map (fun _ -> $"🔴 RED Phase - Write failing test for issue {state.Issue}\n📋 Criteria {state.Criteria}/{state.Total}")
+            | Some state -> Error $"Cannot transition to RED from {state.Phase} phase"
+            | None -> Error "No active TDD session. Use 'start <issue>' first.")
         
     | Green -> 
-        Ok "🟢 GREEN Phase - Minimal implementation"
+        loadState context.StateFile
+        |> Result.bind (function
+            | Some state when state.Phase = WorkFlo.Types.Red ->
+                let updatedState = { state with Phase = WorkFlo.Types.Green }
+                saveState context.StateFile updatedState
+                |> Result.map (fun _ -> $"🟢 GREEN Phase - Minimal implementation for issue {state.Issue}\n📋 Criteria {state.Criteria}/{state.Total}")
+            | Some state -> Error $"Cannot transition to GREEN from {state.Phase} phase"
+            | None -> Error "No active TDD session. Use 'start <issue>' first.")
         
     | Refactor -> 
-        Ok "🔵 REFACTOR Phase - Improve code quality"
+        loadState context.StateFile
+        |> Result.bind (function
+            | Some state when state.Phase = WorkFlo.Types.Green ->
+                let updatedState = { state with Phase = WorkFlo.Types.Refactor }
+                saveState context.StateFile updatedState
+                |> Result.map (fun _ -> $"🔵 REFACTOR Phase - Improve code quality for issue {state.Issue}\n📋 Criteria {state.Criteria}/{state.Total}")
+            | Some state -> Error $"Cannot transition to REFACTOR from {state.Phase} phase"
+            | None -> Error "No active TDD session. Use 'start <issue>' first.")
         
     | Cover -> 
-        Ok "🟣 COVER Phase - Comprehensive test coverage"
+        loadState context.StateFile
+        |> Result.bind (function
+            | Some state when state.Phase = WorkFlo.Types.Refactor ->
+                let updatedState = { state with Phase = WorkFlo.Types.Cover }
+                saveState context.StateFile updatedState
+                |> Result.map (fun _ -> $"🟣 COVER Phase - Comprehensive test coverage for issue {state.Issue}\n📋 Criteria {state.Criteria}/{state.Total}")
+            | Some state -> Error $"Cannot transition to COVER from {state.Phase} phase"
+            | None -> Error "No active TDD session. Use 'start <issue>' first.")
         
     | Next -> 
-        Ok "Moving to next acceptance criteria"
+        loadState context.StateFile
+        |> Result.bind (function
+            | Some state when state.Phase = WorkFlo.Types.Cover ->
+                let nextState = nextCriteria state
+                if nextState.Criteria <= nextState.Total then
+                    saveState context.StateFile nextState
+                    |> Result.map (fun _ -> $"✅ Criteria {state.Criteria} completed!\n🆕 Moving to criteria {nextState.Criteria}/{nextState.Total} - START phase")
+                else
+                    Ok $"🎉 All criteria completed for issue {state.Issue}! TDD cycle finished."
+            | Some state -> Error $"Cannot advance criteria from {state.Phase} phase. Complete COVER phase first."
+            | None -> Error "No active TDD session. Use 'start <issue>' first.")
         
     | Status -> 
-        Ok "📊 TDD Session Status"
+        loadState context.StateFile
+        |> Result.map (function
+            | Some state -> 
+                $"📊 TDD Session Status\n🎯 Issue: {state.Issue}\n📋 Criteria: {state.Criteria}/{state.Total}\n🔄 Phase: {state.Phase}\n\n💡 Use 'help' for available commands"
+            | None -> "📊 No active TDD session\n🚀 Use 'start <issue>' to begin")
         
     | Help -> 
-        Ok "WorkFlo TDD Commands Help"
+        Ok """WorkFlo TDD Commands Help
+
+🚀 start <issue>  - Start TDD workflow for an issue
+🔴 red           - Write failing test (RED phase)  
+🟢 green         - Minimal implementation (GREEN phase)
+🔵 refactor      - Improve code quality (REFACTOR phase)
+🟣 cover         - Comprehensive coverage (COVER phase)
+➡️  next          - Move to next acceptance criteria
+📊 status        - Show current TDD session status
+❓ help          - Show this help message
+
+📖 F# Learning: Each command demonstrates functional programming concepts!
+   - Immutable state transitions
+   - Result-based error handling  
+   - Pattern matching for all cases
+   - Function composition pipelines"""
     // Compiler Error if we miss any case! Try commenting out Help and see what happens.
 
 /// Lesson 14: Parsing strings to Commands with pattern matching

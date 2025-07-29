@@ -67,6 +67,29 @@ type Context = {
     Verbose: bool
 } // Immutable context - thread-safe by design!
 
+/// Lesson 21: Option Types - No More Null Reference Exceptions!
+/// TypeScript: string | null | undefined (runtime errors waiting to happen)
+/// F# Option: Some value | None (compile-time safety!)
+type ConfigValue = string option  // Can be Some "value" or None
+
+/// Lesson 22: Working with Options safely
+let tryParseInt (str: string) : int option =
+    match System.Int32.TryParse(str) with
+    | (true, value) -> Some value    // Success: wrap in Some
+    | (false, _) -> None            // Failure: return None (no exceptions!)
+
+/// Lesson 23: Option.map for transforming values inside Option
+let doubleIfValid (str: string) : int option =
+    tryParseInt str
+    |> Option.map (fun x -> x * 2)  // Only applies function if Some, ignores None
+
+/// Lesson 24: Chaining Options with Option.bind
+let addTwoNumbers (str1: string) (str2: string) : int option =
+    tryParseInt str1
+    |> Option.bind (fun x ->         // If first parse succeeded...
+        tryParseInt str2
+        |> Option.map (fun y -> x + y))  // Try second parse and add
+
 /// TRY THIS IN F# INTERACTIVE:
 /// 
 /// let state = { Issue = "123"; Criteria = 1; Phase = Start; Total = 3 }
@@ -74,5 +97,13 @@ type Context = {
 /// printfn "Original: %A" state.Criteria    // Still 1!  
 /// printfn "New: %A" nextState.Criteria     // Now 2!
 /// 
-/// Notice: Original state unchanged - we created a NEW state!
-/// This is the power of immutability - no surprising side effects!
+/// // Option examples:
+/// tryParseInt "123"        // Some 123
+/// tryParseInt "abc"        // None
+/// doubleIfValid "5"        // Some 10
+/// doubleIfValid "abc"      // None
+/// addTwoNumbers "3" "4"    // Some 7
+/// addTwoNumbers "3" "abc"  // None
+/// 
+/// Notice: No null reference exceptions possible!
+/// Option forces you to handle the "no value" case explicitly!
