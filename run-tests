@@ -1,105 +1,160 @@
 #!/bin/bash
-# Test runner script for WorkFlo TDD workflow
-# Uses BATS for bash script testing, compatible with TDD script expectations
+# Test runner for WorkFlo .NET project
+cd "$(dirname "$0")"
 
-set -e
+# Set test mode to avoid real AI calls during testing
+export TDD_TEST_MODE=1
 
-# Check if BATS is available, fallback to shell script tests
-USE_BATS=true
-if ! command -v bats >/dev/null 2>&1; then
-    echo "Warning: BATS not found. Using shell script test fallback." >&2
-    USE_BATS=false
-fi
+# Handle command line arguments for specific test types
+case "${1:-}" in
+    --help|-h)
+        echo "Test Runner for WorkFlo TDD"
+        echo ""
+        echo "Usage: $0 [options]"
+        echo ""
+        echo "Options:"
+        echo "  --help, -h     Show this help message"
+        echo "  --bats-only    Run only BATS tests"
+        echo "  --dotnet-only  Run only .NET tests"
+        echo "  --bash-only    Run only bash script tests"
+        echo ""
+        echo "Default: Run all test types"
+        exit 0
+        ;;
+    --bats-only)
+        if command -v bats >/dev/null 2>&1; then
+            echo "Running BATS tests..."
+            test_files=()
+            if [[ -d "tests" ]]; then
+                while IFS= read -r -d '' file; do
+                    test_files+=("$file")
+                done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
+            fi
+            while IFS= read -r -d '' file; do
+                test_files+=("$file")
+            done < <(find . -maxdepth 1 -name "*.bats" -type f -print0 2>/dev/null)
+            
+            if [[ ${#test_files[@]} -gt 0 ]]; then
+                bats "${test_files[@]}"
+            else
+                echo "No BATS test files found"
+                exit 1
+            fi
+        else
+            echo "BATS not available"
+            exit 1
+        fi
+        exit 0
+        ;;
+    --dotnet-only)
+        echo "Running .NET tests..."
+        dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
+        exit $?
+        ;;
+    --bash-only)
+        if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
+            echo "Running custom script tests..."
+            ./test-flo-tdd-integration.sh
+            ./test-cover-phase.sh
+            ./test-cover-phase-edge-cases.sh
+            ./test-refactor-phase.sh
+            ./test-code-modification.sh
+            ./test-validation.sh
+        fi
+        exit 0
+        ;;
+esac
 
-# Find test files
-find_test_files() {
-    local test_files=()
-    
-    # Look for .bats files in tests/ directory and current directory
+# Run all tests by default
+echo "Running all WorkFlo tests..."
+
+# 1. Run BATS tests if available
+if command -v bats >/dev/null 2>&1; then
+    echo "Running BATS tests..."
+    test_files=()
     if [[ -d "tests" ]]; then
         while IFS= read -r -d '' file; do
             test_files+=("$file")
         done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
     fi
-    
-    # Look for .bats files in current directory
     while IFS= read -r -d '' file; do
         test_files+=("$file")
     done < <(find . -maxdepth 1 -name "*.bats" -type f -print0 2>/dev/null)
     
-    # Remove duplicates and print
     if [[ ${#test_files[@]} -gt 0 ]]; then
-        printf '%s\n' "${test_files[@]}" | sort -u
-    fi
-}
-
-# Main execution
-case "${1:-}" in
-    --help|-h)
-        echo "Test Runner for WorkFlo TDD (using BATS)"
-        echo ""
-        echo "Usage: $0 [options] [test-files...]"
-        echo ""
-        echo "Options:"
-        echo "  --help, -h     Show this help message"
-        echo "  --list, -l     List discovered test files"
-        echo ""
-        echo "If no test files specified, auto-discovers *.bats files"
-        echo "in tests/ directory and current directory."
-        exit 0
-        ;;
-    --list|-l)
-        echo "Discovered test files:"
-        find_test_files | while read -r file; do
-            echo "  $file"
-        done
-        exit 0
-        ;;
-    *)
-        # If arguments provided, use them as test files, otherwise auto-discover
-        if [[ $# -gt 0 ]]; then
-            exec bats "$@"
+        if ! bats "${test_files[@]}"; then
+            echo "❌ BATS tests failed (continuing with other tests)"
+            BATS_FAILED=1
         else
-            if [[ "$USE_BATS" == "true" ]]; then
-                test_files=($(find_test_files))
-                if [[ ${#test_files[@]} -eq 0 ]]; then
-                    echo "No .bats test files found in tests/ or current directory" >&2
-                    echo "Create test files with .bats extension" >&2
-                    exit 1
-                fi
-                exec bats "${test_files[@]}"
-            else
-                # Fallback to shell script tests
-                if [[ -d "test" ]] && ls test/test-*.sh >/dev/null 2>&1; then
-                    echo "Running shell script tests..."
-                    for test_file in test/test-*.sh; do
-                        echo "Running: $test_file"
-                        bash "$test_file"
-                    done
-                else
-                    echo "No test files found (looking for test/test-*.sh)" >&2
-                    exit 1
-                fi
-            fi
+            echo "✅ BATS tests passed"
+            BATS_FAILED=0
         fi
-        ;;
-esac
+    else
+        echo "No BATS test files found"
+        BATS_FAILED=0
+    fi
+else
+    echo "BATS not available, skipping BATS tests"
+fi
 
 # Run .NET tests
 echo "Running .NET tests..."
 if ! dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/; then
     echo "❌ .NET tests failed"
-    exit 1
+    DOTNET_FAILED=1
+else
+    echo "✅ .NET tests passed"
+    DOTNET_FAILED=0
 fi
 
 # Run custom script tests (disabled during TDD RED/GREEN phases)
 if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
     echo "Running custom script tests..."
-    ./test-flo-tdd-integration.sh
-    ./test-cover-phase.sh
-    ./test-cover-phase-edge-cases.sh
-    ./test-refactor-phase.sh
-    ./test-code-modification.sh
-    ./test-validation.sh
+    if ! (./test-flo-tdd-integration.sh && \
+          ./test-cover-phase.sh && \
+          ./test-cover-phase-edge-cases.sh && \
+          ./test-refactor-phase.sh && \
+          ./test-code-modification.sh && \
+          ./test-validation.sh); then
+        echo "❌ Bash script tests failed"
+        BASH_FAILED=1
+    else
+        echo "✅ Bash script tests passed"
+        BASH_FAILED=0
+    fi
     # ./test-meaningful-work-validation.sh # Temporarily disabled due to hang
+else
+    BASH_FAILED=0
+fi
+
+# Summary and exit
+echo ""
+echo "=== Test Summary ==="
+if [[ "${BATS_FAILED:-0}" -eq 0 ]]; then
+    echo "✅ BATS tests: PASSED"
+else
+    echo "❌ BATS tests: FAILED"
+fi
+
+if [[ "${DOTNET_FAILED:-0}" -eq 0 ]]; then
+    echo "✅ .NET tests: PASSED"
+else
+    echo "❌ .NET tests: FAILED"
+fi
+
+if [[ "${BASH_FAILED:-0}" -eq 0 ]]; then
+    echo "✅ Bash script tests: PASSED"
+else
+    echo "❌ Bash script tests: FAILED"
+fi
+
+# Exit with error if any test suite failed
+if [[ "${BATS_FAILED:-0}" -eq 1 ]] || [[ "${DOTNET_FAILED:-0}" -eq 1 ]] || [[ "${BASH_FAILED:-0}" -eq 1 ]]; then
+    echo ""
+    echo "❌ Some tests failed"
+    exit 1
+else
+    echo ""
+    echo "✅ All tests passed"
+    exit 0
 fi
