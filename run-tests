@@ -117,6 +117,16 @@ else
     echo "BATS not available, skipping BATS tests"
 fi
 
+# Run TypeScript tests
+echo "Running TypeScript tests..."
+if ! (cd ts-app && npm test); then
+    echo "❌ TypeScript tests failed"
+    TYPESCRIPT_FAILED=1
+else
+    echo "✅ TypeScript tests passed"
+    TYPESCRIPT_FAILED=0
+fi
+
 # Run .NET tests
 echo "Running .NET tests..."
 if ! dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/; then
