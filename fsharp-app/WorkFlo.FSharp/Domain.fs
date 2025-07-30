@@ -32,8 +32,8 @@ module IssueNumber =
 type CriteriaCount = private CriteriaCount of int
 module CriteriaCount =
     let create (value: int) =
-        if value < 0 then
-            Error (ValidationError("CriteriaCount", "Criteria count cannot be negative"))
+        if value <= 0 then
+            Error (ValidationError("CriteriaCount", "Criteria count must be positive"))
         else
             Ok (CriteriaCount value)
     
@@ -155,6 +155,7 @@ type AppConfig = {
 
 /// Commands - Discriminated union for type-safe commands
 type WorkFloCommand =
+    | Feature of IssueNumber
     | Start of IssueNumber
     | Red
     | Green

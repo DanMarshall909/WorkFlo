@@ -7,6 +7,7 @@ namespace WorkFlo
 open WorkFlo.Domain
 open WorkFlo.Railway
 open WorkFlo.Railway.Operators
+open WorkFlo.Railway.Builders
 open WorkFlo.CoreServices
 
 /// Application startup and configuration
@@ -49,11 +50,21 @@ module CLI =
             Error (ValidationError("Arguments", "No command provided. Use 'help' for usage information."))
         else
             let command = args.[0]
-            let commandArgs = args.[1..]
+            let allArgs = Array.toList args
+            
+            // Separate command args from config args
+            let (commandArgs, configArgs) = 
+                match allArgs with
+                | cmd :: rest ->
+                    // Split args - config args start with --
+                    let (cmdArgs, cfgArgs) = 
+                        rest |> List.partition (fun arg -> not (arg.StartsWith("--")))
+                    (Array.ofList cmdArgs, Array.ofList cfgArgs)
+                | [] -> ([||], [||])
             
             result {
                 let! cmd = CommandService.parseCommand command commandArgs
-                let! config = Application.parseConfigFromArgs commandArgs
+                let! config = Application.parseConfigFromArgs configArgs
                 return (cmd, config)
             }
     
@@ -96,8 +107,10 @@ module App =
             let! (newState, message) = WorkflowService.executeCommand config currentState command
             
             // Save new state if it changed
-            match newState with
-            | Some state when state <> currentState ->
+            match newState, currentState with
+            | Some state, Some oldState when state <> oldState ->
+                do! StatePersistence.saveState config.StateFile state
+            | Some state, None ->
                 do! StatePersistence.saveState config.StateFile state
             | _ -> ()
             
@@ -141,6 +154,7 @@ module Program =
     /// Entry point for .NET runtime
     let entryPoint (args: string array) : int = main args
 
-/// F# Entry Point
-[<EntryPoint>]
-let main args = Program.main args
+/// F# Entry Point Module
+module EntryPoint =
+    [<EntryPoint>]
+    let main args = Program.main args

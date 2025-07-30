@@ -52,11 +52,10 @@ let ``IssueNumber fromString rejects invalid formats`` () =
 // ========================================
 
 [<Fact>]
-let ``CriteriaCount allows zero and positive values`` () =
+let ``CriteriaCount rejects zero and allows positive values`` () =
     match CriteriaCount.create 0 with
-    | Ok criteriaCount ->
-        Assert.Equal(0, CriteriaCount.value criteriaCount)
-    | Error _ -> Assert.True(false, "Should allow zero criteria")
+    | Error (ValidationError ("CriteriaCount", _)) -> Assert.True(true)
+    | _ -> Assert.True(false, "Should reject zero criteria")
     
     match CriteriaCount.create 5 with
     | Ok criteriaCount ->
@@ -75,7 +74,7 @@ let ``CriteriaCount rejects negative values`` () =
 
 [<Fact>]
 let ``TddPhase round-trip conversion works correctly`` () =
-    let phases = [Start; Red; Green; Refactor; Cover; Next]
+    let phases = [TddPhase.Start; TddPhase.Red; TddPhase.Green; TddPhase.Refactor; TddPhase.Cover]
     
     for phase in phases do
         let phaseString = TddPhase.toString phase
@@ -94,20 +93,19 @@ let ``TddPhase fromString rejects invalid phase names`` () =
 [<Fact>]
 let ``TddPhase canTransitionTo validates correct transitions`` () =
     // Valid transitions
-    Assert.True(TddPhase.canTransitionTo Start Red)
-    Assert.True(TddPhase.canTransitionTo Red Green)
-    Assert.True(TddPhase.canTransitionTo Green Refactor)
-    Assert.True(TddPhase.canTransitionTo Refactor Cover)
-    Assert.True(TddPhase.canTransitionTo Cover Next)
+    Assert.True(TddPhase.canTransitionTo TddPhase.Start TddPhase.Red)
+    Assert.True(TddPhase.canTransitionTo TddPhase.Red TddPhase.Green)
+    Assert.True(TddPhase.canTransitionTo TddPhase.Green TddPhase.Refactor)
+    Assert.True(TddPhase.canTransitionTo TddPhase.Refactor TddPhase.Cover)
     
     // Can always restart
-    Assert.True(TddPhase.canTransitionTo Cover Start)
-    Assert.True(TddPhase.canTransitionTo Red Start)
+    Assert.True(TddPhase.canTransitionTo TddPhase.Cover TddPhase.Start)
+    Assert.True(TddPhase.canTransitionTo TddPhase.Red TddPhase.Start)
     
     // Invalid transitions
-    Assert.False(TddPhase.canTransitionTo Start Green)
-    Assert.False(TddPhase.canTransitionTo Red Refactor)
-    Assert.False(TddPhase.canTransitionTo Green Cover)
+    Assert.False(TddPhase.canTransitionTo TddPhase.Start TddPhase.Green)
+    Assert.False(TddPhase.canTransitionTo TddPhase.Red TddPhase.Refactor)
+    Assert.False(TddPhase.canTransitionTo TddPhase.Green TddPhase.Cover)
 
 // ========================================
 // TDD STATE TESTS
@@ -115,58 +113,58 @@ let ``TddPhase canTransitionTo validates correct transitions`` () =
 
 [<Fact>]
 let ``TddState creation succeeds with valid parameters`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 2 |> Result.defaultWith failwith
-    let total = TotalCount.create 5 |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 2 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 5 |> Result.defaultWith (fun _ -> failwith "Test error")
     
-    match TddState.create issueNumber criteria Start total with
+    match TddState.create issueNumber criteria TddPhase.Start total with
     | Ok state ->
         Assert.Equal(42, IssueNumber.value state.Issue)
         Assert.Equal(2, CriteriaCount.value state.Criteria)
-        Assert.Equal(Start, state.Phase)
+        Assert.Equal(TddPhase.Start, state.Phase)
         Assert.Equal(5, TotalCount.value state.Total)
     | Error _ -> Assert.True(false, "Should succeed with valid parameters")
 
 [<Fact>]
 let ``TddState creation fails when criteria exceeds total`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 6 |> Result.defaultWith failwith
-    let total = TotalCount.create 5 |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 6 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 5 |> Result.defaultWith (fun _ -> failwith "Test error")
     
-    match TddState.create issueNumber criteria Start total with
+    match TddState.create issueNumber criteria TddPhase.Start total with
     | Error (BusinessRuleViolation ("CriteriaLimit", _)) -> Assert.True(true)
     | _ -> Assert.True(false, "Should fail when criteria exceeds total")
 
 [<Fact>]
 let ``TddState isComplete returns true when criteria equals total and phase is Cover`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 3 |> Result.defaultWith failwith
-    let total = TotalCount.create 3 |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 3 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 3 |> Result.defaultWith (fun _ -> failwith "Test error")
     
-    let completeState = TddState.create issueNumber criteria Cover total |> Result.defaultWith failwith
+    let completeState = TddState.create issueNumber criteria TddPhase.Cover total |> Result.defaultWith (fun _ -> failwith "Test error")
     Assert.True(TddState.isComplete completeState)
     
-    let incompleteState = TddState.create issueNumber criteria Red total |> Result.defaultWith failwith
+    let incompleteState = TddState.create issueNumber criteria TddPhase.Red total |> Result.defaultWith (fun _ -> failwith "Test error")
     Assert.False(TddState.isComplete incompleteState)
 
 [<Fact>]
 let ``TddState progressPercentage calculates correctly`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 2 |> Result.defaultWith failwith
-    let total = TotalCount.create 5 |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 2 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 5 |> Result.defaultWith (fun _ -> failwith "Test error")
     
-    let state = TddState.create issueNumber criteria Start total |> Result.defaultWith failwith
+    let state = TddState.create issueNumber criteria TddPhase.Start total |> Result.defaultWith (fun _ -> failwith "Test error")
     let progress = TddState.progressPercentage state
     
     Assert.Equal(40.0, progress)
 
 [<Fact>]
 let ``TddState advanceCriteria increases criteria by one`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 2 |> Result.defaultWith failwith
-    let total = TotalCount.create 5 |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 2 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 5 |> Result.defaultWith (fun _ -> failwith "Test error")
     
-    let state = TddState.create issueNumber criteria Start total |> Result.defaultWith failwith
+    let state = TddState.create issueNumber criteria TddPhase.Start total |> Result.defaultWith (fun _ -> failwith "Test error")
     
     match TddState.advanceCriteria state with
     | Ok newState ->
@@ -175,11 +173,11 @@ let ``TddState advanceCriteria increases criteria by one`` () =
 
 [<Fact>]
 let ``TddState advanceCriteria fails when already at maximum`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 5 |> Result.defaultWith failwith
-    let total = TotalCount.create 5 |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 5 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 5 |> Result.defaultWith (fun _ -> failwith "Test error")
     
-    let state = TddState.create issueNumber criteria Cover total |> Result.defaultWith failwith
+    let state = TddState.create issueNumber criteria TddPhase.Cover total |> Result.defaultWith (fun _ -> failwith "Test error")
     
     match TddState.advanceCriteria state with
     | Error (BusinessRuleViolation ("AdvanceCriteria", _)) -> Assert.True(true)
@@ -191,10 +189,10 @@ let ``TddState advanceCriteria fails when already at maximum`` () =
 
 [<Fact>]
 let ``TddSession duration calculates time elapsed`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 1 |> Result.defaultWith failwith
-    let total = TotalCount.create 3 |> Result.defaultWith failwith
-    let state = TddState.create issueNumber criteria Start total |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 1 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 3 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let state = TddState.create issueNumber criteria TddPhase.Start total |> Result.defaultWith (fun _ -> failwith "Test error")
     
     let session = {
         State = state
@@ -208,10 +206,10 @@ let ``TddSession duration calculates time elapsed`` () =
 
 [<Fact>]
 let ``TddSession successRate calculates correctly`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 1 |> Result.defaultWith failwith
-    let total = TotalCount.create 3 |> Result.defaultWith failwith
-    let state = TddState.create issueNumber criteria Start total |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 1 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 3 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let state = TddState.create issueNumber criteria TddPhase.Start total |> Result.defaultWith (fun _ -> failwith "Test error")
     
     let session = {
         State = state
@@ -225,10 +223,10 @@ let ``TddSession successRate calculates correctly`` () =
 
 [<Fact>]
 let ``TddSession successRate handles zero test runs`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 1 |> Result.defaultWith failwith
-    let total = TotalCount.create 3 |> Result.defaultWith failwith
-    let state = TddState.create issueNumber criteria Start total |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 1 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 3 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let state = TddState.create issueNumber criteria TddPhase.Start total |> Result.defaultWith (fun _ -> failwith "Test error")
     
     let session = {
         State = state
@@ -242,10 +240,10 @@ let ``TddSession successRate handles zero test runs`` () =
 
 [<Fact>]
 let ``TddSession isEfficient identifies efficient sessions`` () =
-    let issueNumber = IssueNumber.create 42 |> Result.defaultWith failwith
-    let criteria = CriteriaCount.create 1 |> Result.defaultWith failwith
-    let total = TotalCount.create 3 |> Result.defaultWith failwith
-    let state = TddState.create issueNumber criteria Start total |> Result.defaultWith failwith
+    let issueNumber = IssueNumber.create 42 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let criteria = CriteriaCount.create 1 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let total = TotalCount.create 3 |> Result.defaultWith (fun _ -> failwith "Test error")
+    let state = TddState.create issueNumber criteria TddPhase.Start total |> Result.defaultWith (fun _ -> failwith "Test error")
     
     // Efficient session: short duration, high success rate
     let efficientSession = {

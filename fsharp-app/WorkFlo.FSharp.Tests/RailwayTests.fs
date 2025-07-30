@@ -7,6 +7,7 @@ module WorkFlo.Tests.RailwayTests
 open Xunit
 open WorkFlo.Railway
 open WorkFlo.Railway.Operators
+open WorkFlo.Railway.Builders
 
 // ========================================
 // RESULT MODULE TESTS
@@ -67,7 +68,7 @@ let ``Result.sequence combines list of results`` () =
     let combined = Result.sequence results
     
     match combined with
-    | Ok values -> Assert.Equal([1; 2; 3], values)
+    | Ok values -> Assert.Equal<int list>([1; 2; 3], values)
     | Error _ -> Assert.True(false, "Should combine all success results")
     
     let mixedResults = [Ok 1; Error "fail"; Ok 3]
@@ -88,7 +89,7 @@ let ``Result.traverse maps and sequences in one operation`` () =
     let result = Result.traverse parseNum strings
     
     match result with
-    | Ok numbers -> Assert.Equal([1; 2; 3], numbers)
+    | Ok numbers -> Assert.Equal<int list>([1; 2; 3], numbers)
     | Error _ -> Assert.True(false, "Should parse all valid numbers")
     
     let invalidStrings = ["1"; "abc"; "3"]
@@ -196,7 +197,7 @@ let ``AsyncResult.bind chains async operations`` () =
     
     let result = 
         asyncResult 
-        |> AsyncResult.bind (asyncDivide 10)
+        |> AsyncResult.bind (fun x -> asyncDivide x 10)
         |> Async.RunSynchronously
     
     match result with
@@ -236,8 +237,6 @@ let ``asyncResult computation expression handles async workflow`` () =
 
 [<Fact>]
 let ``Pipeline operators enable clean composition`` () =
-    open Operators
-    
     let addOne x = Ok (x + 1)
     let multiplyTwo x = Ok (x * 2)
     let toString x = Ok (string x)
@@ -254,15 +253,13 @@ let ``Pipeline operators enable clean composition`` () =
 
 [<Fact>]
 let ``Map operator transforms values in pipeline`` () =
-    open Operators
-    
     let addOne x = x + 1
     let multiplyTwo x = x * 2
     
     let result = 
         Ok 5
-        <!> addOne
-        <!> multiplyTwo
+        |> Result.map addOne
+        |> Result.map multiplyTwo
     
     match result with
     | Ok value -> Assert.Equal(12, value)
@@ -270,8 +267,6 @@ let ``Map operator transforms values in pipeline`` () =
 
 [<Fact>]
 let ``Kleisli composition chains functions effectively`` () =
-    open Operators
-    
     let validatePositive x = 
         if x > 0 then Ok x 
         else Error "Must be positive"

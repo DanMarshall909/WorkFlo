@@ -71,7 +71,7 @@ module SessionAnalysis =
             | NeedsImprovement -> "Room for improvement"
             | Poor -> "Consider reviewing TDD fundamentals"
         
-        $"{performanceText} ({durationText}, {metrics.SuccessRate:F1}% success rate)"
+        $"{performanceText} ({durationText}, {metrics.SuccessRate:F1}%% success rate)"
 
 /// Session history analysis using functional composition
 module HistoryAnalysis =
@@ -84,7 +84,7 @@ module HistoryAnalysis =
         CompletionRate: float
     }
     
-    /// Calculate statistics from session history
+    /// Calculate statistics from session history (optimized single-pass version)
     let calculateStats (sessions: TddSession list) : SessionStats =
         if List.isEmpty sessions then
             {
@@ -95,26 +95,25 @@ module HistoryAnalysis =
                 CompletionRate = 0.0
             }
         else
+            // Single-pass calculation using fold for better performance
             let totalSessions = List.length sessions
-            let totalTestRuns = sessions |> List.sumBy (fun s -> s.TestRuns)
-            let averageSuccessRate = 
+            let (totalTestRuns, totalSuccessRate, totalMinutes, completedCount) =
                 sessions 
-                |> List.map TddSession.successRate
-                |> List.average
+                |> List.fold (fun (testRuns, successRate, minutes, completed) session ->
+                    let sessionTestRuns = session.TestRuns
+                    let sessionSuccessRate = TddSession.successRate session
+                    let sessionMinutes = (TddSession.duration session).TotalMinutes
+                    let isCompleted = if TddState.isComplete session.State then 1 else 0
+                    
+                    (testRuns + sessionTestRuns,
+                     successRate + sessionSuccessRate,
+                     minutes + sessionMinutes,
+                     completed + isCompleted)
+                ) (0, 0.0, 0.0, 0)
             
-            let totalMinutes = 
-                sessions
-                |> List.map TddSession.duration
-                |> List.sumBy (fun ts -> ts.TotalMinutes)
-            
+            let averageSuccessRate = totalSuccessRate / float totalSessions
             let averageDuration = TimeSpan.FromMinutes(totalMinutes / float totalSessions)
-            
-            let completedSessions = 
-                sessions 
-                |> List.filter (fun s -> TddState.isComplete s.State)
-                |> List.length
-            
-            let completionRate = float completedSessions / float totalSessions * 100.0
+            let completionRate = float completedCount / float totalSessions * 100.0
             
             {
                 TotalSessions = totalSessions
@@ -124,31 +123,31 @@ module HistoryAnalysis =
                 CompletionRate = completionRate
             }
     
-    /// Generate insights from session statistics
+    /// Generate insights from session statistics (optimized list building)
     let generateInsights (stats: SessionStats) : string list =
-        [
-            if stats.TotalSessions = 0 then
-                "No TDD sessions recorded yet. Start with 'workflo start <issue-number>'"
+        let insights = ResizeArray<string>(8) // Pre-allocate reasonable capacity
+        
+        if stats.TotalSessions = 0 then
+            insights.Add("No TDD sessions recorded yet. Start with 'workflo start <issue-number>'")
+        elif stats.TotalSessions = 1 then
+            insights.Add("Great start! One TDD session completed.")
+        else
+            insights.Add($"Total sessions: {stats.TotalSessions}")
+            insights.Add($"Average success rate: {stats.AverageSuccessRate:F1}%%")
+            insights.Add($"Total tests written: {stats.TotalTestRuns}")
+            insights.Add($"Average session time: {stats.AverageSessionDuration.TotalMinutes:F1} minutes")
+            insights.Add($"Completion rate: {stats.CompletionRate:F1}%%")
             
-            elif stats.TotalSessions = 1 then
-                "Great start! One TDD session completed."
+            if stats.CompletionRate < 50.0 then
+                insights.Add("💡 Tip: Try to complete more TDD cycles for better practice")
             
-            else
-                $"Total sessions: {stats.TotalSessions}"
-                $"Average success rate: {stats.AverageSuccessRate:F1}%"
-                $"Total tests written: {stats.TotalTestRuns}"
-                $"Average session time: {stats.AverageSessionDuration.TotalMinutes:F1} minutes"
-                $"Completion rate: {stats.CompletionRate:F1}%"
-                
-                if stats.CompletionRate < 50.0 then
-                    "💡 Tip: Try to complete more TDD cycles for better practice"
-                
-                if stats.AverageSuccessRate < 75.0 then
-                    "💡 Tip: Focus on writing simpler, more focused tests"
-                
-                if stats.AverageSessionDuration.TotalMinutes > 45.0 then
-                    "💡 Tip: Consider shorter TDD cycles with smaller increments"
-        ]
+            if stats.AverageSuccessRate < 75.0 then
+                insights.Add("💡 Tip: Focus on writing simpler, more focused tests")
+            
+            if stats.AverageSessionDuration.TotalMinutes > 45.0 then
+                insights.Add("💡 Tip: Consider shorter TDD cycles with smaller increments")
+        
+        insights |> List.ofSeq
 
 /// Progress tracking and goal setting
 module ProgressTracking =
@@ -222,20 +221,11 @@ module Reporting =
         let metrics = PerformanceMetrics.calculate session
         let duration = TddSession.duration session
         let issue = IssueNumber.value session.State.Issue
+        let phase = TddPhase.toString session.State.Phase
+        let progress = TddState.progressPercentage session.State
         
-        $"""
-TDD Session Report - Issue #{issue}
-=====================================
-Status: {analysis}
-Duration: {duration.TotalMinutes:F1} minutes
-Test Runs: {session.TestRuns}
-Failed Tests: {session.FailedTests}
-Success Rate: {metrics.SuccessRate:F1}%
-Tests per Minute: {metrics.TestsPerMinute:F1}
-
-Current Phase: {TddPhase.toString session.State.Phase}
-Progress: {TddState.progressPercentage session.State:F1}% complete
-"""
+        sprintf "TDD Session Report - Issue #%d\n=====================================\nStatus: %s\nDuration: %.1f minutes\nTest Runs: %d\nFailed Tests: %d\nSuccess Rate: %.1f%%\nTests per Minute: %.1f\n\nCurrent Phase: %s\nProgress: %.1f%% complete" 
+            issue analysis duration.TotalMinutes session.TestRuns session.FailedTests metrics.SuccessRate metrics.TestsPerMinute phase progress
     
     /// Generate history summary report
     let generateHistoryReport (sessions: TddSession list) : string =
@@ -247,13 +237,5 @@ Progress: {TddState.progressPercentage session.State:F1}% complete
         let insightsText = insights |> String.concat "\n"
         let recommendationsText = recommendations |> String.concat "\n• "
         
-        $"""
-TDD Practice Summary
-===================
-{insightsText}
-
-Skill Level: {skillLevel}
-
-Recommendations:
-• {recommendationsText}
-"""
+        sprintf "TDD Practice Summary\n===================\n%s\n\nSkill Level: %A\n\nRecommendations:\n• %s" 
+            insightsText skillLevel recommendationsText

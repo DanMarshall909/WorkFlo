@@ -25,19 +25,27 @@ module Result =
         | Error err, _ -> Error err
         | _, Error err -> Error err
     
-    /// Combine multiple results into a list
+    /// Combine multiple results into a list (tail-recursive version)
     let sequence results =
-        let folder result acc =
-            match result, acc with
-            | Ok value, Ok values -> Ok (value :: values)
-            | Error err, _ -> Error err
-            | _, Error err -> Error err
+        let rec loop acc remaining =
+            match remaining with
+            | [] -> Ok (List.rev acc)
+            | (Ok value) :: rest -> loop (value :: acc) rest
+            | (Error err) :: _ -> Error err
         
-        List.foldBack folder results (Ok [])
+        loop [] results
     
-    /// Traverse a list with a function that returns Result
+    /// Traverse a list with a function that returns Result (optimized single-pass version)
     let traverse f list =
-        list |> List.map f |> sequence
+        let rec loop acc remaining =
+            match remaining with
+            | [] -> Ok (List.rev acc)
+            | x :: rest ->
+                match f x with
+                | Ok value -> loop (value :: acc) rest
+                | Error err -> Error err
+        
+        loop [] list
     
     /// Execute side effect only on success
     let tee f result =
@@ -71,6 +79,32 @@ module Result =
         match result with
         | Ok value -> value
         | Error error -> f error
+    
+    /// Fast sequence for arrays (avoids list reversals)
+    let sequenceArray (results: Result<'T, 'E> []) : Result<'T [], 'E> =
+        let length = Array.length results
+        if length = 0 then Ok [||]
+        else
+            let values = Array.zeroCreate length
+            let rec loop i =
+                if i >= length then Ok values
+                else
+                    match results.[i] with
+                    | Ok value -> 
+                        values.[i] <- value
+                        loop (i + 1)
+                    | Error err -> Error err
+            loop 0
+    
+    /// Fast parallel map for independent computations
+    let mapAsync f result =
+        async {
+            match result with
+            | Ok value -> 
+                let! newValue = f value
+                return Ok newValue
+            | Error error -> return Error error
+        }
 
 /// Async Result extensions for asynchronous operations
 module AsyncResult =
@@ -119,6 +153,10 @@ type ResultBuilder() =
     member _.Zero() = Ok ()
     member _.Delay(f) = f
     member _.Run(f) = f()
+    member _.Combine(a, b) = 
+        match a with
+        | Ok _ -> b()
+        | Error e -> Error e
     
     member _.TryWith(computation, handler) =
         try computation()
@@ -145,9 +183,10 @@ type AsyncResultBuilder() =
                 return! handler ex
         }
 
-/// Global instances for use throughout the application
-let result = ResultBuilder()
-let asyncResult = AsyncResultBuilder()
+/// Global instances module for use throughout the application
+module Builders =
+    let result = ResultBuilder()
+    let asyncResult = AsyncResultBuilder()
 
 /// Pipeline operators for better composition
 module Operators =

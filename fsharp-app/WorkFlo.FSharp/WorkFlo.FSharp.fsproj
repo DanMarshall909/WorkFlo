@@ -13,7 +13,6 @@
     <Compile Include="Computation.fs" />
     <Compile Include="Advanced.fs" />
     <Compile Include="Commands.fs" />
-    <Compile Include="Program.fs" />
     
     <!-- Refactored modules with best practices -->
     <Compile Include="Domain.fs" />
