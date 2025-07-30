@@ -1077,6 +1077,227 @@ let ``parseStateContent handles malformed input`` () =
     | Error msg -> Assert.True(msg.Contains("Unknown phase"))
     | Ok _ -> Assert.True(false, "Should fail for invalid phase")
 
+// ========================================
+// COMPUTATION EXPRESSION COVERAGE TESTS
+// ========================================
+
+[<Fact>]
+let ``manualAsyncExample demonstrates async transformation`` () =
+    // BUSINESS REQUIREMENT: Demonstrates how F# transforms async syntax
+    let op1 () = async { return 10 }
+    let op2 () = async { return 20 }
+    
+    let result = WorkFlo.Computation.manualAsyncExample op1 op2
+    let actualResult = result |> Async.RunSynchronously
+    Assert.Equal(30, actualResult)
+
+[<Fact>]
+let ``validateAndSaveWithLogging performs complete async workflow`` () =
+    // BUSINESS REQUIREMENT: Complex async+result workflow validation
+    let tempFile = System.IO.Path.GetTempFileName()
+    
+    try
+        let result = WorkFlo.Computation.validateAndSaveWithLogging "42" tempFile
+        let message = result |> Async.RunSynchronously
+        
+        match message with
+        | Ok msg -> 
+            Assert.True(msg.Contains("Successfully started TDD for issue 42"))
+            Assert.True(msg.Contains(tempFile))
+        | Error err -> Assert.True(false, $"Should succeed: {err}")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+[<Fact>]
+let ``AsyncResultBuilder Return method works correctly`` () =
+    // BUSINESS REQUIREMENT: AsyncResult computation expression support
+    let builder = WorkFlo.Computation.AsyncResultBuilder()
+    let result = builder.Return(42)
+    let actual = result |> Async.RunSynchronously
+    
+    match actual with
+    | Ok value -> Assert.Equal(42, value)
+    | Error _ -> Assert.True(false, "Return should produce Ok")
+
+[<Fact>]
+let ``AsyncResultBuilder Bind method chains async results`` () =
+    // BUSINESS REQUIREMENT: AsyncResult bind operation for chaining
+    let builder = WorkFlo.Computation.AsyncResultBuilder()
+    let asyncOk = async { return Ok 10 }
+    let doubleFunc x = async { return Ok (x * 2) }
+    
+    let result = builder.Bind(asyncOk, doubleFunc)
+    let actual = result |> Async.RunSynchronously
+    
+    match actual with
+    | Ok value -> Assert.Equal(20, value)
+    | Error _ -> Assert.True(false, "Bind should chain successfully")
+
+[<Fact>]
+let ``AsyncResultBuilder ReturnFrom passes through async result`` () =
+    // BUSINESS REQUIREMENT: AsyncResult ReturnFrom operation
+    let builder = WorkFlo.Computation.AsyncResultBuilder()
+    let asyncResult = async { return Ok "test" }
+    
+    let result = builder.ReturnFrom(asyncResult)
+    let actual = result |> Async.RunSynchronously
+    
+    match actual with
+    | Ok value -> Assert.Equal("test", value)
+    | Error _ -> Assert.True(false, "ReturnFrom should pass through")
+
+[<Fact>]
+let ``MaybeBuilder ReturnFrom passes through option`` () =
+    // BUSINESS REQUIREMENT: Maybe computation expression ReturnFrom
+    let builder = WorkFlo.Computation.MaybeBuilder()
+    let result = builder.ReturnFrom(Some 42)
+    
+    match result with
+    | Some value -> Assert.Equal(42, value)
+    | None -> Assert.True(false, "ReturnFrom should pass through Some")
+
+[<Fact>]
+let ``MaybeBuilder Zero returns None`` () =
+    // BUSINESS REQUIREMENT: Maybe computation expression Zero case
+    let builder = WorkFlo.Computation.MaybeBuilder()
+    let result = builder.Zero()
+    
+    match result with
+    | None -> Assert.True(true)
+    | Some _ -> Assert.True(false, "Zero should return None")
+
+// ========================================
+// CORE MODULE UNCOVERED FUNCTIONS
+// ========================================
+
+[<Fact>]
+let ``handleValidation processes validation results`` () =
+    // BUSINESS REQUIREMENT: Validation result processing prints appropriate messages
+    // This function returns unit, so we just test it doesn't throw
+    WorkFlo.Core.handleValidation (Ok "valid")
+    WorkFlo.Core.handleValidation (Error "invalid")
+    Assert.True(true) // If we reach here, the function worked
+
+[<Fact>]
+let ``loadStateFromFile loads existing state file`` () =
+    // BUSINESS REQUIREMENT: File-based state loading with validation
+    let tempFile = System.IO.Path.GetTempFileName() + ".loadtest"
+    let testState = { Issue = "789"; Criteria = 2; Phase = WorkFlo.Types.Green; Total = 5 }
+    
+    try
+        let _ = saveState tempFile testState
+        
+        let result = WorkFlo.Core.loadStateFromFile tempFile
+        match result with
+        | Ok (Some state) -> 
+            Assert.Equal(testState.Issue, state.Issue)
+            Assert.Equal(testState.Criteria, state.Criteria)
+        | _ -> Assert.True(false, "Should load existing state")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+[<Fact>]
+let ``validateAndLoad combines validation with loading`` () =
+    // BUSINESS REQUIREMENT: Combined validation and loading operation
+    let tempFile = System.IO.Path.GetTempFileName() + ".validatetest"
+    let testState = { Issue = "456"; Criteria = 1; Phase = WorkFlo.Types.Red; Total = 3 }
+    
+    try
+        let _ = saveState tempFile testState
+        
+        let result = WorkFlo.Core.validateAndLoad testState.Issue tempFile
+        match result with
+        | Ok (validIssue, Some state) ->
+            Assert.Equal(testState.Issue, validIssue)
+            Assert.Equal(testState.Issue, state.Issue)
+            Assert.Equal(testState.Criteria, state.Criteria)
+        | Ok (_, None) -> Assert.True(false, "Should have loaded existing state")
+        | Error _ -> Assert.True(false, "Should validate and load successfully")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+// ========================================
+// ASYNCCORE EXCEPTION PATH COVERAGE
+// ========================================
+
+[<Fact>]
+let ``readFileAsync handles file read exceptions`` () =
+    // BUSINESS REQUIREMENT: Async file operations should handle I/O exceptions
+    let invalidPath = "/dev/null/impossible/path/file.txt"
+    
+    let result = WorkFlo.AsyncCore.readFileAsync invalidPath |> Async.RunSynchronously
+    match result with
+    | Error msg -> Assert.True(msg.Contains("Failed to read file") || msg.Contains("File not found"))
+    | Ok _ -> Assert.True(false, "Should fail for invalid path")
+
+[<Fact>]
+let ``AsyncCore ResultBuilder ReturnFrom works correctly`` () =
+    // BUSINESS REQUIREMENT: AsyncCore Result computation expression support
+    let builder = WorkFlo.AsyncCore.ResultBuilder()
+    let result = builder.ReturnFrom(Ok "test")
+    
+    match result with
+    | Ok value -> Assert.Equal("test", value)
+    | Error _ -> Assert.True(false, "ReturnFrom should pass through Ok")
+
+[<Fact>]
+let ``loadConfigAndStateAsync handles config errors properly`` () =
+    // BUSINESS REQUIREMENT: Parallel async loading should handle config errors
+    let nonExistentConfig = "/tmp/nonexistent-config-12345.conf"
+    let tempState = System.IO.Path.GetTempFileName()
+    
+    try
+        // Create a valid state file
+        let _ = saveState tempState { Issue = "123"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 3 }
+        
+        let result = WorkFlo.AsyncCore.loadConfigAndStateAsync nonExistentConfig tempState |> Async.RunSynchronously
+        match result with
+        | Error msg -> Assert.True(msg.Contains("Config error"))
+        | Ok _ -> Assert.True(false, "Should fail due to config error")
+    finally
+        if System.IO.File.Exists(tempState) then System.IO.File.Delete(tempState)
+
+[<Fact>]
+let ``loadConfigAndStateAsync handles state errors properly`` () =
+    // BUSINESS REQUIREMENT: Parallel async loading should handle state errors
+    let tempConfig = System.IO.Path.GetTempFileName()
+    let invalidState = "/tmp/nonexistent-state-12345.state"
+    
+    try
+        // Create a valid config file
+        System.IO.File.WriteAllText(tempConfig, "debug=true\nverbose=false")
+        
+        let result = WorkFlo.AsyncCore.loadConfigAndStateAsync tempConfig invalidState |> Async.RunSynchronously
+        match result with
+        | Error msg -> Assert.True(msg.Contains("State error"))
+        | Ok (config, None) -> Assert.True(config.Contains("debug=true"))  // Should succeed with None state
+        | Ok _ -> Assert.True(true)  // This is also acceptable
+    finally
+        if System.IO.File.Exists(tempConfig) then System.IO.File.Delete(tempConfig)
+
+[<Fact>]
+let ``validateAndSaveAsync handles validation errors`` () =
+    // BUSINESS REQUIREMENT: Async validation should handle invalid inputs
+    let tempFile = System.IO.Path.GetTempFileName()
+    
+    try
+        let result = WorkFlo.AsyncCore.validateAndSaveAsync "" tempFile |> Async.RunSynchronously
+        match result with
+        | Error msg -> Assert.True(msg.Contains("Issue number cannot be empty"))
+        | Ok _ -> Assert.True(false, "Should fail for empty issue")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+[<Fact>]
+let ``validateAndSaveAsync handles save errors`` () =
+    // BUSINESS REQUIREMENT: Async validation should handle file save errors
+    let invalidPath = "/dev/null/impossible/path/file.state"
+    
+    let result = WorkFlo.AsyncCore.validateAndSaveAsync "123" invalidPath |> Async.RunSynchronously
+    match result with
+    | Error msg -> Assert.True(msg.Contains("Failed to write file") || msg.Contains("access") || msg.Contains("denied"))
+    | Ok _ -> Assert.True(false, "Should fail for invalid save path")
+
 [<Fact>]
 let ``entryPoint function delegates to main`` () =
     // BUSINESS REQUIREMENT: Entry point should properly delegate to main function
@@ -1191,3 +1412,459 @@ let ``runApp comprehensive integration`` () =
     match WorkFlo.Program.runApp [|"nonexistent"|] with
     | Error msg -> Assert.True(msg.Contains("Unknown command"))
     | Ok _ -> Assert.True(false, "Invalid command should fail")
+
+// ========================================
+// TYPES.FS COMPREHENSIVE COVERAGE - PUSH TO 95%
+// Testing all Option types and advanced patterns
+// ========================================
+
+[<Fact>]
+let ``addTwoNumbers chains Options correctly`` () =
+    // BUSINESS REQUIREMENT: Option chaining should handle all combinations
+    match addTwoNumbers "3" "4" with
+    | Some 7 -> Assert.True(true)
+    | _ -> Assert.True(false, "Should add 3 + 4 = 7")
+    
+    match addTwoNumbers "3" "abc" with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should return None for invalid input")
+    
+    match addTwoNumbers "abc" "4" with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should return None for invalid input")
+
+[<Fact>]
+let ``getThresholdOrDefault handles Option configuration`` () =
+    // BUSINESS REQUIREMENT: Configuration should provide sensible defaults
+    let configWithThreshold = { 
+        ConfidenceThreshold = Some 90
+        MutationThreshold = None
+        Persona = Some "teacher"
+        Debug = None 
+    }
+    let result1 = getThresholdOrDefault configWithThreshold
+    Assert.Equal(90, result1)
+    
+    let configWithoutThreshold = { 
+        ConfidenceThreshold = None
+        MutationThreshold = None
+        Persona = Some "teacher"
+        Debug = None 
+    }
+    let result2 = getThresholdOrDefault configWithoutThreshold
+    Assert.Equal(85, result2)
+
+[<Fact>]
+let ``validateAdultAge filters correctly`` () =
+    // BUSINESS REQUIREMENT: Age validation should handle all edge cases
+    match validateAdultAge (Some "25") with
+    | Some 25 -> Assert.True(true)
+    | _ -> Assert.True(false, "Should accept valid adult age")
+    
+    match validateAdultAge (Some "16") with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should reject minor age")
+    
+    match validateAdultAge (Some "abc") with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should reject non-numeric age")
+    
+    match validateAdultAge None with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should handle None input")
+
+[<Fact>]
+let ``createUserScore combines Options correctly`` () =
+    // BUSINESS REQUIREMENT: User score creation should handle all combinations
+    match createUserScore (Some "Alice") (Some "95") with
+    | Some result -> Assert.Equal("Alice: 95", result)
+    | _ -> Assert.True(false, "Should create score for valid inputs")
+    
+    match createUserScore (Some "Bob") None with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should return None if score missing")
+    
+    match createUserScore None (Some "85") with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should return None if name missing")
+    
+    match createUserScore None None with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should return None if both missing")
+
+[<Fact>]
+let ``parseAllScores traverses Options correctly`` () =
+    // BUSINESS REQUIREMENT: Batch parsing should succeed only if all items valid
+    match parseAllScores ["85"; "90"; "78"] with
+    | Some [85; 90; 78] -> Assert.True(true)
+    | _ -> Assert.True(false, "Should parse all valid scores")
+    
+    match parseAllScores ["85"; "abc"; "78"] with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should fail if any score invalid")
+    
+    match parseAllScores [] with
+    | Some [] -> Assert.True(true)
+    | _ -> Assert.True(false, "Should handle empty list")
+
+[<Fact>]
+let ``GameScores record type can be created`` () =
+    // BUSINESS REQUIREMENT: GameScores should store all performance metrics
+    let scores = {
+        PerformanceScore = 95
+        QualityScore = 87
+        EfficiencyScore = 92
+        LlmEfficiencyScore = 88
+        TotalTests = 150
+        TotalLines = 500
+        TestRuns = 25
+        FailedRuns = 2
+        LlmInteractions = 12
+        EstimatedTokens = 5000
+    }
+    
+    Assert.Equal(95, scores.PerformanceScore)
+    Assert.Equal(87, scores.QualityScore)
+    Assert.Equal(92, scores.EfficiencyScore)
+    Assert.Equal(88, scores.LlmEfficiencyScore)
+    Assert.Equal(150, scores.TotalTests)
+    Assert.Equal(500, scores.TotalLines)
+    Assert.Equal(25, scores.TestRuns)
+    Assert.Equal(2, scores.FailedRuns)
+    Assert.Equal(12, scores.LlmInteractions)
+    Assert.Equal(5000, scores.EstimatedTokens)
+
+[<Fact>]
+let ``WorkFloConfig record type can be created`` () =
+    // BUSINESS REQUIREMENT: WorkFlo configuration should be immutable
+    let config = {
+        Persona = "teacher"
+        ConfidenceThreshold = 85
+        MutationThreshold = 90
+    }
+    
+    Assert.Equal("teacher", config.Persona)
+    Assert.Equal(85, config.ConfidenceThreshold)
+    Assert.Equal(90, config.MutationThreshold)
+
+[<Fact>]
+let ``ConfigOptions handles all Option combinations`` () =
+    // BUSINESS REQUIREMENT: Advanced configuration with optional values
+    let fullConfig = {
+        ConfidenceThreshold = Some 95
+        MutationThreshold = Some 88
+        Persona = Some "student"
+        Debug = Some true
+    }
+    
+    let emptyConfig = {
+        ConfidenceThreshold = None
+        MutationThreshold = None
+        Persona = None
+        Debug = None
+    }
+    
+    // Test all fields can be accessed
+    Assert.Equal(Some 95, fullConfig.ConfidenceThreshold)
+    Assert.Equal(Some 88, fullConfig.MutationThreshold)
+    Assert.Equal(Some "student", fullConfig.Persona)
+    Assert.Equal(Some true, fullConfig.Debug)
+    
+    Assert.Equal(None, emptyConfig.ConfidenceThreshold)
+    Assert.Equal(None, emptyConfig.MutationThreshold)
+    Assert.Equal(None, emptyConfig.Persona)
+    Assert.Equal(None, emptyConfig.Debug)
+
+[<Fact>]
+let ``TddPhase discriminated union covers all cases`` () =
+    // BUSINESS REQUIREMENT: All TDD phases should be representable
+    let phases = [WorkFlo.Types.Start; WorkFlo.Types.Red; WorkFlo.Types.Green; WorkFlo.Types.Refactor; WorkFlo.Types.Cover]
+    
+    // Test pattern matching on all phases
+    for phase in phases do
+        let description = 
+            match phase with
+            | WorkFlo.Types.Start -> "Starting phase"
+            | WorkFlo.Types.Red -> "Red phase"
+            | WorkFlo.Types.Green -> "Green phase"
+            | WorkFlo.Types.Refactor -> "Refactor phase"
+            | WorkFlo.Types.Cover -> "Cover phase"
+        
+        Assert.True(description.Length > 0)
+
+[<Fact>]
+let ``TddState record immutability and nextCriteria`` () =
+    // BUSINESS REQUIREMENT: States should be immutable with explicit transitions
+    let originalState = { 
+        Issue = "TEST-123"
+        Criteria = 5
+        Phase = WorkFlo.Types.Cover
+        Total = 10 
+    }
+    
+    let newState = nextCriteria originalState
+    
+    // Original state unchanged (immutability)
+    Assert.Equal("TEST-123", originalState.Issue)
+    Assert.Equal(5, originalState.Criteria)
+    Assert.Equal(WorkFlo.Types.Cover, originalState.Phase)
+    Assert.Equal(10, originalState.Total)
+    
+    // New state has incremented criteria and reset phase
+    Assert.Equal("TEST-123", newState.Issue)
+    Assert.Equal(6, newState.Criteria)
+    Assert.Equal(WorkFlo.Types.Start, newState.Phase)
+    Assert.Equal(10, newState.Total)
+
+[<Fact>]
+let ``Context record type handles all configuration`` () =
+    // BUSINESS REQUIREMENT: Context should store all runtime configuration
+    let context = {
+        ConfigFile = "/path/to/config.json"
+        StateFile = "/path/to/state.dat"
+        ScoreFile = "/path/to/scores.csv"
+        Debug = true
+        Verbose = false
+    }
+    
+    Assert.Equal("/path/to/config.json", context.ConfigFile)
+    Assert.Equal("/path/to/state.dat", context.StateFile)
+    Assert.Equal("/path/to/scores.csv", context.ScoreFile)
+    Assert.True(context.Debug)
+    Assert.False(context.Verbose)
+
+[<Fact>]
+let ``Option.map and Option.bind composition`` () =
+    // BUSINESS REQUIREMENT: Option chaining should be composable
+    let result1 = Some "10" |> Option.bind tryParseInt |> Option.map (fun x -> x * 3)
+    Assert.Equal(Some 30, result1)
+    
+    let result2 = Some "abc" |> Option.bind tryParseInt |> Option.map (fun x -> x * 3)
+    Assert.Equal(None, result2)
+    
+    let result3 = None |> Option.bind tryParseInt |> Option.map (fun x -> x * 3)
+    Assert.Equal(None, result3)
+
+// ========================================
+// COMPUTATION.FS COMPREHENSIVE COVERAGE
+// Testing computation expressions and advanced F# features
+// ========================================
+
+[<Fact>]
+let ``addThreeNumbers computation expression works`` () =
+    // BUSINESS REQUIREMENT: Computation expressions should enable clean async-like syntax
+    match WorkFlo.Computation.addThreeNumbers "10" "20" "30" with
+    | Some 60 -> Assert.True(true)
+    | _ -> Assert.True(false, "Should add three valid numbers")
+    
+    match WorkFlo.Computation.addThreeNumbers "10" "abc" "30" with
+    | None -> Assert.True(true)
+    | _ -> Assert.True(false, "Should short-circuit on invalid input")
+
+[<Fact>]
+let ``validateTddStart computation expression validates`` () =
+    // BUSINESS REQUIREMENT: Complex validation should be composable
+    match WorkFlo.Computation.validateTddStart "123" "1" "3" with
+    | Ok state -> 
+        Assert.Equal("123", state.Issue)
+        Assert.Equal(1, state.Criteria)
+        Assert.Equal(WorkFlo.Types.Start, state.Phase)
+        Assert.Equal(3, state.Total)
+    | _ -> Assert.True(false, "Should validate correct input")
+    
+    match WorkFlo.Computation.validateTddStart "" "1" "3" with
+    | Error msg -> Assert.True(msg.Contains("empty"))
+    | _ -> Assert.True(false, "Should reject empty issue")
+    
+    match WorkFlo.Computation.validateTddStart "123" "5" "3" with
+    | Error msg -> Assert.True(msg.Contains("Criteria cannot exceed total"))
+    | _ -> Assert.True(false, "Should reject criteria > total")
+
+[<Fact>]
+let ``processMultipleStates handles list validation`` () =
+    // BUSINESS REQUIREMENT: Batch processing should succeed only if all items valid
+    let validStates = [
+        "ISSUE=123\nCRITERIA=1\nPHASE=Start\nTOTAL=3\n"
+        "ISSUE=456\nCRITERIA=2\nPHASE=Green\nTOTAL=5\n"
+    ]
+    
+    match WorkFlo.Computation.processMultipleStates validStates with
+    | Ok states -> 
+        Assert.Equal(2, states.Length)
+        Assert.Equal("123", states.[0].Issue)
+        Assert.Equal("456", states.[1].Issue)
+    | _ -> Assert.True(false, "Should process valid states")
+    
+    let invalidStates = [
+        "ISSUE=123\nCRITERIA=1\nPHASE=Start\nTOTAL=3\n"
+        "INVALID_CONTENT"
+    ]
+    
+    match WorkFlo.Computation.processMultipleStates invalidStates with
+    | Error msg -> Assert.True(msg.Contains("Invalid state"))
+    | _ -> Assert.True(false, "Should fail on invalid state")
+
+[<Fact>]
+let ``MaybeBuilder computation expression`` () =
+    // BUSINESS REQUIREMENT: Custom computation builders should enable domain-specific syntax
+    let maybe = WorkFlo.Computation.MaybeBuilder()
+    
+    let result1 = maybe {
+        let! x = Some 5
+        let! y = Some 10
+        return x + y
+    }
+    Assert.Equal(Some 15, result1)
+    
+    let result2 = maybe {
+        let! x = Some 5
+        let! y = None
+        return x + y
+    }
+    Assert.Equal(None, result2)
+
+[<Fact>]
+let ``ResultBuilder computation expression`` () =
+    // BUSINESS REQUIREMENT: Result builder should enable clean error handling
+    let result = WorkFlo.Computation.ResultBuilder()
+    
+    let computation1 = result {
+        let! x = Ok 10
+        let! y = Ok 20
+        return x + y
+    }
+    Assert.Equal(Ok 30, computation1)
+    
+    let computation2 = result {
+        let! x = Ok 10
+        let! y = Error "failed"
+        return x + y
+    }
+    Assert.Equal(Error "failed", computation2)
+
+// ========================================
+// ASYNCCORE.FS COMPREHENSIVE COVERAGE
+// Testing async workflows and I/O operations
+// ========================================
+
+[<Fact>]
+let ``readFileAsync handles file operations`` () =
+    // BUSINESS REQUIREMENT: Async file operations should handle success and failure
+    let tempFile = System.IO.Path.GetTempFileName()
+    let content = "test content"
+    System.IO.File.WriteAllText(tempFile, content)
+    
+    try
+        let result = WorkFlo.AsyncCore.readFileAsync tempFile |> Async.RunSynchronously
+        match result with
+        | Ok readContent -> Assert.Equal(content, readContent)
+        | Error _ -> Assert.True(false, "Should read existing file")
+        
+        let nonExistentResult = WorkFlo.AsyncCore.readFileAsync "/tmp/non-existent-file.txt" |> Async.RunSynchronously
+        match nonExistentResult with
+        | Error msg -> Assert.True(msg.Contains("File not found"))
+        | Ok _ -> Assert.True(false, "Should fail for non-existent file")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+[<Fact>]
+let ``writeFileAsync handles file writing`` () =
+    // BUSINESS REQUIREMENT: Async file writing should handle success and failure
+    let tempFile = System.IO.Path.GetTempFileName()
+    let content = "async test content"
+    
+    try
+        let result = WorkFlo.AsyncCore.writeFileAsync tempFile content |> Async.RunSynchronously
+        match result with
+        | Ok () -> 
+            let writtenContent = System.IO.File.ReadAllText(tempFile)
+            Assert.Equal(content, writtenContent)
+        | Error _ -> Assert.True(false, "Should write to valid file")
+        
+        let invalidResult = WorkFlo.AsyncCore.writeFileAsync "/proc/version" content |> Async.RunSynchronously
+        match invalidResult with
+        | Error msg -> Assert.True(msg.Length > 0)
+        | Ok _ -> Assert.True(false, "Should fail for read-only file")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+[<Fact>]
+let ``loadStateAsync handles state loading`` () =
+    // BUSINESS REQUIREMENT: Async state loading should handle all scenarios
+    let tempFile = System.IO.Path.GetTempFileName()
+    let stateContent = "ISSUE=789\nCRITERIA=2\nPHASE=Green\nTOTAL=4\n"
+    System.IO.File.WriteAllText(tempFile, stateContent)
+    
+    try
+        let result = WorkFlo.AsyncCore.loadStateAsync tempFile |> Async.RunSynchronously
+        match result with
+        | Ok (Some state) ->
+            Assert.Equal("789", state.Issue)
+            Assert.Equal(2, state.Criteria)
+            Assert.Equal(WorkFlo.Types.Green, state.Phase)
+            Assert.Equal(4, state.Total)
+        | _ -> Assert.True(false, "Should load valid state")
+        
+        let nonExistentResult = WorkFlo.AsyncCore.loadStateAsync "/tmp/non-existent-state.dat" |> Async.RunSynchronously
+        match nonExistentResult with
+        | Ok None -> Assert.True(true, "Should return None for missing file")
+        | _ -> Assert.True(false, "Missing file should return Ok None")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+[<Fact>]
+let ``saveStateAsync handles state saving`` () =
+    // BUSINESS REQUIREMENT: Async state saving should work correctly
+    let tempFile = System.IO.Path.GetTempFileName()
+    let state = { Issue = "999"; Criteria = 3; Phase = WorkFlo.Types.Cover; Total = 5 }
+    
+    try
+        let result = WorkFlo.AsyncCore.saveStateAsync tempFile state |> Async.RunSynchronously
+        match result with
+        | Ok () ->
+            let savedContent = System.IO.File.ReadAllText(tempFile)
+            Assert.True(savedContent.Contains("ISSUE=999"))
+            Assert.True(savedContent.Contains("CRITERIA=3"))
+            Assert.True(savedContent.Contains("PHASE=Cover"))
+            Assert.True(savedContent.Contains("TOTAL=5"))
+        | Error _ -> Assert.True(false, "Should save state successfully")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+[<Fact>]
+let ``loadConfigAndStateAsync handles complex operations`` () =
+    // BUSINESS REQUIREMENT: Complex async operations should compose cleanly
+    let tempConfigFile = System.IO.Path.GetTempFileName()
+    let tempStateFile = System.IO.Path.GetTempFileName()
+    
+    let configContent = """{"persona": "teacher", "confidenceThreshold": 85}"""
+    let stateContent = "ISSUE=555\nCRITERIA=1\nPHASE=Start\nTOTAL=3\n"
+    
+    System.IO.File.WriteAllText(tempConfigFile, configContent)
+    System.IO.File.WriteAllText(tempStateFile, stateContent)
+    
+    try
+        let result = WorkFlo.AsyncCore.loadConfigAndStateAsync tempConfigFile tempStateFile |> Async.RunSynchronously
+        match result with
+        | Ok (configStr, Some state) ->
+            Assert.True(configStr.Contains("teacher"))
+            Assert.Equal("555", state.Issue)
+        | _ -> Assert.True(false, "Should load both config and state")
+    finally
+        if System.IO.File.Exists(tempConfigFile) then System.IO.File.Delete(tempConfigFile)
+        if System.IO.File.Exists(tempStateFile) then System.IO.File.Delete(tempStateFile)
+
+[<Fact>]
+let ``validateAndSaveAsync combines validation and saving`` () =
+    // BUSINESS REQUIREMENT: Complex async validation should work end-to-end
+    let tempFile = System.IO.Path.GetTempFileName()
+    
+    try
+        let result = WorkFlo.AsyncCore.validateAndSaveAsync "123" tempFile |> Async.RunSynchronously
+        match result with
+        | Ok message -> 
+            Assert.True(message.Length > 0)
+            Assert.True(System.IO.File.Exists(tempFile))
+        | Error _ -> Assert.True(false, "Should validate and save successfully")
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)

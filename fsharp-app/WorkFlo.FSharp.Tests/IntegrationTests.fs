@@ -53,9 +53,9 @@ let ``complete TDD cycle should transition through all phases successfully`` () 
         // Verify final state shows criteria advancement
         match executeCommand Status context with
         | Ok status ->
-            status |> should contain "Issue: 123"
-            status |> should contain "Criteria: 2/3"  // Advanced to next criteria
-            status |> should contain "Phase: Start"   // Reset for next criteria
+            status .Contains("Issue: 123"
+            status .Contains("Criteria: 2/3"  // Advanced to next criteria
+            status .Contains("Phase: Start"   // Reset for next criteria
         | Error msg -> failwith $"Final status check failed: {msg}"
         
     finally
@@ -84,7 +84,7 @@ let ``multiple TDD cycles should advance through all criteria`` () =
         
         // Assert: Final next should indicate completion
         match executeCommand Next context with
-        | Ok message -> message |> should contain "All criteria completed"
+        | Ok message -> message .Contains("All criteria completed"
         | Error msg -> failwith $"Final completion should succeed: {msg}"
         
     finally
@@ -104,9 +104,9 @@ let ``TDD workflow should persist and restore state across commands`` () =
         // Verify state persistence by checking status
         match executeCommand Status context with
         | Ok status ->
-            status |> should contain "Issue: 789"
-            status |> should contain "Phase: Green"
-            status |> should contain "Criteria: 1/3"
+            status .Contains("Issue: 789"
+            status .Contains("Phase: Green"
+            status .Contains("Criteria: 1/3"
         | Error msg -> failwith $"Status should show persisted state: {msg}"
         
         // Continue workflow from persisted state
@@ -116,7 +116,7 @@ let ``TDD workflow should persist and restore state across commands`` () =
         // Verify continued state progression
         match executeCommand Status context with
         | Ok status ->
-            status |> should contain "Phase: Cover"
+            status .Contains("Phase: Cover"
         | Error msg -> failwith $"Continued workflow should work: {msg}"
         
     finally
@@ -133,22 +133,22 @@ let ``workflow should handle and recover from validation errors`` () =
         
         // Invalid issue number should fail
         match executeCommand (Start "abc") context with
-        | Error msg -> msg |> should contain "Not a valid number"
+        | Error msg -> msg .Contains("Not a valid number"
         | Ok _ -> failwith "Expected invalid issue to fail"
         
         // Valid start should work after error
         match executeCommand (Start "111") context with
-        | Ok msg -> msg |> should contain "Started TDD workflow"
+        | Ok msg -> msg .Contains("Started TDD workflow"
         | Error msg -> failwith $"Valid start should work after error: {msg}"
         
         // Invalid phase transition should fail
         match executeCommand Green context with  // Skip Red phase
-        | Error msg -> msg |> should contain "Cannot transition to GREEN from Start"
+        | Error msg -> msg .Contains("Cannot transition to GREEN from Start"
         | Ok _ -> failwith "Expected invalid transition to fail"
         
         // Valid transition should work after error
         match executeCommand Red context with
-        | Ok msg -> msg |> should contain "RED Phase"
+        | Ok msg -> msg .Contains("RED Phase"
         | Error msg -> failwith $"Valid transition should work after error: {msg}"
         
     finally
@@ -165,17 +165,17 @@ let ``workflow should handle commands without active session gracefully`` () =
         
         commandsRequiringSession |> List.iter (fun cmd ->
             match executeCommand cmd context with
-            | Error msg -> msg |> should contain "No active TDD session"
+            | Error msg -> msg .Contains("No active TDD session"
             | Ok _ -> failwith $"Expected {cmd} to fail without active session")
         
         // Status should work even without session
         match executeCommand Status context with
-        | Ok msg -> msg |> should contain "No active TDD session"
+        | Ok msg -> msg .Contains("No active TDD session"
         | Error msg -> failwith $"Status should work without session: {msg}"
         
         // Help should always work
         match executeCommand Help context with
-        | Ok msg -> msg |> should contain "Usage:"
+        | Ok msg -> msg .Contains("Usage:"
         | Error msg -> failwith $"Help should always work: {msg}"
         
     finally
@@ -188,22 +188,22 @@ let ``runApp should handle command line arguments correctly`` () =
     
     // Valid help command
     match runApp [|"help"|] with
-    | Ok msg -> msg |> should contain "Usage:"
+    | Ok msg -> msg .Contains("Usage:"
     | Error msg -> failwith $"Help should work: {msg}"
     
     // Valid start command
     match runApp [|"start"; "123"|] with
-    | Ok msg -> msg |> should contain "Started TDD workflow"
+    | Ok msg -> msg .Contains("Started TDD workflow"
     | Error msg -> failwith $"Start should work: {msg}"
     
     // Invalid command
     match runApp [|"invalid"|] with
-    | Error msg -> msg |> should contain "Unknown command"
+    | Error msg -> msg .Contains("Unknown command"
     | Ok _ -> failwith "Expected invalid command to fail"
     
     // No arguments
     match runApp [||] with
-    | Error msg -> msg |> should contain "No command provided"
+    | Error msg -> msg .Contains("No command provided"
     | Ok _ -> failwith "Expected no arguments to fail"
 
 [<Fact>]
@@ -212,7 +212,7 @@ let ``parseArgs should handle various argument patterns`` () =
     
     // No arguments
     match parseArgs [||] with
-    | Error msg -> msg |> should contain "No command provided"
+    | Error msg -> msg .Contains("No command provided"
     | Ok _ -> failwith "Expected empty args to fail"
     
     // Single command
@@ -240,18 +240,18 @@ let ``feature command should provide complete automation workflow`` () =
         match executeCommand (Feature "999") context with
         | Ok output ->
             // Assert: Should contain all expected automation elements
-            output |> should contain "Starting automated feature development"
-            output |> should contain "issue #999"
-            output |> should contain "TDD workflow"
-            output |> should contain "feature/issue-999"
-            output |> should contain "PR created"
-            output |> should contain "90% confident"
-            output |> should contain "Automated feature development completed"
+            output .Contains("Starting automated feature development"
+            output .Contains("issue #999"
+            output .Contains("TDD workflow"
+            output .Contains("feature/issue-999"
+            output .Contains("PR created"
+            output .Contains("90% confident"
+            output .Contains("Automated feature development completed"
         | Error msg -> failwith $"Feature command should succeed: {msg}"
         
         // Feature command should work with validation
         match executeCommand (Feature "abc") context with
-        | Error msg -> msg |> should contain "Not a valid number"
+        | Error msg -> msg .Contains("Not a valid number"
         | Ok _ -> failwith "Expected invalid feature issue to fail"
         
     finally
@@ -282,16 +282,16 @@ let ``workflow should handle file system operations robustly`` () =
         
         // Verify state file contains expected content
         let stateContent = File.ReadAllText(context.StateFile)
-        stateContent |> should contain "ISSUE=555"
-        stateContent |> should contain "PHASE=Green"
+        stateContent .Contains("ISSUE=555"
+        stateContent .Contains("PHASE=Green"
         
         // Test recovery from file - delete and recreate context
         let newContext = { context with StateFile = context.StateFile }
         
         match executeCommand Status newContext with
         | Ok status ->
-            status |> should contain "Issue: 555"
-            status |> should contain "Phase: Green"
+            status .Contains("Issue: 555"
+            status .Contains("Phase: Green"
         | Error msg -> failwith $"Should recover state from file: {msg}"
         
     finally
@@ -340,8 +340,8 @@ let ``multiple complete TDD cycles should end in consistent state`` () =
         // Should now be on criteria 3
         match executeCommand Status context with
         | Ok status -> 
-            status |> should contain "Criteria: 3/3"
-            status |> should contain "Phase: Start"
+            status .Contains("Criteria: 3/3"
+            status .Contains("Phase: Start"
         | Error msg -> failwith $"Final status should show criteria 3: {msg}"
     finally
         cleanupIntegrationContext context
@@ -395,10 +395,10 @@ let ``system should handle concurrent access gracefully`` () =
         // Verify contexts remain independent
         match executeCommand Status context1, executeCommand Status context2 with
         | Ok status1, Ok status2 ->
-            status1 |> should contain "Issue: 111"
-            status1 |> should contain "Phase: Red"
-            status2 |> should contain "Issue: 222"
-            status2 |> should contain "Phase: Green"
+            status1 .Contains("Issue: 111"
+            status1 .Contains("Phase: Red"
+            status2 .Contains("Issue: 222"
+            status2 .Contains("Phase: Green"
         | _ -> failwith "Both contexts should maintain independent state"
         
     finally

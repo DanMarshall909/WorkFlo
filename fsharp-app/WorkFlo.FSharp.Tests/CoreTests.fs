@@ -31,7 +31,7 @@ let ``validateIssue should reject empty or null strings`` () =
     // Act & Assert: All should be invalid
     invalidIssues |> List.iter (fun issue ->
         match validateIssue issue with
-        | Error msg -> msg |> should contain "empty"
+        | Error msg -> msg.Contains("empty"") |> should be True
         | Ok _ -> failwith $"Expected {issue} to be invalid")
 
 [<Fact>]
@@ -61,10 +61,10 @@ let ``validateIssueNumber should compose validation functions`` () =
     // Test function composition: validateIssue >> Result.bind validatePositiveInt
     validateIssueNumber "123" |> should equal (Ok 123)
     match validateIssueNumber "0" with
-    | Error msg -> msg |> should contain "positive"
+    | Error msg -> msg.Contains("positive"") |> should be True
     | Ok _ -> failwith "Expected 0 to be invalid"
     match validateIssueNumber "" with
-    | Error msg -> msg |> should contain "empty"
+    | Error msg -> msg .Contains("empty"
     | Ok _ -> failwith "Expected empty string to be invalid"
 
 /// Test Suite 2: File Operations with Result Types
@@ -97,7 +97,7 @@ let ``readAllText should return Error for non-existent files`` () =
     
     // Assert: Should return Error with appropriate message
     match result with
-    | Error msg -> msg |> should contain "File not found"
+    | Error msg -> msg.Contains("File not found"") |> should be True
     | Ok _ -> failwith "Expected file read to fail for non-existent file"
 
 [<Fact>]
@@ -130,10 +130,10 @@ let ``formatState should create parseable key-value format`` () =
     let formatted = formatState state
     
     // Assert: Should contain all expected key-value pairs
-    formatted |> should contain "ISSUE=456"
-    formatted |> should contain "CRITERIA=2"
-    formatted |> should contain "PHASE=Green"
-    formatted |> should contain "TOTAL=4"
+    formatted.Contains("ISSUE=456"") |> should be True
+    formatted.Contains("CRITERIA=2"") |> should be True
+    formatted.Contains("PHASE=Green"") |> should be True
+    formatted.Contains("TOTAL=4"") |> should be True
 
 [<Fact>]
 let ``parseStateContent should parse formatted state correctly`` () =
@@ -162,7 +162,7 @@ let ``parseStateContent should handle invalid phase names`` () =
     
     // Assert: Should return Error with appropriate message
     match result with
-    | Error msg -> msg |> should contain "Unknown phase"
+    | Error msg -> msg.Contains("Unknown phase"") |> should be True
     | Ok _ -> failwith "Expected parsing to fail for invalid phase"
 
 [<Fact>]
@@ -175,7 +175,7 @@ let ``parseStateContent should handle missing fields`` () =
     
     // Assert: Should return Error for missing fields
     match result with
-    | Error msg -> msg |> should contain "Missing required fields"
+    | Error msg -> msg.Contains("Missing required fields"") |> should be True
     | Ok _ -> failwith "Expected parsing to fail for missing fields"
 
 [<Fact>]
@@ -188,7 +188,7 @@ let ``parseStateContent should handle invalid numbers`` () =
     
     // Assert: Should return Error for invalid numbers
     match result with
-    | Error msg -> msg |> should contain "Invalid criteria or total"
+    | Error msg -> msg.Contains("Invalid criteria or total"") |> should be True
     | Ok _ -> failwith "Expected parsing to fail for invalid numbers"
 
 /// Test Suite 4: Complete State Management Pipeline
@@ -245,12 +245,12 @@ let ``Result chaining should short-circuit on first error`` () =
     
     // Empty string should fail at first step
     match pipeline "" with
-    | Error msg -> msg |> should contain "empty"
+    | Error msg -> msg .Contains("empty"
     | Ok _ -> failwith "Expected empty string to fail validation"
     
     // Non-numeric should fail at second step  
     match pipeline "abc" with
-    | Error msg -> msg |> should contain "valid number"
+    | Error msg -> msg.Contains("valid number"") |> should be True
     | Ok _ -> failwith "Expected non-numeric to fail parsing"
 
 /// Test Suite 6: Additional Validation Tests
