@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Legacy modules for backward compatibility -->
     <Compile Include="Types.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="AsyncCore.fs" />
@@ -13,6 +14,13 @@
     <Compile Include="Advanced.fs" />
     <Compile Include="Commands.fs" />
     <Compile Include="Program.fs" />
+    
+    <!-- Refactored modules with best practices -->
+    <Compile Include="Domain.fs" />
+    <Compile Include="Railway.fs" />
+    <Compile Include="CoreServices.fs" />
+    <Compile Include="Analytics.fs" />
+    <Compile Include="ProgramRefactored.fs" />
   </ItemGroup>
 
 </Project>

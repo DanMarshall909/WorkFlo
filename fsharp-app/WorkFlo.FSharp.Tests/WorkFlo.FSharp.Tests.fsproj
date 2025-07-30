@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Legacy comprehensive tests -->
     <Compile Include="SimpleTypesTest.fs" />
+    
+    <!-- Refactored module tests -->
+    <Compile Include="DomainTests.fs" />
+    <Compile Include="RailwayTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
