@@ -100,6 +100,7 @@ type ConfigOptions = {
     Debug: bool option
 }
 
+
 let getThresholdOrDefault (config: ConfigOptions) : int =
     config.ConfidenceThreshold |> Option.defaultValue 85
 

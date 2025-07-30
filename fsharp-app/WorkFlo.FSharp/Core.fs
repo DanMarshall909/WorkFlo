@@ -123,6 +123,7 @@ let formatState (state: TddState) : string =
 let saveState (filename: string) (state: TddState) : Result<unit, string> =
     state |> formatState |> writeAllText filename
 
+
 /// TRY THIS IN F# INTERACTIVE:
 /// 
 /// validateIssue ""           // Returns: Error "Issue number cannot be empty"
