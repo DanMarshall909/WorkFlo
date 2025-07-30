@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BD71658C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkFlo.Core.Tests", "src\WorkFlo.Core\tests\WorkFlo.Core.Tests\WorkFlo.Core.Tests.csproj", "{9C478593-90BA-EAAD-12F6-8B7254A41084}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WorkFlo.FSharp", "fsharp-app\WorkFlo.FSharp\WorkFlo.FSharp.fsproj", "{CC45FBF9-73C0-47E5-A9D3-EB7874FC8B17}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WorkFlo.FSharp.Tests", "fsharp-app\WorkFlo.FSharp.Tests\WorkFlo.FSharp.Tests.fsproj", "{EB54DE7A-4ADC-4802-959D-0DC44E6188A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +30,14 @@ Global
 		{9C478593-90BA-EAAD-12F6-8B7254A41084}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C478593-90BA-EAAD-12F6-8B7254A41084}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C478593-90BA-EAAD-12F6-8B7254A41084}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC45FBF9-73C0-47E5-A9D3-EB7874FC8B17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC45FBF9-73C0-47E5-A9D3-EB7874FC8B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC45FBF9-73C0-47E5-A9D3-EB7874FC8B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC45FBF9-73C0-47E5-A9D3-EB7874FC8B17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB54DE7A-4ADC-4802-959D-0DC44E6188A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB54DE7A-4ADC-4802-959D-0DC44E6188A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB54DE7A-4ADC-4802-959D-0DC44E6188A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB54DE7A-4ADC-4802-959D-0DC44E6188A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
