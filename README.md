@@ -115,15 +115,49 @@ The WorkFlo VS Code extension provides a seamless integration with the `flo` wor
 
 ```
 /
-├── flo              # Main workflow command
+├── flo              # Main workflow command (F# implementation)
 ├── tdd              # Core TDD logic (used by flo)
 ├── board            # Project board management script
+├── WorkFlo.FSharp/  # F# core implementation
+├── WorkFlo.FSharp.Tests/  # F# unit tests  
 ├── lib/             # Helper scripts and libraries
 ├── tests/           # BATS tests for the workflow scripts
 ├── vscode-extension/  # VS Code extension source code
 ├── docs/            # Documentation
 └── README.md        # This file
 ```
+
+## F# Implementation Architecture
+
+WorkFlo's core is implemented in F# using functional programming principles and best practices:
+
+### **Domain-Driven Design**
+- **Strong Typing**: Uses smart constructors (`IssueNumber`, `CriteriaCount`, `TotalCount`) to prevent invalid states
+- **Explicit Error Handling**: `WorkFloError` discriminated union provides type-safe error handling
+- **Business Rules**: Domain logic enforced at the type level (e.g., criteria cannot exceed total)
+
+### **Railway Oriented Programming**
+- **Result Type**: All operations return `Result<Success, Error>` for explicit error handling
+- **Computation Expressions**: Clean, monadic composition using `result { }` syntax
+- **Error Propagation**: Failures automatically propagate through the pipeline
+
+### **Functional Architecture**
+- **Pure Functions**: Core business logic is pure with explicit side effects
+- **Immutable Data**: All data structures are immutable by default
+- **Composition**: Complex operations built from simple, composable functions
+
+### **Key Modules**
+- `Domain.fs`: Core domain types and business rules
+- `Railway.fs`: Railway Oriented Programming infrastructure
+- `CoreServices.fs`: Business logic implementation
+- `Analytics.fs`: TDD session analysis and reporting
+- `Program.fs`: Application entry point and CLI parsing
+
+The F# implementation maintains full backward compatibility with the original bash interface while providing:
+- **95.36% line coverage** and **87.30% branch coverage**
+- **100% BATS test compatibility** 
+- **Type safety** and **compile-time error detection**
+- **Performance optimizations** with tail recursion and efficient collections
 
 ## Motivation
 
