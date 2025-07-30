@@ -877,3 +877,317 @@ let ``TDD history analysis tracks patterns`` () =
     ]
     let multiResult = WorkFlo.Advanced.analyzeTddHistory multiSession
     Assert.True(multiResult.Contains("Multiple criteria in same issue"))
+
+// ========================================
+// ADVANCED PATTERN MATCHING EDGE CASES
+// Testing uncovered branches and conditions
+// ========================================
+
+[<Fact>]
+let ``assessTddProgress handles error conditions`` () =
+    // BUSINESS REQUIREMENT: Should detect invalid criteria exceeding total
+    let errorState = { Issue = "999"; Criteria = 5; Phase = WorkFlo.Types.Start; Total = 3 }
+    let result = WorkFlo.Advanced.assessTddProgress errorState
+    Assert.True(result.Contains("ERROR: Criteria exceeds total"))
+
+[<Fact>]
+let ``assessTddProgress handles final criteria start state`` () =
+    // BUSINESS REQUIREMENT: Should recognize when starting final acceptance criteria
+    let finalStartState = { Issue = "888"; Criteria = 3; Phase = WorkFlo.Types.Start; Total = 3 }
+    let result = WorkFlo.Advanced.assessTddProgress finalStartState
+    Assert.True(result.Contains("Starting final acceptance criteria"))
+
+[<Fact>]
+let ``assessTddProgress provides generic progress info`` () =
+    // BUSINESS REQUIREMENT: Should provide progress info for any phase
+    let midState = { Issue = "777"; Criteria = 2; Phase = WorkFlo.Types.Refactor; Total = 4 }
+    let result = WorkFlo.Advanced.assessTddProgress midState
+    Assert.True(result.Contains("Phase: Refactor, Progress: 2/4"))
+
+[<Fact>]
+let ``processIssueInput handles out of range issues`` () =
+    // BUSINESS REQUIREMENT: Should reject issue numbers outside valid range
+    let outOfRangeResult = WorkFlo.Advanced.processIssueInput "50000"
+    Assert.True(outOfRangeResult.Contains("Invalid: Issue number out of range"))
+
+[<Fact>]
+let ``getPhaseAdvice handles all phase types`` () =
+    // BUSINESS REQUIREMENT: Should provide advice for Refactor and Cover phases
+    let refactorState = { Issue = "111"; Criteria = 1; Phase = WorkFlo.Types.Refactor; Total = 3 }
+    let refactorAdvice = WorkFlo.Advanced.getPhaseAdvice refactorState
+    Assert.True(refactorAdvice.Contains("Clean up and improve code quality"))
+    
+    let coverState = { Issue = "222"; Criteria = 1; Phase = WorkFlo.Types.Cover; Total = 3 }
+    let coverAdvice = WorkFlo.Advanced.getPhaseAdvice coverState
+    Assert.True(coverAdvice.Contains("Add comprehensive test coverage"))
+    
+    let defaultState = { Issue = "333"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 3 }
+    let defaultAdvice = WorkFlo.Advanced.getPhaseAdvice defaultState
+    Assert.True(defaultAdvice.Contains("Plan your next TDD step"))
+
+[<Fact>]
+let ``getTddStrategy covers all strategy phases`` () =
+    // BUSINESS REQUIREMENT: Strategy should adapt to different project phases
+    let completeState = { Issue = "444"; Criteria = 5; Phase = WorkFlo.Types.Cover; Total = 5 }
+    let completeStrategy = WorkFlo.Advanced.getTddStrategy completeState
+    Assert.True(completeStrategy.Contains("Excellent work! Ready for the next feature"))
+
+[<Fact>]
+let ``analyzeSession covers all session scenarios`` () =
+    // BUSINESS REQUIREMENT: Session analysis should handle various problematic patterns
+    let manyFailuresSession : WorkFlo.Advanced.TddSession = {
+        State = { Issue = "555"; Criteria = 1; Phase = WorkFlo.Types.Green; Total = 3 }
+        StartTime = System.DateTime.Now.AddHours(-1.0)
+        TestRuns = 10
+        FailedTests = 8  // More than half failed
+    }
+    let failureResult = WorkFlo.Advanced.analyzeSession manyFailuresSession
+    Assert.True(failureResult.Contains("Many failing tests"))
+    
+    let redPhaseNoTestsSession : WorkFlo.Advanced.TddSession = {
+        State = { Issue = "666"; Criteria = 1; Phase = WorkFlo.Types.Red; Total = 3 }
+        StartTime = System.DateTime.Now
+        TestRuns = 0
+        FailedTests = 0
+    }
+    let noTestsResult = WorkFlo.Advanced.analyzeSession redPhaseNoTestsSession
+    Assert.True(noTestsResult.Contains("Remember to run tests in RED phase"))
+    
+    let normalSession : WorkFlo.Advanced.TddSession = {
+        State = { Issue = "777"; Criteria = 2; Phase = WorkFlo.Types.Green; Total = 3 }
+        StartTime = System.DateTime.Now.AddMinutes(-30.0)
+        TestRuns = 5
+        FailedTests = 1
+    }
+    let normalResult = WorkFlo.Advanced.analyzeSession normalSession
+    Assert.True(normalResult.Contains("Session progressing normally"))
+
+[<Fact>]
+let ``analyzeTddHistory handles productive sessions`` () =
+    // BUSINESS REQUIREMENT: Should recognize productive patterns with many sessions
+    let productiveHistory = [
+        { Issue = "100"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 3 }
+        { Issue = "101"; Criteria = 1; Phase = WorkFlo.Types.Red; Total = 2 }
+        { Issue = "102"; Criteria = 1; Phase = WorkFlo.Types.Green; Total = 4 }
+        { Issue = "103"; Criteria = 1; Phase = WorkFlo.Types.Refactor; Total = 1 }
+        { Issue = "104"; Criteria = 1; Phase = WorkFlo.Types.Cover; Total = 2 }
+        { Issue = "105"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 3 }
+        { Issue = "106"; Criteria = 1; Phase = WorkFlo.Types.Red; Total = 1 }
+    ]
+    let productiveResult = WorkFlo.Advanced.analyzeTddHistory productiveHistory
+    Assert.True(productiveResult.Contains("Productive! 7 TDD sessions"))
+
+[<Fact>]
+let ``parseCommand handles case sensitivity edge cases`` () =
+    // BUSINESS REQUIREMENT: All command variations should be accepted
+    match parseCommand "FEATURE" [|"789"|] with
+    | Ok (Feature "789") -> Assert.True(true)
+    | _ -> Assert.True(false, "FEATURE should parse as Feature")
+    
+    match parseCommand "STATUS" [||] with
+    | Ok Status -> Assert.True(true)
+    | _ -> Assert.True(false, "STATUS should parse as Status")
+    
+    match parseCommand "NEXT" [||] with
+    | Ok Next -> Assert.True(true)
+    | _ -> Assert.True(false, "NEXT should parse as Next")
+
+[<Fact>]
+let ``executeCommand handles all error conditions`` () =
+    // BUSINESS REQUIREMENT: Commands should fail gracefully in invalid states
+    let context = {
+        ConfigFile = ".test-config"
+        StateFile = "/tmp/non-existent-test.state"
+        ScoreFile = ".test-scores"
+        Debug = false
+        Verbose = false
+    }
+    
+    // Test all commands that require active session
+    match executeCommand Green context with
+    | Error msg -> Assert.True(msg.Contains("No active TDD session"))
+    | Ok _ -> Assert.True(false, "Green without session should fail")
+    
+    match executeCommand Refactor context with
+    | Error msg -> Assert.True(msg.Contains("No active TDD session"))
+    | Ok _ -> Assert.True(false, "Refactor without session should fail")
+    
+    match executeCommand Cover context with
+    | Error msg -> Assert.True(msg.Contains("No active TDD session"))
+    | Ok _ -> Assert.True(false, "Cover without session should fail")
+
+[<Fact>]
+let ``saveState and loadState handle file operations robustly`` () =
+    // BUSINESS REQUIREMENT: State persistence should be reliable
+    let tempFile = System.IO.Path.GetTempFileName()
+    let complexState = { Issue = "COMPLEX-999"; Criteria = 42; Phase = WorkFlo.Types.Cover; Total = 100 }
+    
+    try
+        // Test successful save/load cycle
+        match saveState tempFile complexState with
+        | Ok () -> ()
+        | Error _ -> Assert.True(false, "Save should succeed")
+        
+        match loadState tempFile with
+        | Ok (Some loadedState) ->
+            Assert.Equal(complexState.Issue, loadedState.Issue)
+            Assert.Equal(complexState.Criteria, loadedState.Criteria)
+            Assert.Equal(complexState.Phase, loadedState.Phase)
+            Assert.Equal(complexState.Total, loadedState.Total)
+        | _ -> Assert.True(false, "Load should succeed")
+        
+        // Test loading non-existent file returns None
+        match loadState "/tmp/definitely-does-not-exist-12345.state" with
+        | Ok None -> Assert.True(true)
+        | _ -> Assert.True(false, "Non-existent file should return None")
+        
+    finally
+        if System.IO.File.Exists(tempFile) then System.IO.File.Delete(tempFile)
+
+// ========================================
+// FINAL COVERAGE PUSH - Remaining Edge Cases
+// ========================================
+
+[<Fact>]
+let ``parseCommand covers all command variations`` () =
+    // BUSINESS REQUIREMENT: Comprehensive command parsing coverage
+    match parseCommand "COVER" [||] with
+    | Ok Cover -> Assert.True(true)
+    | _ -> Assert.True(false, "COVER should parse")
+    
+    match parseCommand "REFACTOR" [||] with
+    | Ok Refactor -> Assert.True(true)
+    | _ -> Assert.True(false, "REFACTOR should parse")
+
+[<Fact>]
+let ``Core validation covers error paths`` () =
+    // BUSINESS REQUIREMENT: Core validation should handle all error conditions
+    match tryParseInt "2147483648" with  // Int32.MaxValue + 1
+    | None -> Assert.True(true)
+    | Some _ -> Assert.True(false, "Should fail for overflow")
+
+[<Fact>]
+let ``parseStateContent handles malformed input`` () =
+    // BUSINESS REQUIREMENT: State parsing should handle malformed content gracefully
+    match parseStateContent "ISSUE=123\nCRITERIA=not_a_number\nPHASE=Start\nTOTAL=3\n" with
+    | Error msg -> Assert.True(msg.Contains("Invalid criteria or total numbers"))
+    | Ok _ -> Assert.True(false, "Should fail for invalid criteria")
+    
+    match parseStateContent "ISSUE=123\nCRITERIA=2\nPHASE=InvalidPhase\nTOTAL=3\n" with
+    | Error msg -> Assert.True(msg.Contains("Unknown phase"))
+    | Ok _ -> Assert.True(false, "Should fail for invalid phase")
+
+[<Fact>]
+let ``entryPoint function delegates to main`` () =
+    // BUSINESS REQUIREMENT: Entry point should properly delegate to main function
+    let result = WorkFlo.Program.entryPoint [|"help"|]
+    Assert.Equal(0, result)
+
+[<Fact>]
+let ``all command error scenarios work`` () =
+    // BUSINESS REQUIREMENT: Comprehensive error handling for all commands
+    let stateFile = System.IO.Path.GetTempFileName()
+    let wrongPhaseState = { Issue = "999"; Criteria = 1; Phase = WorkFlo.Types.Cover; Total = 3 }
+    let content = formatState wrongPhaseState
+    System.IO.File.WriteAllText(stateFile, content)
+    
+    let context = {
+        ConfigFile = ".test-config"
+        StateFile = stateFile
+        ScoreFile = ".test-scores"
+        Debug = false
+        Verbose = false
+    }
+    
+    try
+        // Red from Cover should fail
+        match executeCommand Red context with
+        | Error msg -> Assert.True(msg.Contains("Cannot transition to RED from Cover"))
+        | Ok _ -> Assert.True(false, "Red from Cover should fail")
+        
+        // Green from Cover should fail  
+        match executeCommand Green context with
+        | Error msg -> Assert.True(msg.Contains("Cannot transition to GREEN from Cover"))
+        | Ok _ -> Assert.True(false, "Green from Cover should fail")
+        
+        // Refactor from Cover should fail
+        match executeCommand Refactor context with
+        | Error msg -> Assert.True(msg.Contains("Cannot transition to REFACTOR from Cover"))
+        | Ok _ -> Assert.True(false, "Refactor from Cover should fail")
+        
+    finally
+        if System.IO.File.Exists(stateFile) then System.IO.File.Delete(stateFile)
+
+[<Fact>]
+let ``nextCriteria handles boundary conditions`` () =
+    // BUSINESS REQUIREMENT: nextCriteria should handle edge cases properly
+    let maxState = { Issue = "999"; Criteria = 999; Phase = WorkFlo.Types.Cover; Total = 1000 }
+    let result = nextCriteria maxState
+    Assert.Equal(1000, result.Criteria)
+    Assert.Equal(WorkFlo.Types.Start, result.Phase)
+
+[<Fact>]
+let ``writeAllText and readAllText error handling`` () =
+    // BUSINESS REQUIREMENT: File I/O should handle permission errors
+    match writeAllText "/proc/version" "test" with
+    | Error msg -> Assert.True(msg.Length > 0)
+    | Ok _ -> Assert.True(false, "Should fail to write to read-only file")
+
+[<Fact>]
+let ``Advanced patterns handle all edge cases`` () =
+    // BUSINESS REQUIREMENT: Advanced patterns should cover all logical branches
+    
+    // Test the incomplete pattern match in Advanced.fs line 64
+    let middlePhaseState = { Issue = "123"; Criteria = 2; Phase = WorkFlo.Types.Green; Total = 4 }
+    let strategy = WorkFlo.Advanced.getTddStrategy middlePhaseState
+    Assert.True(strategy.Length > 0)  // Should not crash, should return something
+    
+    // Test all partial active pattern cases
+    let redState = { Issue = "456"; Criteria = 1; Phase = WorkFlo.Types.Red; Total = 3 }
+    let greenState = { Issue = "789"; Criteria = 2; Phase = WorkFlo.Types.Green; Total = 3 }
+    
+    let redAdvice = WorkFlo.Advanced.getPhaseAdvice redState
+    let greenAdvice = WorkFlo.Advanced.getPhaseAdvice greenState
+    
+    Assert.True(redAdvice.Contains("failing test"))
+    Assert.True(greenAdvice.Contains("minimal code"))
+
+[<Fact>]
+let ``processCommand integration with all error paths`` () =
+    // BUSINESS REQUIREMENT: Full integration should handle all error combinations
+    let context = {
+        ConfigFile = ".test-config"
+        StateFile = "/tmp/integration-test.state"
+        ScoreFile = ".test-scores"
+        Debug = false
+        Verbose = false
+    }
+    
+    // Invalid command
+    match processCommand "invalid" [||] context with
+    | Error msg -> Assert.True(msg.Contains("Unknown command"))
+    | Ok _ -> Assert.True(false, "Invalid command should fail")
+    
+    // Command with wrong arguments
+    match processCommand "start" [||] context with
+    | Error msg -> Assert.True(msg.Contains("Usage: start"))
+    | Ok _ -> Assert.True(false, "Start without args should fail")
+
+[<Fact>]
+let ``runApp comprehensive integration`` () =
+    // BUSINESS REQUIREMENT: runApp should handle complete end-to-end scenarios
+    
+    // Test successful feature command
+    match WorkFlo.Program.runApp [|"feature"; "12345"|] with
+    | Ok message -> Assert.True(message.Contains("automated feature development"))
+    | Error _ -> Assert.True(false, "Feature should succeed")
+    
+    // Test invalid command args
+    match WorkFlo.Program.runApp [|"start"|] with
+    | Error msg -> Assert.True(msg.Contains("Usage: start"))
+    | Ok _ -> Assert.True(false, "Start without args should fail")
+    
+    // Test completely invalid command
+    match WorkFlo.Program.runApp [|"nonexistent"|] with
+    | Error msg -> Assert.True(msg.Contains("Unknown command"))
+    | Ok _ -> Assert.True(false, "Invalid command should fail")
