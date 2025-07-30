@@ -776,3 +776,104 @@ let ``State persistence maintains all fields correctly`` () =
         | _ -> Assert.True(false, "Load should succeed and return state")
     finally
         if System.IO.File.Exists(stateFile) then System.IO.File.Delete(stateFile)
+
+[<Fact>]
+let ``main function handles success cases correctly`` () =
+    // BUSINESS REQUIREMENT: Main should return 0 exit code for successful operations
+    let result = WorkFlo.Program.main [|"help"|]
+    Assert.Equal(0, result)
+
+[<Fact>]
+let ``main function handles error cases correctly`` () =
+    // BUSINESS REQUIREMENT: Main should return 1 exit code for errors
+    let result = WorkFlo.Program.main [|"invalid-command"|]
+    Assert.Equal(1, result)
+
+[<Fact>]
+let ``main function handles empty arguments`` () =
+    // BUSINESS REQUIREMENT: Main should return error code for no arguments
+    let result = WorkFlo.Program.main [||]
+    Assert.Equal(1, result)
+
+[<Fact>]
+let ``Advanced TDD progress assessment works`` () =
+    // BUSINESS REQUIREMENT: Advanced pattern matching should assess TDD progress
+    let startState = { Issue = "123"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 3 }
+    let result = WorkFlo.Advanced.assessTddProgress startState
+    Assert.True(result.Contains("Beginning TDD journey"))
+    
+    let finalState = { Issue = "456"; Criteria = 3; Phase = WorkFlo.Types.Cover; Total = 3 }
+    let finalResult = WorkFlo.Advanced.assessTddProgress finalState
+    Assert.True(finalResult.Contains("All criteria complete"))
+
+[<Fact>]
+let ``Active patterns validate issue numbers`` () =
+    // BUSINESS REQUIREMENT: Active patterns should provide custom validation logic
+    let validResult = WorkFlo.Advanced.processIssueInput "123"
+    Assert.True(validResult.Contains("Valid issue: 123"))
+    
+    let invalidResult = WorkFlo.Advanced.processIssueInput "abc"
+    Assert.True(invalidResult.Contains("Invalid:"))
+    
+    let outOfRangeResult = WorkFlo.Advanced.processIssueInput "99999"
+    Assert.True(outOfRangeResult.Contains("Invalid:"))
+
+[<Fact>]
+let ``Phase advice provides context-specific guidance`` () =
+    // BUSINESS REQUIREMENT: Phase advice should guide users through TDD workflow
+    let redState = { Issue = "789"; Criteria = 2; Phase = WorkFlo.Types.Red; Total = 3 }
+    let redAdvice = WorkFlo.Advanced.getPhaseAdvice redState
+    Assert.True(redAdvice.Contains("Write failing test"))
+    
+    let greenState = { Issue = "789"; Criteria = 2; Phase = WorkFlo.Types.Green; Total = 3 }
+    let greenAdvice = WorkFlo.Advanced.getPhaseAdvice greenState
+    Assert.True(greenAdvice.Contains("Implement minimal code"))
+
+[<Fact>]
+let ``TDD strategy adapts to session progress`` () =
+    // BUSINESS REQUIREMENT: Strategy should change based on session state
+    let earlyState = { Issue = "111"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 5 }
+    let earlyStrategy = WorkFlo.Advanced.getTddStrategy earlyState
+    Assert.True(earlyStrategy.Contains("understanding requirements"))
+    
+    let lateState = { Issue = "222"; Criteria = 4; Phase = WorkFlo.Types.Cover; Total = 5 }
+    let lateStrategy = WorkFlo.Advanced.getTddStrategy lateState
+    Assert.True(lateStrategy.Contains("Perfect your implementation"))
+
+[<Fact>]
+let ``Session analysis provides meaningful feedback`` () =
+    // BUSINESS REQUIREMENT: Session analysis should help improve TDD practice
+    let perfectSession : WorkFlo.Advanced.TddSession = {
+        State = { Issue = "333"; Criteria = 3; Phase = WorkFlo.Types.Cover; Total = 3 }
+        StartTime = System.DateTime.Now.AddHours(-1.0)
+        TestRuns = 10
+        FailedTests = 0
+    }
+    let perfectResult = WorkFlo.Advanced.analyzeSession perfectSession
+    Assert.True(perfectResult.Contains("Perfect session"))
+    
+    let problemSession : WorkFlo.Advanced.TddSession = {
+        State = { Issue = "444"; Criteria = 1; Phase = WorkFlo.Types.Red; Total = 3 }
+        StartTime = System.DateTime.Now.AddHours(-3.0)
+        TestRuns = 2
+        FailedTests = 2
+    }
+    let problemResult = WorkFlo.Advanced.analyzeSession problemSession
+    Assert.True(problemResult.Contains("Long session") || problemResult.Contains("Many failing tests"))
+
+[<Fact>]
+let ``TDD history analysis tracks patterns`` () =
+    // BUSINESS REQUIREMENT: History analysis should identify productive patterns
+    let emptyHistory = WorkFlo.Advanced.analyzeTddHistory []
+    Assert.True(emptyHistory.Contains("No TDD history"))
+    
+    let singleSession = [{ Issue = "555"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 1 }]
+    let singleResult = WorkFlo.Advanced.analyzeTddHistory singleSession
+    Assert.True(singleResult.Contains("Single session"))
+    
+    let multiSession = [
+        { Issue = "666"; Criteria = 1; Phase = WorkFlo.Types.Start; Total = 3 }
+        { Issue = "666"; Criteria = 2; Phase = WorkFlo.Types.Red; Total = 3 }
+    ]
+    let multiResult = WorkFlo.Advanced.analyzeTddHistory multiSession
+    Assert.True(multiResult.Contains("Multiple criteria in same issue"))
