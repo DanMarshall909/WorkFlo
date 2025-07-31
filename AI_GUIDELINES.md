@@ -1,6 +1,8 @@
 # AI_GUIDELINES.md
 
-This file contains core guidelines for all AI agents working with the WorkFlo repository.
+**🤖 CRITICAL: AI agents MUST read this file at the start of every session.**
+
+This file contains core guidelines optimized for AI agents working with any development repository.
 
 ## Ultra-Minimal Self-Contained TDD Workflow
 
@@ -22,11 +24,12 @@ This repository enforces **ONE acceptance criteria at a time** with hard stops t
 ./tdd start <issue_number>
 
 # 3. Follow the enforced TDD cycle (auto-commits, auto-updates board):
-./tdd red        # Write ONE failing test for current criteria
-./tdd green      # Minimal implementation to pass the test  
-./tdd refactor   # Improve code quality (optional)
-./tdd cover      # Add comprehensive test coverage + mutation testing
-./tdd next       # Move to next criteria (HARD STOP - must be explicit)
+./tdd red        # 🔴 Write ONE failing test for current criteria
+./tdd green      # 🟢 Minimal implementation to pass the test  
+./tdd refactor   # 🔵 Improve code quality (optional)
+./tdd cover      # 📊 Add comprehensive test coverage (unit tests only)
+./tdd document   # 📝 Document learnings for future AI agents
+./tdd next       # ➡️ Move to next criteria (HARD STOP - must be explicit)
 
 # 4. Check current status
 ./tdd status
@@ -38,11 +41,12 @@ This repository enforces **ONE acceptance criteria at a time** with hard stops t
 ### TDD Cycle Enforcement
 
 **Required sequence (no skipping allowed):**
-1. **RED** → Write ONE failing test for current acceptance criteria
-2. **GREEN** → Minimal implementation to make test pass
-3. **REFACTOR** → Improve code quality (optional)
-4. **COVER** → Add comprehensive tests + mutation testing (85% threshold)
-5. **NEXT** → Hard stop, must explicitly continue to next criteria
+1. **🔴 RED** → Write ONE failing test for current acceptance criteria
+2. **🟢 GREEN** → Minimal implementation to make test pass
+3. **🔵 REFACTOR** → Improve code quality (optional)  
+4. **📊 COVER** → Add comprehensive unit tests (integration tests at PR stage)
+5. **📝 DOCUMENT** → Document learnings and patterns for future AI agents
+6. **➡️ NEXT** → Hard stop, must explicitly continue to next criteria
 
 ### Progressive Disclosure
 
@@ -53,10 +57,10 @@ This repository enforces **ONE acceptance criteria at a time** with hard stops t
 
 ### Quality Gates & Automation
 
-- **Tests must pass** before advancing phases
-- **Mutation testing** required in COVER phase (85% threshold)
-- **Automatic commits** for each TDD phase with structured messages
-- **Automatic board updates** track TDD phase progress
+- **Unit tests must pass** before advancing phases
+- **Integration tests + mutation testing** run at PR stage (not during TDD cycles)
+- **Automatic commits** for each TDD phase with structured messages (🔴RED, 🟢GREEN, etc.)
+- **Automatic board updates** track TDD phase progress  
 - **Automatic issue completion** when all criteria finished
 - **No manual git/gh commands** required by user
 - **No skipping** of TDD phases allowed
@@ -97,6 +101,52 @@ GitHub issues must have acceptance criteria in this format:
 
 This system is designed to constrain AI agents to focused, high-quality development with built-in stops to prevent scope creep. The workflow is completely self-contained - AI agents never need to run git, gh, or board management commands manually.
 
+## 🚨 Critical AI Agent Rules
+
+### Test Strategy (ESSENTIAL - Prevents Blocking)
+```bash
+# ✅ DURING TDD CYCLES: Run focused unit tests only
+npm test -- --testPathPattern=auto-subcommand
+npx jest tests/specific-feature.test.ts
+
+# ❌ NEVER during TDD cycles: Integration tests, mutation tests, full test suites
+# ✅ AT PR STAGE: Full integration + mutation testing
+```
+
+**Why**: Integration test failures unrelated to your current work will block TDD progression. Unit tests provide fast feedback on your specific changes.
+
+### Git Workflow Patterns  
+```bash
+# Each AC should complete full cycle before next AC
+AC1: RED→GREEN→REFACTOR→COVER→DOCUMENT→[PR→REVIEW→MERGE]
+AC2: RED→GREEN→REFACTOR→COVER→DOCUMENT→[PR→REVIEW→MERGE]
+
+# OR accumulate ACs on feature branch, then single PR
+AC1,AC2,AC3 → Single PR with all ACs
+```
+
+### Commit Message Patterns (AI-Optimized)
+```bash
+# Use emoji prefixes for visual parsing
+🔴RED: criteria 1 - Add auto subcommand
+🟢GREEN: criteria 1 - implement minimal auto command  
+🔵REFACTOR: criteria 1 - improve error handling
+📊COVER: criteria 1 - add comprehensive test coverage
+📝DOCUMENT: criteria 1 - document CLI patterns
+```
+
+### Error Recovery Patterns
+```typescript
+// Standard AI-safe error handling
+try {
+  const result = await operation();
+  console.log(`✅ Success: ${result}`);
+} catch (error: any) {
+  console.error(`❌ Error: ${error.message}`);
+  process.exit(1); // For CLI tools - clean failure
+}
+```
+
 ## CLI Development Patterns
 
 ### Commander.js Subcommand Structure
@@ -132,22 +182,31 @@ program
   });
 ```
 
-### CLI Testing Patterns
-Use execSync for testing built CLI output:
+### CLI Testing Patterns (AI-Optimized)
+**🔧 Always test against built output, never source:**
 
 ```typescript
-// Test command availability
+// ✅ Test command availability  
 const helpOutput = execSync('node dist/cli.js --help', { encoding: 'utf8' });
 expect(helpOutput).toContain('auto');
 
-// Test command execution
+// ✅ Test command execution with regex patterns (flexible)
 const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
 expect(output).toMatch(/status|progress|workflow/i);
 
-// Test error scenarios with stdio control
+// ✅ Test error scenarios with stdio control (prevents noise)
 expect(() => {
   execSync('node dist/cli.js auto --help', { encoding: 'utf8', stdio: 'pipe' });
 }).not.toThrow();
+
+// ✅ Test structure for AI agents
+describe('AC-3: Add auto status command', () => {
+  it('should handle status without issue number', () => {
+    // Given - When - Then structure (AI-friendly)
+    const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
+    expect(output).toMatch(/no.*active|not.*running/i);
+  });
+});
 ```
 
 ### Key CLI Principles
@@ -157,3 +216,86 @@ expect(() => {
 - **Test against built dist/**: Always test compiled JavaScript, not TypeScript source
 - **Comprehensive coverage**: Test help output, error scenarios, and positive cases
 - **User-friendly messaging**: Provide clear, informative output for all scenarios
+
+## AST Manipulation Patterns (Safe Code Generation)
+
+### TypeScript AST with ts-morph (Recommended)
+**🛡️ Never use string concatenation for code generation:**
+
+```typescript
+import { Project, SourceFile } from 'ts-morph';
+
+// ✅ Safe AST manipulation
+const project = new Project();
+const sourceFile = project.addSourceFileAtPath(filePath);
+
+// Insert test at end of describe block
+const describeDeclaration = sourceFile.getFirstDescendantByKind(SyntaxKind.CallExpression);
+const testCode = `
+  it('should handle new scenario', () => {
+    // Given - When - Then
+    expect(true).toBe(true);
+  });
+`;
+describeDeclaration.insertText(testCode);
+
+// Save changes
+sourceFile.saveSync();
+```
+
+### Code Generation Strategies (AI-Safe)
+```typescript
+// Four strategies for test insertion (use appropriate one):
+1. 'new-file'        // Create entirely new test file
+2. 'insert-before-end' // Add to existing describe block  
+3. 'insert-at-marker' // Use comment markers
+4. 'insert-new-describe' // Add new describe blocks
+
+// Choose based on existing code structure
+if (existingTestFile) {
+  strategy = 'insert-before-end';
+} else {
+  strategy = 'new-file';
+}
+```
+
+## AI Agent Optimization Tips
+
+### 🧠 Cognitive Load Reduction
+```markdown
+# Use visual indicators for quick scanning
+✅ Do this     ❌ Don't do this
+🔧 Tool/Command  📝 Documentation  
+🚨 Critical     ⚠️ Warning
+📊 Testing      🛡️ Safety
+```
+
+### 🎯 Pattern Recognition
+```typescript
+// Consistent patterns AI can quickly identify
+interface StandardResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  error?: string;
+}
+
+// Predictable error handling
+const handleResult = (result: StandardResponse) => {
+  if (!result.success) {
+    console.error(`❌ ${result.error}`);
+    process.exit(1);
+  }
+  console.log(`✅ ${result.message}`);
+};
+```
+
+### 🔄 Repetition Optimization
+```bash
+# Common commands AI agents use frequently
+alias build="npm run build"
+alias test-unit="npx jest --testPathPattern" 
+alias test-cli="npm run build && npx jest tests/cli"
+
+# Save AI cognitive cycles on repeated patterns
+```
