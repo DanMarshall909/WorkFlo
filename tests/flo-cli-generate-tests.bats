@@ -4,13 +4,13 @@
 
 @test "flo_cli_generate_tests_command_creates_test_files_from_github_issue" {
     # Given: A GitHub issue with acceptance criteria
-    local test_output_file="tests/issue-123-test-output.test.ts"
+    local test_output_file="tests/issue-204-test-output.test.ts"
     
     # Clean up any existing test file
     [[ -f "$test_output_file" ]] && rm "$test_output_file"
     
     # When: The flo-cli generate-tests command is executed
-    run node flo-cli/dist/cli.js generate-tests --issue 123 --output "$test_output_file"
+    run node flo-cli/dist/cli.js generate-tests --issue 204 --output "$test_output_file"
     
     # Then: The command should succeed
     [ "$status" -eq 0 ]

@@ -95,6 +95,9 @@ function markCriterionCompleteByText(issueBody, description) {
     if (!issueBody) {
         throw new Error('Issue body is required');
     }
+    if (!description || description.trim() === '') {
+        throw new Error('Description is required');
+    }
     const lines = issueBody.split('\n');
     let found = false;
     for (let i = 0; i < lines.length; i++) {

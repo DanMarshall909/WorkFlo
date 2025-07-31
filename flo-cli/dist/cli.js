@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
 const acceptance_criteria_parser_1 = require("./acceptance-criteria-parser");
 const issue_updater_1 = require("./issue-updater");
+const test_generator_1 = require("./test-generator");
+const child_process_1 = require("child_process");
 commander_1.program
     .name('flo-cli')
     .description('CLI tools for WorkFlo TDD workflow')
@@ -66,6 +68,38 @@ commander_1.program
     try {
         const result = await (0, issue_updater_1.updateIssueAC)(parseInt(options.issue), options.description);
         console.log(result.message);
+    }
+    catch (error) {
+        console.error('Error:', error.message);
+        process.exit(1);
+    }
+});
+// Command to generate tests from acceptance criteria
+commander_1.program
+    .command('generate-tests')
+    .description('Generate TypeScript/Jest test files from GitHub issue acceptance criteria')
+    .requiredOption('--issue <number>', 'GitHub issue number')
+    .requiredOption('--output <path>', 'Output path for generated test file')
+    .action(async (options) => {
+    try {
+        // Fetch issue data from GitHub
+        const issueData = (0, child_process_1.execSync)(`gh issue view ${options.issue} --json body,title`, { encoding: 'utf-8' });
+        const issue = JSON.parse(issueData);
+        // Parse acceptance criteria from issue body
+        const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issue.body);
+        if (criteria.length === 0) {
+            console.error('No acceptance criteria found in issue');
+            process.exit(1);
+        }
+        // Create structured parse result
+        const parseResult = (0, test_generator_1.createParseResult)(criteria, parseInt(options.issue), issue.title);
+        // Generate tests using new-file strategy
+        const insertionOptions = {
+            strategy: 'new-file',
+            targetFile: options.output
+        };
+        const resultFile = (0, test_generator_1.generateAndInsertTests)(parseResult, insertionOptions);
+        console.log(`Generated test file: ${resultFile}`);
     }
     catch (error) {
         console.error('Error:', error.message);
