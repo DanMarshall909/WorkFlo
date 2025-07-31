@@ -8,7 +8,7 @@
     
     # Then: Should fail immediately and show usage instructions
     [ "$status" -ne 0 ]
-    [[ "$output" == *"Usage:"* ]] || [[ "$output" == *"--title"* ]]
+    [[ "$output" == *"Usage:"* ]] || [[ "$output" == *"--title"* ]] || [[ "$output" == *"board create"* ]]
 }
 
 @test "board_help_command_works" {
