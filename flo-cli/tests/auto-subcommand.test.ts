@@ -70,4 +70,42 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       expect(output).toMatch(/no.*active|not.*running/i);
     });
   });
+
+  /**
+   * @group ac-4
+   */
+  describe('AC-4: Proper CLI help and usage documentation', () => {
+    it('should show comprehensive usage examples in help', () => {
+      // Given - auto subcommand exists
+      // When - I check auto help
+      const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+      
+      // Then - should show usage examples
+      expect(helpOutput).toContain('Examples:');
+      expect(helpOutput).toMatch(/flo-cli auto 123/);
+      expect(helpOutput).toMatch(/flo-cli auto --status/);
+    });
+
+    it('should document all available options clearly', () => {
+      // Given - auto subcommand with options
+      // When - I check auto help
+      const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+      
+      // Then - should document each option with description
+      expect(helpOutput).toMatch(/Options:/);
+      expect(helpOutput).toMatch(/--status.*Show current auto workflow progress/);
+      expect(helpOutput).toMatch(/--help.*display help for command/);
+    });
+
+    it('should explain the purpose and workflow clearly', () => {
+      // Given - auto subcommand for TDD workflow
+      // When - I check auto help
+      const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+      
+      // Then - should explain autonomous TDD workflow
+      expect(helpOutput).toMatch(/Autonomous TDD workflow/);
+      expect(helpOutput).toContain('automatically cycles through TDD phases');
+      expect(helpOutput).toContain('acceptance criteria');
+    });
+  });
 });

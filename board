@@ -270,7 +270,8 @@ case "$1" in
         done
         
         # Create the issue
-        ISSUE_NUM=$(gh issue create --title "$title" --body "$(echo -e "$body")" | grep -o '#[0-9]*' | tr -d '#')
+        ISSUE_URL=$(gh issue create --title "$title" --body "$(echo -e "$body")")
+        ISSUE_NUM=$(echo "$ISSUE_URL" | grep -o '[0-9]*$')
         
         # Add to board
         add_to_board "$ISSUE_NUM"

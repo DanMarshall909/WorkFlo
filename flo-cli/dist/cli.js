@@ -58,37 +58,37 @@ function validateIssueNumber(issueStr) {
     }
     return issueNumber;
 }
-function validateOutputPath(outputPath) {
+function ensureDirectoryExists(outputPath) {
     const dir = path.dirname(outputPath);
-    // Create directory if it doesn't exist
+    // Create directory recursively if it doesn't exist
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
     if (!outputPath.endsWith('.test.ts')) {
-        throw new Error(`Output file must have .test.ts extension: ${outputPath}`);
+        throw new Error(`Output path must end with '.test.ts': ${outputPath}`);
     }
 }
 commander_1.program
     .name('flo-cli')
-    .description('CLI tools for WorkFlo TDD workflow')
+    .description('CLI for flo project management')
     .version('1.0.0');
-// Command to parse acceptance criteria
+// Command for parsing acceptance criteria
 commander_1.program
     .command('parse-ac')
     .description('Parse acceptance criteria from GitHub issue')
-    .option('--issue <number>', 'GitHub issue number')
+    .requiredOption('--issue <number>', 'GitHub issue number')
     .option('--body <text>', 'Issue body text')
-    .option('--stdin', 'Read from stdin')
+    .option('--json', 'Output as JSON')
     .action(async (options) => {
     try {
         let issueBody;
-        if (options.stdin) {
-            // Read from stdin
-            const chunks = [];
-            for await (const chunk of process.stdin) {
-                chunks.push(chunk);
+        if (options.files) {
+            // Read from files
+            const bodies = [];
+            for await (const files of options.files) {
+                bodies.push(files);
             }
-            issueBody = Buffer.concat(chunks).toString();
+            issueBody = bodies.concat(bodies).toString();
         }
         else if (options.issue) {
             // Fetch from GitHub
@@ -100,14 +100,14 @@ commander_1.program
             issueBody = options.body;
         }
         else {
-            console.error('Error: Must provide --issue, --body, or --stdin');
+            console.error('Error: Either --issue, --body, or --files must be provided');
             process.exit(1);
         }
         const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
         console.log(JSON.stringify({
-            criteria: criteria.map((text, index) => ({
+            criteria: criteria.map((item, index) => ({
                 index: index + 1,
-                text,
+                item,
                 checked: false
             })),
             total: criteria.length,
@@ -119,15 +119,15 @@ commander_1.program
         process.exit(1);
     }
 });
-// Command to mark acceptance criteria as complete
+// Command for updating GitHub issue with test results
 commander_1.program
-    .command('mark-ac-complete')
-    .description('Mark acceptance criterion as complete in GitHub issue')
+    .command('update-issue-ac')
+    .description('Update acceptance criteria status in GitHub issue')
     .requiredOption('--issue <number>', 'GitHub issue number')
-    .requiredOption('--description <text>', 'AC description to mark complete')
+    .requiredOption('--criteria <text>', 'Acceptance criteria text to update')
     .action(async (options) => {
     try {
-        const result = await (0, issue_updater_1.updateIssueAC)(parseInt(options.issue), options.description);
+        const result = await (0, issue_updater_1.updateIssue)(parseInt(options.issue), options.criteria);
         console.log(result.message);
     }
     catch (error) {
@@ -135,37 +135,37 @@ commander_1.program
         process.exit(1);
     }
 });
-// Command to generate tests from acceptance criteria
+// Command for generating tests from GitHub issues
 commander_1.program
     .command('generate-tests')
-    .description('Generate TypeScript/Jest test files from GitHub issue acceptance criteria')
+    .description('Generate comprehensive tests from GitHub issue acceptance criteria')
     .requiredOption('--issue <number>', 'GitHub issue number')
     .requiredOption('--output <path>', 'Output path for generated test file')
     .action(async (options) => {
     try {
         // Validate inputs
         const issueNumber = validateIssueNumber(options.issue);
-        validateOutputPath(options.output);
-        // Fetch issue data from GitHub
+        ensureDirectoryExists(options.output);
+        // Fetch issue data with full context
         const issue = fetchGitHubIssue(issueNumber, 'body,title');
         // Parse acceptance criteria from issue body
         const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issue.body);
         if (criteria.length === 0) {
             throw new Error(`No acceptance criteria found in issue #${issueNumber}`);
         }
-        // Create structured parse result
-        const parseResult = (0, test_generator_1.createParseResult)(criteria, issueNumber, issue.title);
-        // Generate tests using new-file strategy
-        const insertionOptions = {
+        // Generate tests based on criteria
+        const testContent = (0, test_generator_1.generateTests)(criteria, issueNumber, issue.title);
+        // Configure test generation options
+        const generationOptions = {
             strategy: 'new-file',
-            targetFile: options.output
+            outputPath: options.output
         };
-        const resultFile = (0, test_generator_1.generateAndInsertTests)(parseResult, insertionOptions);
-        console.log(`Generated test file: ${resultFile}`);
-        console.log(`Generated ${criteria.length} test cases from issue #${issueNumber}`);
+        const resultPath = generateTestContent(testContent, generationOptions);
+        console.log(`✅ Generated tests: ${resultPath}`);
+        console.log(`📊 Created ${criteria.length} test scenarios for issue #${issueNumber}`);
     }
     catch (error) {
-        console.error(`Error generating tests: ${error.message}`);
+        console.error(`❌ Test generation failed: ${error.message}`);
         process.exit(1);
     }
 });
@@ -175,6 +175,14 @@ commander_1.program
     .description('Autonomous TDD workflow for issues with multiple acceptance criteria')
     .argument('[issue]', 'GitHub issue number')
     .option('--status', 'Show current auto workflow progress checking')
+    .addHelpText('after', `
+Examples:
+  $ flo-cli auto 123                    Start autonomous workflow for issue #123
+  $ flo-cli auto --status               Check current workflow progress
+
+The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
+for each acceptance criteria in the GitHub issue. It provides autonomous development 
+with built-in quality gates and progress tracking.`)
     .action(async (issue, options) => {
     try {
         if (options.status) {
