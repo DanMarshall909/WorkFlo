@@ -1,0 +1,256 @@
+#!/bin/bash
+# Automated TDD Orchestrator
+# Programmatically controls the TDD cycle while AI handles individual phases
+
+set -e
+
+# Colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Configuration
+AUTO_CONTINUE=${AUTO_CONTINUE:-true}
+MAX_RETRIES=${MAX_RETRIES:-3}
+PHASE_TIMEOUT=${PHASE_TIMEOUT:-300}  # 5 minutes per phase
+SKIP_DOCUMENT=${SKIP_DOCUMENT:-false}
+
+usage() {
+    cat << EOF
+Automated TDD Orchestrator - Programmatic cycle control with AI phase execution
+
+Usage: 
+    $0 start <issue>              Start automated TDD for issue
+    $0 cycle                      Run single criteria cycle (RED→GREEN→REFACTOR→COVER→DOCUMENT→NEXT)
+    $0 complete <issue>           Process ALL criteria for an issue automatically
+    $0 batch <issue1> <issue2>... Process multiple issues in sequence
+    
+Options:
+    --no-auto-continue           Require manual confirmation between phases
+    --skip-document             Skip DOCUMENT phase
+    --max-retries N             Maximum retries per phase (default: 3)
+    --timeout N                 Timeout per phase in seconds (default: 300)
+    
+Examples:
+    $0 start 247                 # Start automated TDD for issue 247
+    $0 cycle                     # Complete one criteria cycle automatically  
+    $0 complete 247              # Process all criteria in issue 247
+    $0 batch 247 248 249         # Process multiple issues sequentially
+    
+Environment Variables:
+    AUTO_CONTINUE=false          # Require manual confirmation
+    SKIP_DOCUMENT=true           # Skip documentation phase
+    MAX_RETRIES=5               # Retry failed phases up to 5 times
+EOF
+}
+
+log() {
+    echo -e "${BLUE}[$(date '+%H:%M:%S')] $1${NC}"
+}
+
+success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+warn() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+error() {
+    echo -e "${RED}❌ $1${NC}"
+    exit 1
+}
+
+# Check if TDD session is active
+check_tdd_session() {
+    if [[ ! -f ".tdd-state" ]]; then
+        error "No active TDD session. Run './tdd start <issue>' first or use '$0 start <issue>'"
+    fi
+    source .tdd-state
+}
+
+# Wait for user confirmation if not auto-continuing
+confirm_continue() {
+    if [[ "$AUTO_CONTINUE" != "true" ]]; then
+        echo -e "\n${YELLOW}Press Enter to continue to next phase, or Ctrl+C to stop...${NC}"
+        read -r
+    fi
+}
+
+# Run a TDD phase with retry logic
+run_phase() {
+    local phase="$1"
+    local retry_count=0
+    
+    log "Starting $phase phase..."
+    
+    while [[ $retry_count -lt $MAX_RETRIES ]]; do
+        if timeout $PHASE_TIMEOUT ./tdd "$phase"; then
+            success "$phase phase completed successfully"
+            return 0
+        else
+            retry_count=$((retry_count + 1))
+            warn "$phase phase failed (attempt $retry_count/$MAX_RETRIES)"
+            
+            if [[ $retry_count -lt $MAX_RETRIES ]]; then
+                log "Retrying $phase phase in 5 seconds..."
+                sleep 5
+            fi
+        fi
+    done
+    
+    error "$phase phase failed after $MAX_RETRIES attempts"
+}
+
+# Run a complete TDD cycle for one acceptance criteria
+run_cycle() {
+    check_tdd_session
+    
+    log "🔄 Starting automated TDD cycle for Issue #$ISSUE, Criteria $CRITERIA"
+    
+    # Check current phase and resume from where we left off
+    case "$PHASE" in
+        "START"|"RED")
+            run_phase "red"
+            confirm_continue
+            ;&
+        "GREEN")
+            run_phase "green" 
+            confirm_continue
+            ;&
+        "REFACTOR")
+            run_phase "refactor"
+            confirm_continue
+            ;&
+        "COVER")
+            run_phase "cover"
+            if [[ "$SKIP_DOCUMENT" != "true" ]]; then
+                confirm_continue
+                run_phase "document"
+            fi
+            confirm_continue
+            ;&
+        "DOCUMENT")
+            run_phase "next"
+            ;;
+        *)
+            warn "Unknown phase: $PHASE"
+            ;;
+    esac
+    
+    success "✅ Completed TDD cycle for criteria $CRITERIA"
+}
+
+# Process all criteria for an issue
+complete_issue() {
+    local issue="$1"
+    [[ -z "$issue" ]] && error "Issue number required"
+    
+    log "🚀 Starting complete automated processing for Issue #$issue"
+    
+    # Start TDD session if not active
+    if [[ ! -f ".tdd-state" ]]; then
+        ./tdd start "$issue"
+    fi
+    
+    check_tdd_session
+    
+    local total_criteria=$TOTAL
+    log "Processing $total_criteria acceptance criteria"
+    
+    while [[ $CRITERIA -le $total_criteria ]]; do
+        log "📋 Processing criteria $CRITERIA of $total_criteria"
+        run_cycle
+        
+        # Reload state after cycle completion
+        if [[ -f ".tdd-state" ]]; then
+            source .tdd-state
+        else
+            success "🎉 All criteria completed! Issue #$issue is done."
+            break
+        fi
+    done
+    
+    success "🎉 Issue #$issue completely processed!"
+}
+
+# Process multiple issues in batch
+batch_process() {
+    local issues=("$@")
+    [[ ${#issues[@]} -eq 0 ]] && error "At least one issue number required"
+    
+    log "📦 Starting batch processing for ${#issues[@]} issues: ${issues[*]}"
+    
+    for issue in "${issues[@]}"; do
+        log "🔄 Processing Issue #$issue"
+        complete_issue "$issue"
+        
+        log "✅ Issue #$issue completed, moving to next..."
+        sleep 2
+    done
+    
+    success "🎉 Batch processing completed for all ${#issues[@]} issues!"
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --no-auto-continue)
+            AUTO_CONTINUE=false
+            shift
+            ;;
+        --skip-document)
+            SKIP_DOCUMENT=true
+            shift
+            ;;
+        --max-retries)
+            MAX_RETRIES="$2"
+            shift 2
+            ;;
+        --timeout)
+            PHASE_TIMEOUT="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Main command handling
+case "${1:-}" in
+    start)
+        issue="$2"
+        [[ -z "$issue" ]] && error "Issue number required"
+        ./tdd start "$issue"
+        success "TDD session started for Issue #$issue. Use '$0 cycle' to run automated cycle"
+        ;;
+    
+    cycle)
+        run_cycle
+        ;;
+    
+    complete)
+        complete_issue "$2"
+        ;;
+    
+    batch)
+        shift
+        batch_process "$@"
+        ;;
+    
+    "")
+        echo "No command specified. Use --help for usage information."
+        exit 1
+        ;;
+    
+    *)
+        error "Unknown command: $1. Use --help for usage information."
+        ;;
+esac
