@@ -153,12 +153,20 @@ program
   .command('auto')
   .description('Autonomous TDD workflow for issues with multiple acceptance criteria')
   .argument('<issue>', 'GitHub issue number')
-  .action(async (issue) => {
+  .option('--status', 'Show current auto workflow status')
+  .action(async (issue, options) => {
     try {
+      if (options.status) {
+        console.log('Auto workflow status not yet implemented');
+        return;
+      }
+      
       const issueNumber = validateIssueNumber(issue);
-      console.log(`Starting autonomous TDD workflow for issue #${issueNumber}`);
-      // Minimal implementation - just acknowledge the command
-      console.log('Auto workflow not yet implemented');
+      console.log(`🚀 Starting autonomous TDD workflow for issue #${issueNumber}`);
+      
+      // TODO: Implement full autonomous workflow
+      console.log('Auto workflow implementation in progress...');
+      
     } catch (error: any) {
       console.error(`Error: ${error.message}`);
       process.exit(1);
