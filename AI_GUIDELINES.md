@@ -96,3 +96,64 @@ GitHub issues must have acceptance criteria in this format:
 - .NET SDK for running tests and mutation testing
 
 This system is designed to constrain AI agents to focused, high-quality development with built-in stops to prevent scope creep. The workflow is completely self-contained - AI agents never need to run git, gh, or board management commands manually.
+
+## CLI Development Patterns
+
+### Commander.js Subcommand Structure
+Established patterns for extending CLI tools with new subcommands:
+
+```typescript
+// Flexible argument handling - optional when using flags
+program
+  .command('auto')
+  .description('Autonomous TDD workflow for issues with multiple acceptance criteria')
+  .argument('[issue]', 'GitHub issue number')  // Optional argument
+  .option('--status', 'Show current auto workflow progress checking')
+  .action(async (issue, options) => {
+    try {
+      if (options.status) {
+        // Handle status-only operation
+        console.log('No active auto workflow running');
+        return;
+      }
+      
+      if (!issue) {
+        console.error('Error: Issue number is required');
+        process.exit(1);
+      }
+      
+      const issueNumber = validateIssueNumber(issue);
+      // Continue with main functionality
+      
+    } catch (error: any) {
+      console.error(`Error: ${error.message}`);
+      process.exit(1);
+    }
+  });
+```
+
+### CLI Testing Patterns
+Use execSync for testing built CLI output:
+
+```typescript
+// Test command availability
+const helpOutput = execSync('node dist/cli.js --help', { encoding: 'utf8' });
+expect(helpOutput).toContain('auto');
+
+// Test command execution
+const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
+expect(output).toMatch(/status|progress|workflow/i);
+
+// Test error scenarios with stdio control
+expect(() => {
+  execSync('node dist/cli.js auto --help', { encoding: 'utf8', stdio: 'pipe' });
+}).not.toThrow();
+```
+
+### Key CLI Principles
+- **Optional arguments**: Use `[arg]` instead of `<arg>` when argument should be optional for certain flags
+- **Early validation**: Validate inputs immediately with descriptive error messages
+- **Status vs action separation**: Use options for status/mode flags rather than separate subcommands
+- **Test against built dist/**: Always test compiled JavaScript, not TypeScript source
+- **Comprehensive coverage**: Test help output, error scenarios, and positive cases
+- **User-friendly messaging**: Provide clear, informative output for all scenarios
