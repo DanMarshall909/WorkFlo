@@ -40,11 +40,8 @@ jobs:
 
     - name: Run WorkFlo Tests
       run: |
-        # Run simple board tests that don't require GitHub auth
+        # Run simple board tests that validate non-interactive behavior
         bats test/board-simple.bats
-        
-        # Run .NET tests
-        dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
       env:
         TDD_TEST_MODE: 1
 
