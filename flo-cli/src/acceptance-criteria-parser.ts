@@ -1,16 +1,18 @@
+/**
+ * Parses acceptance criteria from a GitHub issue body.
+ * Extracts all unchecked checkbox items (- [ ]) as acceptance criteria.
+ * 
+ * @param issueBody - The raw markdown content of a GitHub issue
+ * @returns Array of acceptance criteria strings
+ */
 export function parseAcceptanceCriteria(issueBody: string): string[] {
   if (!issueBody) {
     return [];
   }
 
   // Match unchecked checkbox items: - [ ] text
-  const checkboxRegex = /^- \[ \] (.+)$/gm;
-  const criteria: string[] = [];
-  let match;
-
-  while ((match = checkboxRegex.exec(issueBody)) !== null) {
-    criteria.push(match[1].trim());
-  }
-
-  return criteria;
+  const UNCHECKED_CHECKBOX_PATTERN = /^- \[ \] (.+)$/gm;
+  
+  const matches = Array.from(issueBody.matchAll(UNCHECKED_CHECKBOX_PATTERN));
+  return matches.map(match => match[1].trim());
 }
