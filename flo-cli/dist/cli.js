@@ -169,5 +169,22 @@ commander_1.program
         process.exit(1);
     }
 });
+// Command for autonomous TDD workflow
+commander_1.program
+    .command('auto')
+    .description('Autonomous TDD workflow for issues with multiple acceptance criteria')
+    .argument('<issue>', 'GitHub issue number')
+    .action(async (issue) => {
+    try {
+        const issueNumber = validateIssueNumber(issue);
+        console.log(`Starting autonomous TDD workflow for issue #${issueNumber}`);
+        // Minimal implementation - just acknowledge the command
+        console.log('Auto workflow not yet implemented');
+    }
+    catch (error) {
+        console.error(`Error: ${error.message}`);
+        process.exit(1);
+    }
+});
 commander_1.program.parse();
 //# sourceMappingURL=cli.js.map
