@@ -50,6 +50,7 @@ show_usage() {
     echo "  board create      Create new issue"
     echo "  issue create [title] [description] [labels] [criteria...]  Create GitHub issue"
     echo "  label create <name> [color] [description]                  Create GitHub label"
+    echo "  mark-ac <issue> \"<description>\"                            Mark acceptance criterion as complete"
     echo ""
     echo "Quality & Testing:"
     echo "  qc                Run quality checks"
@@ -718,6 +719,32 @@ flo_feature() {
     success "Automated feature development completed"
 }
 
+# Mark acceptance criterion as complete
+flo_mark_ac() {
+    local issue_number="$1"
+    local ac_description="$2"
+    
+    [[ -z "$issue_number" ]] && error "Usage: flo mark-ac <issue> \"<description>\""
+    [[ -z "$ac_description" ]] && error "Usage: flo mark-ac <issue> \"<description>\""
+    
+    info "Marking AC as complete in issue #$issue_number..."
+    
+    # Use the flo-cli TypeScript implementation
+    if [[ -f "$SCRIPT_DIR/flo-cli/dist/cli.js" ]]; then
+        cd "$SCRIPT_DIR/flo-cli"
+        if node dist/cli.js mark-ac-complete --issue "$issue_number" --description "$ac_description"; then
+            success "Acceptance criterion marked as complete"
+        else
+            error "Failed to mark acceptance criterion as complete"
+            echo ""
+            warn "Available acceptance criteria in issue #$issue_number:"
+            node dist/cli.js parse-ac --issue "$issue_number" | jq -r '.criteria[] | "  • \(.text)"' 2>/dev/null || echo "  (Could not list available criteria)"
+        fi
+    else
+        error "flo-cli not built. Run: cd flo-cli && npm run build"
+    fi
+}
+
 # Main command dispatcher
 case "${1:-help}" in
     --persona)      switch_persona "$2" ;;
@@ -770,6 +797,9 @@ case "${1:-help}" in
             *)      error "Usage: flo pr {create|review}" ;;
         esac
         ;;
+    
+    # Acceptance criteria management
+    mark-ac)        flo_mark_ac "$2" "$3" ;;
     
     # Information
     info)           show_project_info ;;

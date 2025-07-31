@@ -2,7 +2,10 @@
   "name": "flo-cli",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/cli.js",
+  "bin": {
+    "flo-cli": "dist/cli.js"
+  },
   "directories": {
     "test": "tests"
   },
@@ -11,7 +14,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "start": "npm run build && node dist/cli.js"
   },
   "keywords": [],
   "author": "",
@@ -23,5 +27,8 @@
     "jest": "^30.0.5",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "commander": "^14.0.0"
   }
 }
