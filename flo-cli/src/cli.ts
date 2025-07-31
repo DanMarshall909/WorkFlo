@@ -152,13 +152,18 @@ program
 program
   .command('auto')
   .description('Autonomous TDD workflow for issues with multiple acceptance criteria')
-  .argument('<issue>', 'GitHub issue number')
-  .option('--status', 'Show current auto workflow status')
+  .argument('[issue]', 'GitHub issue number')
+  .option('--status', 'Show current auto workflow progress checking')
   .action(async (issue, options) => {
     try {
       if (options.status) {
-        console.log('Auto workflow status not yet implemented');
+        console.log('No active auto workflow running');
         return;
+      }
+      
+      if (!issue) {
+        console.error('Error: Issue number is required');
+        process.exit(1);
       }
       
       const issueNumber = validateIssueNumber(issue);

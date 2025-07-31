@@ -37,4 +37,37 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       expect(helpOutput).toMatch(/auto.*autonomous.*workflow/i);
     });
   });
+
+  /**
+   * @group ac-3
+   */
+  describe('AC-3: Add flo-cli auto status for progress checking', () => {
+    it('should support auto status command without issue number', () => {
+      // Given - flo-cli has auto subcommand with status option
+      // When - I run flo-cli auto --status
+      const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
+      
+      // Then - should show status information
+      expect(output).toMatch(/status|progress|workflow/i);
+      expect(output).not.toMatch(/error|usage/i);
+    });
+
+    it('should show status option in auto help', () => {
+      // Given - auto subcommand exists
+      // When - I check auto help
+      const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+      
+      // Then - status option should be documented
+      expect(helpOutput).toMatch(/--status.*progress/i);
+    });
+
+    it('should handle status command gracefully when no workflow active', () => {
+      // Given - no active auto workflow
+      // When - I run flo-cli auto --status
+      const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
+      
+      // Then - should provide informative message
+      expect(output).toMatch(/no.*active|not.*running/i);
+    });
+  });
 });
