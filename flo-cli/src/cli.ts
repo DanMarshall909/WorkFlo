@@ -4,6 +4,39 @@ import { parseAcceptanceCriteria } from './acceptance-criteria-parser';
 import { updateIssueAC } from './issue-updater';
 import { generateAndInsertTests, createParseResult, TestInsertionOptions } from './test-generator';
 import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Utility functions
+function fetchGitHubIssue(issueNumber: number, fields: string = 'body'): any {
+  try {
+    const issueData = execSync(`gh issue view ${issueNumber} --json ${fields}`, { encoding: 'utf-8' });
+    return JSON.parse(issueData);
+  } catch (error: any) {
+    throw new Error(`Failed to fetch GitHub issue ${issueNumber}: ${error.message}`);
+  }
+}
+
+function validateIssueNumber(issueStr: string): number {
+  const issueNumber = parseInt(issueStr);
+  if (!issueNumber || issueNumber <= 0) {
+    throw new Error(`Invalid issue number: ${issueStr}`);
+  }
+  return issueNumber;
+}
+
+function validateOutputPath(outputPath: string): void {
+  const dir = path.dirname(outputPath);
+  
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  
+  if (!outputPath.endsWith('.test.ts')) {
+    throw new Error(`Output file must have .test.ts extension: ${outputPath}`);
+  }
+}
 
 program
   .name('flo-cli')
@@ -30,9 +63,8 @@ program
         issueBody = Buffer.concat(chunks).toString();
       } else if (options.issue) {
         // Fetch from GitHub
-        const { execSync } = require('child_process');
-        const issueData = execSync(`gh issue view ${options.issue} --json body`, { encoding: 'utf-8' });
-        const issue = JSON.parse(issueData);
+        const issueNumber = validateIssueNumber(options.issue);
+        const issue = fetchGitHubIssue(issueNumber, 'body');
         issueBody = issue.body;
       } else if (options.body) {
         issueBody = options.body;
@@ -82,20 +114,22 @@ program
   .requiredOption('--output <path>', 'Output path for generated test file')
   .action(async (options) => {
     try {
+      // Validate inputs
+      const issueNumber = validateIssueNumber(options.issue);
+      validateOutputPath(options.output);
+      
       // Fetch issue data from GitHub
-      const issueData = execSync(`gh issue view ${options.issue} --json body,title`, { encoding: 'utf-8' });
-      const issue = JSON.parse(issueData);
+      const issue = fetchGitHubIssue(issueNumber, 'body,title');
       
       // Parse acceptance criteria from issue body
       const criteria = parseAcceptanceCriteria(issue.body);
       
       if (criteria.length === 0) {
-        console.error('No acceptance criteria found in issue');
-        process.exit(1);
+        throw new Error(`No acceptance criteria found in issue #${issueNumber}`);
       }
       
       // Create structured parse result
-      const parseResult = createParseResult(criteria, parseInt(options.issue), issue.title);
+      const parseResult = createParseResult(criteria, issueNumber, issue.title);
       
       // Generate tests using new-file strategy
       const insertionOptions: TestInsertionOptions = {
@@ -106,9 +140,10 @@ program
       const resultFile = generateAndInsertTests(parseResult, insertionOptions);
       
       console.log(`Generated test file: ${resultFile}`);
+      console.log(`Generated ${criteria.length} test cases from issue #${issueNumber}`);
       
     } catch (error: any) {
-      console.error('Error:', error.message);
+      console.error(`Error generating tests: ${error.message}`);
       process.exit(1);
     }
   });

@@ -147,7 +147,7 @@ describe('Issue #204: CLI Interface Tests', () => {
       // This should not throw when the command is implemented
       let commandSucceeded = false;
       try {
-        execSync('node dist/cli.js generate-tests --issue 123 --output tests/test-output.test.ts', 
+        execSync('node dist/cli.js generate-tests --issue 204 --output tests/test-output.test.ts', 
           { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
         commandSucceeded = true;
       } catch (error) {

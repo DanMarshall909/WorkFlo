@@ -1,11 +1,73 @@
 #!/usr/bin/env node
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
 const acceptance_criteria_parser_1 = require("./acceptance-criteria-parser");
 const issue_updater_1 = require("./issue-updater");
 const test_generator_1 = require("./test-generator");
 const child_process_1 = require("child_process");
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+// Utility functions
+function fetchGitHubIssue(issueNumber, fields = 'body') {
+    try {
+        const issueData = (0, child_process_1.execSync)(`gh issue view ${issueNumber} --json ${fields}`, { encoding: 'utf-8' });
+        return JSON.parse(issueData);
+    }
+    catch (error) {
+        throw new Error(`Failed to fetch GitHub issue ${issueNumber}: ${error.message}`);
+    }
+}
+function validateIssueNumber(issueStr) {
+    const issueNumber = parseInt(issueStr);
+    if (!issueNumber || issueNumber <= 0) {
+        throw new Error(`Invalid issue number: ${issueStr}`);
+    }
+    return issueNumber;
+}
+function validateOutputPath(outputPath) {
+    const dir = path.dirname(outputPath);
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!outputPath.endsWith('.test.ts')) {
+        throw new Error(`Output file must have .test.ts extension: ${outputPath}`);
+    }
+}
 commander_1.program
     .name('flo-cli')
     .description('CLI tools for WorkFlo TDD workflow')
@@ -30,9 +92,8 @@ commander_1.program
         }
         else if (options.issue) {
             // Fetch from GitHub
-            const { execSync } = require('child_process');
-            const issueData = execSync(`gh issue view ${options.issue} --json body`, { encoding: 'utf-8' });
-            const issue = JSON.parse(issueData);
+            const issueNumber = validateIssueNumber(options.issue);
+            const issue = fetchGitHubIssue(issueNumber, 'body');
             issueBody = issue.body;
         }
         else if (options.body) {
@@ -82,17 +143,18 @@ commander_1.program
     .requiredOption('--output <path>', 'Output path for generated test file')
     .action(async (options) => {
     try {
+        // Validate inputs
+        const issueNumber = validateIssueNumber(options.issue);
+        validateOutputPath(options.output);
         // Fetch issue data from GitHub
-        const issueData = (0, child_process_1.execSync)(`gh issue view ${options.issue} --json body,title`, { encoding: 'utf-8' });
-        const issue = JSON.parse(issueData);
+        const issue = fetchGitHubIssue(issueNumber, 'body,title');
         // Parse acceptance criteria from issue body
         const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issue.body);
         if (criteria.length === 0) {
-            console.error('No acceptance criteria found in issue');
-            process.exit(1);
+            throw new Error(`No acceptance criteria found in issue #${issueNumber}`);
         }
         // Create structured parse result
-        const parseResult = (0, test_generator_1.createParseResult)(criteria, parseInt(options.issue), issue.title);
+        const parseResult = (0, test_generator_1.createParseResult)(criteria, issueNumber, issue.title);
         // Generate tests using new-file strategy
         const insertionOptions = {
             strategy: 'new-file',
@@ -100,9 +162,10 @@ commander_1.program
         };
         const resultFile = (0, test_generator_1.generateAndInsertTests)(parseResult, insertionOptions);
         console.log(`Generated test file: ${resultFile}`);
+        console.log(`Generated ${criteria.length} test cases from issue #${issueNumber}`);
     }
     catch (error) {
-        console.error('Error:', error.message);
+        console.error(`Error generating tests: ${error.message}`);
         process.exit(1);
     }
 });
