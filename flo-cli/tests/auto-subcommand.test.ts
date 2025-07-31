@@ -134,7 +134,9 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       
       expect(foundMatch).toBeTruthy();
       expect(countMatch).toBeTruthy();
-      expect(foundMatch![1]).toBe(countMatch![1]); // Same count in both messages
+      if (foundMatch && countMatch) {
+        expect(foundMatch[1]).toBe(countMatch[1]); // Same count in both messages
+      }
     });
 
     it('should handle parse-only option correctly', () => {
@@ -145,6 +147,43 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       // Then - should show parsing results and not start workflow
       expect(output).toMatch(/Found.*acceptance criteria/);
       expect(output).not.toContain('Starting autonomous TDD workflow');
+    });
+  });
+
+  /**
+   * @group ac-6
+   */
+  describe('AC-6: Initialize TDD session using existing ./tdd start command', () => {
+    it('should initialize TDD session when starting auto workflow', () => {
+      // Given - an issue with acceptance criteria and no active TDD session
+      // When - I run flo-cli auto with --init-session option
+      const output = execSync('node dist/cli.js auto 250 --init-session', { encoding: 'utf8' });
+      
+      // Then - should initialize TDD session and show confirmation
+      expect(output).toContain('Initializing TDD session for issue #250');
+      expect(output).toMatch(/TDD session started.*issue.*250/i);
+      expect(output).toContain('Ready to begin autonomous workflow');
+    });
+
+    it('should use existing tdd start command integration', () => {
+      // Given - an issue number for TDD initialization  
+      // When - I run auto with init-session flag
+      const output = execSync('node dist/cli.js auto 250 --init-session', { encoding: 'utf8' });
+      
+      // Then - should reference existing TDD system
+      expect(output).toMatch(/using.*tdd.*start/i);
+      expect(output).toMatch(/session.*initialized/i);
+    });
+
+    it('should handle TDD session initialization errors gracefully', () => {
+      // Given - invalid conditions for TDD session start
+      // When - I run auto with init-session on invalid issue
+      expect(() => {
+        execSync('node dist/cli.js auto 999999 --init-session', { 
+          encoding: 'utf8', 
+          stdio: 'pipe' 
+        });
+      }).toThrow();
     });
   });
 });
