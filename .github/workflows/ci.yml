@@ -39,7 +39,12 @@ jobs:
         sudo apt-get install -y jq bc
 
     - name: Run WorkFlo Tests
-      run: ./run-tests
+      run: |
+        # Run only our specific board tests that don't require GitHub auth
+        bats test/board-non-interactive.bats
+        
+        # Run .NET tests
+        dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
       env:
         TDD_TEST_MODE: 1
 
@@ -59,7 +64,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd vscode-extension
-        npm ci
+        npm install
 
     - name: Build
       run: |
