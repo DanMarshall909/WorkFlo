@@ -26,10 +26,15 @@ case "${1:-}" in
         if command -v bats >/dev/null 2>&1; then
             echo "Running BATS tests..."
             test_files=()
-            if [[ -d "tests" ]]; then
+            if [[ -d "testing/integration" ]]; then
                 while IFS= read -r -d '' file; do
                     test_files+=("$file")
-                done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
+                done < <(find testing/integration -name "*.bats" -type f -print0 2>/dev/null)
+            fi
+            if [[ -d "testing/unit" ]]; then
+                while IFS= read -r -d '' file; do
+                    test_files+=("$file")
+                done < <(find testing/unit -name "*.bats" -type f -print0 2>/dev/null)
             fi
             while IFS= read -r -d '' file; do
                 # Skip integration tests unless explicitly requested
@@ -53,13 +58,13 @@ case "${1:-}" in
         ;;
     --dotnet-only)
         echo "Running .NET tests..."
-        dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
+        echo "No .NET tests available after cleanup"
         exit $?
         ;;
     --bash-only)
         if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
             echo "Running custom script tests..."
-            ./test-flo-tdd-integration.sh
+            ./testing/test-flo-tdd-integration.sh
         fi
         exit 0
         ;;
@@ -67,8 +72,8 @@ case "${1:-}" in
         echo "Running integration tests (requires GitHub auth)..."
         export INCLUDE_INTEGRATION_TESTS=1
         if command -v bats >/dev/null 2>&1; then
-            if [[ -f "test-flo-integration.bats" ]]; then
-                bats test-flo-integration.bats
+            if [[ -f "testing/test-flo-integration.bats" ]]; then
+                bats testing/test-flo-integration.bats
             else
                 echo "No integration test file found"
                 exit 1
@@ -88,10 +93,15 @@ echo "Running all WorkFlo tests..."
 if command -v bats >/dev/null 2>&1; then
     echo "Running BATS tests..."
     test_files=()
-    if [[ -d "tests" ]]; then
+    if [[ -d "testing/integration" ]]; then
         while IFS= read -r -d '' file; do
             test_files+=("$file")
-        done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
+        done < <(find testing/integration -name "*.bats" -type f -print0 2>/dev/null)
+    fi
+    if [[ -d "testing/unit" ]]; then
+        while IFS= read -r -d '' file; do
+            test_files+=("$file")
+        done < <(find testing/unit -name "*.bats" -type f -print0 2>/dev/null)
     fi
     while IFS= read -r -d '' file; do
         # Skip integration tests unless explicitly requested
@@ -127,20 +137,14 @@ else
     TYPESCRIPT_FAILED=0
 fi
 
-# Run .NET tests
-echo "Running .NET tests..."
-if ! dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/; then
-    echo "❌ .NET tests failed"
-    DOTNET_FAILED=1
-else
-    echo "✅ .NET tests passed"
-    DOTNET_FAILED=0
-fi
+# No .NET tests after cleanup
+echo "No .NET tests available after cleanup"
+DOTNET_FAILED=0
 
 # Run custom script tests (disabled during TDD RED/GREEN phases)
 if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
     echo "Running custom script tests..."
-    if ! ./test-flo-tdd-integration.sh; then
+    if ! ./testing/test-flo-tdd-integration.sh; then
         echo "❌ Bash script tests failed"
         BASH_FAILED=1
     else
