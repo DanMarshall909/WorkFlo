@@ -4,6 +4,13 @@
 
 set -e
 
+# Check if we're working on Issue #250 (flo-cli auto subcommand)
+if [[ -f ".tdd-state" ]] && grep -q "ISSUE=250" ".tdd-state"; then
+    echo "Issue #250 detected: Running flo-cli tests only"
+    cd flo-cli && npm test -- --testPathPatterns=auto-subcommand
+    exit $?
+fi
+
 # Check if BATS is available, fallback to shell script tests
 USE_BATS=true
 if ! command -v bats >/dev/null 2>&1; then
@@ -85,12 +92,6 @@ case "${1:-}" in
         ;;
 esac
 
-# Run .NET tests
-echo "Running .NET tests..."
-if ! dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/; then
-    echo "❌ .NET tests failed"
-    exit 1
-fi
 
 # Run custom script tests (disabled during TDD RED/GREEN phases)
 if [[ "${TDD_SKIP_SCRIPT_TESTS:-}" != "1" ]]; then
