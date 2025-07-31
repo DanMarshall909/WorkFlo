@@ -40,8 +40,8 @@ jobs:
 
     - name: Run WorkFlo Tests
       run: |
-        # Run only our specific board tests that don't require GitHub auth
-        bats test/board-non-interactive.bats
+        # Run simple board tests that don't require GitHub auth
+        bats test/board-simple.bats
         
         # Run .NET tests
         dotnet test src/WorkFlo.Core/tests/WorkFlo.Core.Tests/
