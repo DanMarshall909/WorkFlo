@@ -88,6 +88,7 @@ The `flo` tool provides a wide range of commands to manage your workflow:
 | `flo cover` | Enter the COVER phase (add comprehensive tests). |
 | `flo next` | Move to the next acceptance criterion. |
 | `flo status` | Show the current TDD session status. |
+| `flo-mark-ac <issue> "<description>"` | Mark an acceptance criterion as complete in a GitHub issue. |
 | `flo feature <issue>` | Automate the entire feature development workflow. |
 | `flo board list` | List all issues on the project board. |
 | `flo board show <id>` | Show the details of a specific issue. |

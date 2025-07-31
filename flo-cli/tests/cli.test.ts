@@ -130,4 +130,39 @@ describe('Issue #204: CLI Interface Tests', () => {
       expect(criteria[1]).toBe('Another test criterion');
     });
   });
+
+  describe('AC-6: Create CLI command for generation: flo-cli generate-tests', () => {
+    it('should have generate-tests command that creates test files from acceptance criteria', () => {
+      // Given - prepare test environment for generate-tests command
+      
+      // When - Try to run generate-tests command (will fail because it doesn't exist)
+      const { execSync } = require('child_process');
+      const fs = require('fs');
+      
+      // Clean up any existing test file
+      if (fs.existsSync('tests/test-output.test.ts')) {
+        fs.unlinkSync('tests/test-output.test.ts');
+      }
+      
+      // This should not throw when the command is implemented
+      let commandSucceeded = false;
+      try {
+        execSync('node dist/cli.js generate-tests --issue 123 --output tests/test-output.test.ts', 
+          { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
+        commandSucceeded = true;
+      } catch (error) {
+        // Expected to fail since command doesn't exist yet
+        commandSucceeded = false;
+      }
+      
+      // Then - Command should succeed and create test file
+      expect(commandSucceeded).toBe(true);
+      expect(fs.existsSync('tests/test-output.test.ts')).toBe(true);
+      
+      // Clean up
+      if (fs.existsSync('tests/test-output.test.ts')) {
+        fs.unlinkSync('tests/test-output.test.ts');
+      }
+    });
+  });
 });
