@@ -1,4 +1,4 @@
-import { markCriterionComplete, markCriterionCompleteByText } from '../src/issue-updater';
+import { markCriterionComplete, markCriterionCompleteByText, markCriterionCompleteById, markComplete } from '../src/issue-updater';
 
 /**
  * @group issue-204
@@ -48,6 +48,20 @@ describe('Issue #204: CLI command for updating acceptance criteria', () => {
       expect(() => markCriterionComplete(issueBody, 5)).toThrow('Criterion index 5 not found');
     });
 
+    it('should handle empty issue body for index-based marking', () => {
+      // When/Then
+      expect(() => markCriterionComplete('', 1))
+        .toThrow('Issue body is required');
+    });
+
+    it('should handle null/undefined input for index-based marking', () => {
+      // When/Then
+      expect(() => markCriterionComplete(null as any, 1))
+        .toThrow('Issue body is required');
+      expect(() => markCriterionComplete(undefined as any, 1))
+        .toThrow('Issue body is required');
+    });
+
     it('should mark criterion by description text', () => {
       // Given
       const issueBody = `
@@ -75,6 +89,130 @@ describe('Issue #204: CLI command for updating acceptance criteria', () => {
       // Integration test - skipped in unit tests
       // This would require actual GitHub API access
       expect(true).toBe(true);
+    });
+
+    describe('markCriterionCompleteById', () => {
+      it('should mark criterion by AC ID', () => {
+        // Given
+        const issueBody = `
+- [ ] AC-1: First criterion
+- [ ] AC-2: Second criterion
+- [ ] AC-3: Third criterion
+`;
+
+        // When
+        const result = markCriterionCompleteById(issueBody, 'AC-2');
+
+        // Then
+        expect(result).toContain('- [ ] AC-1: First criterion');
+        expect(result).toContain('- [x] AC-2: Second criterion');
+        expect(result).toContain('- [ ] AC-3: Third criterion');
+      });
+
+      it('should handle non-existent AC ID', () => {
+        // Given
+        const issueBody = '- [ ] AC-1: Only criterion';
+
+        // When/Then
+        expect(() => markCriterionCompleteById(issueBody, 'AC-5'))
+          .toThrow('AC ID AC-5 not found');
+      });
+
+      it('should handle empty issue body', () => {
+        // When/Then
+        expect(() => markCriterionCompleteById('', 'AC-1'))
+          .toThrow('Issue body is required');
+      });
+
+      it('should handle empty AC ID', () => {
+        // When/Then
+        expect(() => markCriterionCompleteById('- [ ] AC-1: Test', ''))
+          .toThrow('AC ID is required');
+      });
+
+      it('should handle null/undefined inputs', () => {
+        // When/Then
+        expect(() => markCriterionCompleteById(null as any, 'AC-1'))
+          .toThrow('Issue body is required');
+        expect(() => markCriterionCompleteById('- [ ] AC-1: Test', null as any))
+          .toThrow('AC ID is required');
+      });
+
+      it('should only match exact AC ID patterns', () => {
+        // Given
+        const issueBody = `
+- [ ] AC-1: First criterion
+- [ ] This mentions AC-1 but is different
+- [ ] AC-10: Tenth criterion
+`;
+
+        // When
+        const result = markCriterionCompleteById(issueBody, 'AC-1');
+
+        // Then
+        expect(result).toContain('- [x] AC-1: First criterion');
+        expect(result).toContain('- [ ] This mentions AC-1 but is different');
+        expect(result).toContain('- [ ] AC-10: Tenth criterion');
+      });
+    });
+
+    describe('markComplete CLI interface', () => {
+      it('should mark by AC ID when acId provided', () => {
+        // Given
+        const options = {
+          body: '- [ ] AC-2: Test criterion',
+          acId: 'AC-2'
+        };
+
+        // When
+        const result = markComplete(options);
+
+        // Then
+        expect(result).toContain('- [x] AC-2: Test criterion');
+      });
+
+      it('should mark by index when index provided', () => {
+        // Given
+        const options = {
+          body: '- [ ] First criterion\n- [ ] Second criterion',
+          index: 2
+        };
+
+        // When
+        const result = markComplete(options);
+
+        // Then
+        expect(result).toContain('- [ ] First criterion');
+        expect(result).toContain('- [x] Second criterion');
+      });
+
+      it('should require issue body', () => {
+        // When/Then
+        expect(() => markComplete({ acId: 'AC-1' }))
+          .toThrow('Issue body is required');
+      });
+
+      it('should require either index or acId', () => {
+        // When/Then
+        expect(() => markComplete({ body: '- [ ] Test' }))
+          .toThrow('Either index or acId is required');
+      });
+
+      it('should prioritize acId over index when both provided', () => {
+        // Given
+        const options = {
+          body: '- [ ] AC-1: First\n- [ ] AC-2: Second',
+          acId: 'AC-2',
+          index: 1
+        };
+
+        // When
+        const result = markComplete(options);
+
+        // Then - Should use acId (AC-2), not index (first item)
+        expect(result).toContain('- [ ] AC-1: First');
+        expect(result).toContain('- [x] AC-2: Second');
+      });
     });
   });
 });

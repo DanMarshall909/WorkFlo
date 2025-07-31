@@ -13,6 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:mutation": "stryker run",
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "npm run build && node dist/cli.js"
@@ -22,6 +23,9 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@stryker-mutator/core": "^9.0.1",
+    "@stryker-mutator/jest-runner": "^9.0.1",
+    "@stryker-mutator/typescript-checker": "^9.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.1.0",
     "jest": "^30.0.5",
