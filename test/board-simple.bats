@@ -6,6 +6,10 @@
     # When: Running board create without any parameters
     run timeout 2s ./board create
     
+    # Debug: Show actual output
+    echo "DEBUG: Status=$status"
+    echo "DEBUG: Output='$output'"
+    
     # Then: Should fail immediately and show usage instructions
     [ "$status" -ne 0 ]
     [[ "$output" == *"Usage:"* ]] || [[ "$output" == *"--title"* ]] || [[ "$output" == *"board create"* ]]
