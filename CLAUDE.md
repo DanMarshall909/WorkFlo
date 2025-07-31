@@ -19,6 +19,8 @@ As of Issue #204, the repository includes a comprehensive TypeScript test genera
 - **Command**: `flo-cli generate-tests --issue <number> --output <path>`
 - **Features**: AST-based test insertion, multiple strategies, Jest/TypeScript output
 - **Integration**: Works with GitHub issues via `gh` CLI
+- **Validation**: Input validation, error handling, automatic directory creation
+- **Testing**: Comprehensive edge case and error scenario coverage
 
 ### AST-Based Test Insertion
 The test generator supports four insertion strategies:
