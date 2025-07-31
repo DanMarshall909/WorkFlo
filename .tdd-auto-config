@@ -1,0 +1,35 @@
+# TDD Auto-Orchestrator Configuration
+# Controls automated TDD cycle behavior while AI handles individual phases
+
+# Orchestration Control
+AUTO_CONTINUE=true              # Automatically advance between phases
+SKIP_DOCUMENT=false            # Skip DOCUMENT phase (not recommended)
+REQUIRE_CONFIRMATION=false     # Require manual confirmation between phases
+
+# Timing and Retry Configuration  
+PHASE_TIMEOUT=300              # Maximum time per phase (seconds)
+MAX_RETRIES=3                  # Retry failed phases up to N times
+RETRY_DELAY=5                  # Seconds to wait between retries
+
+# Batch Processing
+BATCH_DELAY=2                  # Seconds between processing different issues
+PARALLEL_ISSUES=1              # Number of issues to process in parallel (future)
+
+# Quality Gates
+REQUIRE_TESTS_PASS=true        # Fail if tests don't pass in any phase
+REQUIRE_CLEAN_GIT=true         # Require clean git state between phases
+MUTATION_THRESHOLD=85          # Minimum mutation test score (if applicable)
+
+# Notification and Logging
+LOG_LEVEL=INFO                 # DEBUG, INFO, WARN, ERROR
+NOTIFY_ON_COMPLETION=false     # Send notifications when cycles complete
+SLACK_WEBHOOK_URL=""           # Slack webhook for notifications (optional)
+
+# AI Provider Settings
+AI_PROVIDER=claude             # Default AI provider for phases
+AI_FALLBACK=gemini            # Fallback AI provider if primary fails
+AI_RETRY_ON_FAILURE=true      # Retry with fallback AI on failure
+
+# Development Mode
+DRY_RUN=false                 # Show what would be done without executing
+VERBOSE=false                 # Extra verbose output for debugging
