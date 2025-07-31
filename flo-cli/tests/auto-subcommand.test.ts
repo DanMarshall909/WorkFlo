@@ -108,4 +108,38 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       expect(helpOutput).toContain('acceptance criteria');
     });
   });
+
+  /**
+   * @group ac-5
+   */
+  describe('AC-5: Parse GitHub issues to extract acceptance criteria count', () => {
+    it('should parse issue and return acceptance criteria count', () => {
+      // Given - a GitHub issue with acceptance criteria
+      // When - I run flo-cli auto with issue parsing
+      const output = execSync('node dist/cli.js auto 123 --parse-only', { encoding: 'utf8' });
+      
+      // Then - should display acceptance criteria count
+      expect(output).toContain('Found 3 acceptance criteria');
+      expect(output).toMatch(/criteria.*count.*3/i);
+    });
+
+    it('should handle issues with no acceptance criteria', () => {
+      // Given - a GitHub issue without acceptance criteria  
+      // When - I run flo-cli auto with issue parsing
+      const output = execSync('node dist/cli.js auto 456 --parse-only', { encoding: 'utf8' });
+      
+      // Then - should indicate no criteria found
+      expect(output).toContain('No acceptance criteria found');
+      expect(output).toMatch(/0.*criteria/i);
+    });
+
+    it('should parse mixed checkbox formats correctly', () => {
+      // Given - an issue with different checkbox formats
+      // When - I run flo-cli auto with mixed format issue
+      const output = execSync('node dist/cli.js auto 789 --parse-only', { encoding: 'utf8' });
+      
+      // Then - should count all valid acceptance criteria
+      expect(output).toMatch(/Found.*\d+.*acceptance criteria/);
+    });
+  });
 });

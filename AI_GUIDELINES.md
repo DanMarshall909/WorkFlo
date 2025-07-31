@@ -9,6 +9,18 @@ This file contains core guidelines optimized for AI agents working with any deve
 
 - don't try to continue using a workaround if a script in this project doesn't work. fix it!
 
+## TypeScript Development Standards
+
+**🎯 MANDATORY: All AI agents MUST follow [TYPESCRIPT_BEST_PRACTICES.md](TYPESCRIPT_BEST_PRACTICES.md) when working with TypeScript code.**
+
+Key requirements:
+- **NEVER use `any` type** - Use `unknown` with type guards for error handling
+- **Proper error handling patterns** - Always use type-safe error handling
+- **Explicit type annotations** - Provide return types for functions
+- **Strict TypeScript configuration** - Maintain high type safety standards
+
+See [TYPESCRIPT_BEST_PRACTICES.md](TYPESCRIPT_BEST_PRACTICES.md) for complete guidelines and examples.
+
 ## Test Generation System (Issue #204)
 
 As of Issue #204, the repository includes a comprehensive TypeScript test generator system:

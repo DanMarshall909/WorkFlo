@@ -1,46 +1,14 @@
 #!/usr/bin/env node
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
+const tslib_1 = require("tslib");
 const commander_1 = require("commander");
 const acceptance_criteria_parser_1 = require("./acceptance-criteria-parser");
 const issue_updater_1 = require("./issue-updater");
 const test_generator_1 = require("./test-generator");
 const child_process_1 = require("child_process");
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
+const fs = tslib_1.__importStar(require("fs"));
+const path = tslib_1.__importStar(require("path"));
 // Utility functions
 function fetchGitHubIssue(issueNumber, fields = 'body') {
     try {
@@ -48,7 +16,8 @@ function fetchGitHubIssue(issueNumber, fields = 'body') {
         return JSON.parse(issueData);
     }
     catch (error) {
-        throw new Error(`Failed to fetch GitHub issue ${issueNumber}: ${error.message}`);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to fetch GitHub issue ${issueNumber}: ${message}`);
     }
 }
 function validateIssueNumber(issueStr) {
@@ -115,7 +84,8 @@ commander_1.program
         }, null, 2));
     }
     catch (error) {
-        console.error('Error:', error.message);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error:', message);
         process.exit(1);
     }
 });
@@ -131,7 +101,8 @@ commander_1.program
         console.log(result.message);
     }
     catch (error) {
-        console.error('Error:', error.message);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error:', message);
         process.exit(1);
     }
 });
@@ -165,7 +136,8 @@ commander_1.program
         console.log(`📊 Created ${criteria.length} test scenarios for issue #${issueNumber}`);
     }
     catch (error) {
-        console.error(`❌ Test generation failed: ${error.message}`);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`❌ Test generation failed: ${message}`);
         process.exit(1);
     }
 });
@@ -199,7 +171,8 @@ with built-in quality gates and progress tracking.`)
         console.log('Auto workflow implementation in progress...');
     }
     catch (error) {
-        console.error(`Error: ${error.message}`);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Error: ${message}`);
         process.exit(1);
     }
 });

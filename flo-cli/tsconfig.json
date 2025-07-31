@@ -5,18 +5,45 @@
     "lib": ["ES2020"],
     "outDir": "./dist",
     "rootDir": "./src",
+    
+    // Strict Type Checking (MANDATORY - per TYPESCRIPT_BEST_PRACTICES.md)
     "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "exactOptionalPropertyTypes": true,
+    
+    // Additional Checks
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    // Module Resolution
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Emit
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "importHelpers": true,
+    
+    // Advanced Options
+    "skipLibCheck": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "useDefineForClassFields": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]

@@ -8,12 +8,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Utility functions
-function fetchGitHubIssue(issueNumber: string, fields: string = 'body') {
+function fetchGitHubIssue(issueNumber: string, fields: string = 'body'): unknown {
   try {
     const issueData = execSync(`gh issue view ${issueNumber} --json ${fields}`, { encoding: 'utf-8' });
     return JSON.parse(issueData);
-  } catch (error: any) {
-    throw new Error(`Failed to fetch GitHub issue ${issueNumber}: ${error.message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to fetch GitHub issue ${issueNumber}: ${message}`);
   }
 }
 
@@ -25,7 +26,7 @@ function validateIssueNumber(issueStr: string): number {
   return issueNumber;
 }
 
-function ensureDirectoryExists(outputPath: string) {
+function ensureDirectoryExists(outputPath: string): void {
   const dir = path.dirname(outputPath);
   
   // Create directory recursively if it doesn't exist
@@ -84,8 +85,9 @@ program
         completed: 0
       }, null, 2));
 
-    } catch (error: any) {
-      console.error('Error:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error:', message);
       process.exit(1);
     }
   });
@@ -100,8 +102,9 @@ program
     try {
       const result = await updateIssue(parseInt(options.issue), options.criteria);
       console.log(result.message);
-    } catch (error: any) {
-      console.error('Error:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error:', message);
       process.exit(1);
     }
   });
@@ -142,8 +145,9 @@ program
       console.log(`✅ Generated tests: ${resultPath}`);
       console.log(`📊 Created ${criteria.length} test scenarios for issue #${issueNumber}`);
 
-    } catch (error: any) {
-      console.error(`❌ Test generation failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ Test generation failed: ${message}`);
       process.exit(1);
     }
   });
@@ -180,8 +184,9 @@ with built-in quality gates and progress tracking.`)
       // TODO: Implement full autonomous workflow
       console.log('Auto workflow implementation in progress...');
 
-    } catch (error: any) {
-      console.error(`Error: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`Error: ${message}`);
       process.exit(1);
     }
   });
