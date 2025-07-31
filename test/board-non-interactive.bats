@@ -38,3 +38,16 @@ teardown() {
         [[ "$issue_body" == *"- [ ] Criterion 3"* ]]
     fi
 }
+
+@test "board_create_without_parameters_fails_immediately_without_interactive_prompts" {
+    # Given: No command line parameters provided
+    # When: Running board create without any parameters in non-interactive environment
+    run timeout 2s sh -c 'echo "" | ./board create'
+    
+    # Then: Should fail immediately without showing interactive prompts
+    [ "$status" -ne 0 ]
+    # Should not show interactive mode message
+    [[ "$output" != *"Creating new GitHub issue with acceptance criteria"* ]]
+    # Should show usage error instead
+    [[ "$output" == *"Usage:"* ]] || [[ "$output" == *"requires parameters"* ]] || [[ "$output" == *"--title"* ]]
+}

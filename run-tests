@@ -31,6 +31,11 @@ case "${1:-}" in
                     test_files+=("$file")
                 done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
             fi
+            if [[ -d "test" ]]; then
+                while IFS= read -r -d '' file; do
+                    test_files+=("$file")
+                done < <(find test -name "*.bats" -type f -print0 2>/dev/null)
+            fi
             while IFS= read -r -d '' file; do
                 # Skip integration tests unless explicitly requested
                 if [[ "$file" == *"integration"* ]] && [[ "${INCLUDE_INTEGRATION_TESTS:-}" != "1" ]]; then
@@ -92,6 +97,11 @@ if command -v bats >/dev/null 2>&1; then
         while IFS= read -r -d '' file; do
             test_files+=("$file")
         done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
+    fi
+    if [[ -d "test" ]]; then
+        while IFS= read -r -d '' file; do
+            test_files+=("$file")
+        done < <(find test -name "*.bats" -type f -print0 2>/dev/null)
     fi
     while IFS= read -r -d '' file; do
         # Skip integration tests unless explicitly requested
