@@ -1,3 +1,4 @@
+import { GitHubClient } from './github-client';
 /**
  * Marks a specific acceptance criterion as completed by index
  * @param issueBody - The GitHub issue body
@@ -12,6 +13,10 @@ export declare function markCriterionComplete(issueBody: string, index: number):
  * @returns Updated issue body with the criterion marked as completed
  */
 export declare function markCriterionCompleteById(issueBody: string, acId: string): string;
+/**
+ * Set GitHub client (for testing)
+ */
+export declare function setGitHubClient(client: GitHubClient): void;
 /**
  * Updates a GitHub issue's acceptance criteria by description
  * @param issueNumber - The GitHub issue number

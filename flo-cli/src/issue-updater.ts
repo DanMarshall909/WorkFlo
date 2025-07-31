@@ -1,3 +1,5 @@
+import { GitHubClient, GitHubCLIClient } from './github-client';
+
 /**
  * Marks a specific acceptance criterion as completed by index
  * @param issueBody - The GitHub issue body
@@ -60,6 +62,16 @@ export function markCriterionCompleteById(issueBody: string, acId: string): stri
   throw new Error(`AC ID ${acId} not found`);
 }
 
+// Default client - can be overridden for testing
+let githubClient: GitHubClient = new GitHubCLIClient();
+
+/**
+ * Set GitHub client (for testing)
+ */
+export function setGitHubClient(client: GitHubClient): void {
+  githubClient = client;
+}
+
 /**
  * Updates a GitHub issue's acceptance criteria by description
  * @param issueNumber - The GitHub issue number
@@ -67,25 +79,15 @@ export function markCriterionCompleteById(issueBody: string, acId: string): stri
  * @returns Promise that resolves with result
  */
 export async function updateIssueAC(issueNumber: number, acDescription: string): Promise<{success: boolean, message: string}> {
-  const { execSync } = require('child_process');
-  
   try {
     // Get the current issue body
-    const issueData = execSync(`gh issue view ${issueNumber} --json body`, { encoding: 'utf-8' });
-    const issue = JSON.parse(issueData);
-    const currentBody = issue.body;
+    const currentBody = await githubClient.getIssueBody(issueNumber);
 
     // Find and mark the AC as complete
     const updatedBody = markCriterionCompleteByText(currentBody, acDescription);
     
     // Update the issue
-    const tempFile = `/tmp/issue-${issueNumber}-body.md`;
-    require('fs').writeFileSync(tempFile, updatedBody);
-    
-    execSync(`gh issue edit ${issueNumber} --body-file ${tempFile}`);
-    
-    // Clean up
-    require('fs').unlinkSync(tempFile);
+    await githubClient.updateIssueBody(issueNumber, updatedBody);
     
     return {
       success: true,
@@ -103,6 +105,10 @@ export async function updateIssueAC(issueNumber: number, acDescription: string):
 export function markCriterionCompleteByText(issueBody: string, description: string): string {
   if (!issueBody) {
     throw new Error('Issue body is required');
+  }
+
+  if (!description || description.trim() === '') {
+    throw new Error('Description is required');
   }
 
   const lines = issueBody.split('\n');

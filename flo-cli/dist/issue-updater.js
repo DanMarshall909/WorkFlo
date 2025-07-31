@@ -2,9 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.markCriterionComplete = markCriterionComplete;
 exports.markCriterionCompleteById = markCriterionCompleteById;
+exports.setGitHubClient = setGitHubClient;
 exports.updateIssueAC = updateIssueAC;
 exports.markCriterionCompleteByText = markCriterionCompleteByText;
 exports.markComplete = markComplete;
+const github_client_1 = require("./github-client");
 /**
  * Marks a specific acceptance criterion as completed by index
  * @param issueBody - The GitHub issue body
@@ -55,6 +57,14 @@ function markCriterionCompleteById(issueBody, acId) {
     }
     throw new Error(`AC ID ${acId} not found`);
 }
+// Default client - can be overridden for testing
+let githubClient = new github_client_1.GitHubCLIClient();
+/**
+ * Set GitHub client (for testing)
+ */
+function setGitHubClient(client) {
+    githubClient = client;
+}
 /**
  * Updates a GitHub issue's acceptance criteria by description
  * @param issueNumber - The GitHub issue number
@@ -62,20 +72,13 @@ function markCriterionCompleteById(issueBody, acId) {
  * @returns Promise that resolves with result
  */
 async function updateIssueAC(issueNumber, acDescription) {
-    const { execSync } = require('child_process');
     try {
         // Get the current issue body
-        const issueData = execSync(`gh issue view ${issueNumber} --json body`, { encoding: 'utf-8' });
-        const issue = JSON.parse(issueData);
-        const currentBody = issue.body;
+        const currentBody = await githubClient.getIssueBody(issueNumber);
         // Find and mark the AC as complete
         const updatedBody = markCriterionCompleteByText(currentBody, acDescription);
         // Update the issue
-        const tempFile = `/tmp/issue-${issueNumber}-body.md`;
-        require('fs').writeFileSync(tempFile, updatedBody);
-        execSync(`gh issue edit ${issueNumber} --body-file ${tempFile}`);
-        // Clean up
-        require('fs').unlinkSync(tempFile);
+        await githubClient.updateIssueBody(issueNumber, updatedBody);
         return {
             success: true,
             message: `AC "${acDescription}" marked as complete in issue #${issueNumber}`
