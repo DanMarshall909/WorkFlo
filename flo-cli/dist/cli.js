@@ -62,7 +62,7 @@ commander_1.program
         else if (options.issue) {
             // Fetch from GitHub
             const issueNumber = validateIssueNumber(options.issue);
-            const issue = fetchGitHubIssue(issueNumber, 'body');
+            const issue = fetchGitHubIssue(issueNumber.toString(), 'body');
             issueBody = issue.body;
         }
         else if (options.body) {
@@ -97,7 +97,7 @@ commander_1.program
     .requiredOption('--criteria <text>', 'Acceptance criteria text to update')
     .action(async (options) => {
     try {
-        const result = await (0, issue_updater_1.updateIssue)(parseInt(options.issue), options.criteria);
+        const result = await (0, issue_updater_1.updateIssue)(parseInt(options.issue, 10), options.criteria);
         console.log(result.message);
     }
     catch (error) {
@@ -118,7 +118,7 @@ commander_1.program
         const issueNumber = validateIssueNumber(options.issue);
         ensureDirectoryExists(options.output);
         // Fetch issue data with full context
-        const issue = fetchGitHubIssue(issueNumber, 'body,title');
+        const issue = fetchGitHubIssue(issueNumber.toString(), 'body,title');
         // Parse acceptance criteria from issue body
         const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issue.body);
         if (criteria.length === 0) {
@@ -131,7 +131,7 @@ commander_1.program
             strategy: 'new-file',
             outputPath: options.output
         };
-        const resultPath = generateTestContent(testContent, generationOptions);
+        const resultPath = (0, test_generator_1.generateTestContent)(testContent, generationOptions);
         console.log(`✅ Generated tests: ${resultPath}`);
         console.log(`📊 Created ${criteria.length} test scenarios for issue #${issueNumber}`);
     }
@@ -147,10 +147,12 @@ commander_1.program
     .description('Autonomous TDD workflow for issues with multiple acceptance criteria')
     .argument('[issue]', 'GitHub issue number')
     .option('--status', 'Show current auto workflow progress checking')
+    .option('--parse-only', 'Parse issue and show acceptance criteria count only')
     .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
   $ flo-cli auto --status               Check current workflow progress
+  $ flo-cli auto 123 --parse-only       Parse issue and show acceptance criteria count
 
 The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
 for each acceptance criteria in the GitHub issue. It provides autonomous development 
@@ -166,6 +168,28 @@ with built-in quality gates and progress tracking.`)
             process.exit(1);
         }
         const issueNumber = validateIssueNumber(issue);
+        if (options.parseOnly) {
+            // Parse GitHub issue and extract acceptance criteria count
+            try {
+                const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+                const issueBody = issueData.body;
+                const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
+                if (criteria.length === 0) {
+                    console.log('No acceptance criteria found');
+                    console.log('Found 0 criteria');
+                }
+                else {
+                    console.log(`Found ${criteria.length} acceptance criteria`);
+                    console.log(`Criteria count: ${criteria.length}`);
+                }
+                return;
+            }
+            catch (parseError) {
+                const message = parseError instanceof Error ? parseError.message : 'Unknown error';
+                console.error(`Failed to parse issue: ${message}`);
+                process.exit(1);
+            }
+        }
         console.log(`🚀 Starting autonomous TDD workflow for issue #${issueNumber}`);
         // TODO: Implement full autonomous workflow
         console.log('Auto workflow implementation in progress...');

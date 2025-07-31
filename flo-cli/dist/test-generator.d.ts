@@ -1,43 +1,14 @@
-/**
- * TypeScript/Jest test generator that consumes acceptance criteria parser output
- * Supports both new file generation and AST-based insertion into existing files
- */
-export interface AcceptanceCriterion {
-    index: number;
-    id?: string;
-    text: string;
-    cleanText: string;
-    checked: boolean;
-    raw: string;
+export interface TestGenerationOptions {
+    strategy: TestGenerationStrategy;
+    outputPath: string;
 }
-export interface ParseResult {
-    criteria: AcceptanceCriterion[];
-    total: number;
-    completed: number;
-    issueNumber?: number;
-    issueTitle?: string;
-}
-export interface TestGeneratorOptions {
-    outputPath?: string;
-    testFramework?: 'jest';
-    style?: 'bdd' | 'tdd';
-}
-export interface TestInsertionOptions {
-    strategy: 'new-file' | 'insert-before-end' | 'insert-at-marker' | 'insert-new-describe';
-    targetFile?: string;
-    marker?: string;
-    createFileIfMissing?: boolean;
-}
+export type TestGenerationStrategy = 'new-file' | 'insert-before-end' | 'insert-at-marker' | 'insert-new-describe';
 /**
- * Generates TypeScript/Jest test files from acceptance criteria parser output
+ * Generate tests based on criteria
  */
-export declare function generateTests(parseResult: ParseResult, _options?: TestGeneratorOptions): string;
+export declare function generateTests(criteria: string[], issueNumber: number, issueTitle: string): string;
 /**
- * Convert simple acceptance criteria array to structured ParseResult format
+ * Generate test content with options
  */
-export declare function createParseResult(criteria: string[], issueNumber?: number, issueTitle?: string): ParseResult;
-/**
- * Generate and insert tests using AST-based manipulation
- */
-export declare function generateAndInsertTests(parseResult: ParseResult, insertionOptions: TestInsertionOptions, generatorOptions?: TestGeneratorOptions): string;
+export declare function generateTestContent(_testContent: string, options: TestGenerationOptions): string;
 //# sourceMappingURL=test-generator.d.ts.map

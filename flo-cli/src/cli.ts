@@ -2,7 +2,7 @@
 import { program } from 'commander';
 import { parseAcceptanceCriteria } from './acceptance-criteria-parser';
 import { updateIssue } from './issue-updater';
-import { generateTests, TestGenerationOptions, TestGenerationStrategy } from './test-generator';
+import { generateTests, generateTestContent, TestGenerationOptions, TestGenerationStrategy } from './test-generator';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -65,8 +65,8 @@ program
       } else if (options.issue) {
         // Fetch from GitHub
         const issueNumber = validateIssueNumber(options.issue);
-        const issue = fetchGitHubIssue(issueNumber, 'body');
-        issueBody = issue.body;
+        const issue = fetchGitHubIssue(issueNumber.toString(), 'body');
+        issueBody = (issue as { body: string }).body;
       } else if (options.body) {
         issueBody = options.body;
       } else {
@@ -100,7 +100,7 @@ program
   .requiredOption('--criteria <text>', 'Acceptance criteria text to update')
   .action(async (options) => {
     try {
-      const result = await updateIssue(parseInt(options.issue), options.criteria);
+      const result = await updateIssue(parseInt(options.issue, 10), options.criteria);
       console.log(result.message);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -122,17 +122,17 @@ program
       ensureDirectoryExists(options.output);
 
       // Fetch issue data with full context
-      const issue = fetchGitHubIssue(issueNumber, 'body,title');
+      const issue = fetchGitHubIssue(issueNumber.toString(), 'body,title');
 
       // Parse acceptance criteria from issue body
-      const criteria = parseAcceptanceCriteria(issue.body);
+      const criteria = parseAcceptanceCriteria((issue as { body: string }).body);
 
       if (criteria.length === 0) {
         throw new Error(`No acceptance criteria found in issue #${issueNumber}`);
       }
 
       // Generate tests based on criteria
-      const testContent = generateTests(criteria, issueNumber, issue.title);
+      const testContent = generateTests(criteria, issueNumber, (issue as { title: string }).title);
 
       // Configure test generation options
       const generationOptions: TestGenerationOptions = {
@@ -158,10 +158,12 @@ program
   .description('Autonomous TDD workflow for issues with multiple acceptance criteria')
   .argument('[issue]', 'GitHub issue number')
   .option('--status', 'Show current auto workflow progress checking')
+  .option('--parse-only', 'Parse issue and show acceptance criteria count only')
   .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
   $ flo-cli auto --status               Check current workflow progress
+  $ flo-cli auto 123 --parse-only       Parse issue and show acceptance criteria count
 
 The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
 for each acceptance criteria in the GitHub issue. It provides autonomous development 
@@ -179,6 +181,29 @@ with built-in quality gates and progress tracking.`)
       }
 
       const issueNumber = validateIssueNumber(issue);
+
+      if (options.parseOnly) {
+        // Parse GitHub issue and extract acceptance criteria count
+        try {
+          const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+          const issueBody = (issueData as { body: string }).body;
+          const criteria = parseAcceptanceCriteria(issueBody);
+          
+          if (criteria.length === 0) {
+            console.log('No acceptance criteria found');
+            console.log('Found 0 criteria');
+          } else {
+            console.log(`Found ${criteria.length} acceptance criteria`);
+            console.log(`Criteria count: ${criteria.length}`);
+          }
+          return;
+        } catch (parseError: unknown) {
+          const message = parseError instanceof Error ? parseError.message : 'Unknown error';
+          console.error(`Failed to parse issue: ${message}`);
+          process.exit(1);
+        }
+      }
+
       console.log(`🚀 Starting autonomous TDD workflow for issue #${issueNumber}`);
 
       // TODO: Implement full autonomous workflow

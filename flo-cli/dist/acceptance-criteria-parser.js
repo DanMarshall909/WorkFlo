@@ -9,12 +9,15 @@ exports.parseAcceptanceCriteria = parseAcceptanceCriteria;
  * @returns Array of acceptance criteria strings
  */
 function parseAcceptanceCriteria(issueBody) {
-    if (!issueBody) {
-        return [];
+    const criteria = [];
+    const lines = issueBody.split('\n');
+    for (const line of lines) {
+        // Match unchecked checkbox items: - [ ] Some criteria text
+        const match = line.match(/^\s*-\s*\[\s*\]\s*(.+)$/);
+        if (match && match[1]) {
+            criteria.push(match[1].trim());
+        }
     }
-    // Match unchecked checkbox items: - [ ] text
-    const UNCHECKED_CHECKBOX_PATTERN = /^- \[ \] (.+)$/gm;
-    const matches = Array.from(issueBody.matchAll(UNCHECKED_CHECKBOX_PATTERN));
-    return matches.map(match => match[1].trim());
+    return criteria;
 }
 //# sourceMappingURL=acceptance-criteria-parser.js.map
