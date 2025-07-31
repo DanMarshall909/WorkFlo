@@ -21,6 +21,11 @@ find_test_files() {
             test_files+=("$file")
         done < <(find tests -name "*.bats" -type f -print0 2>/dev/null)
     fi
+    if [[ -d "test" ]]; then
+        while IFS= read -r -d '' file; do
+            test_files+=("$file")
+        done < <(find test -name "*.bats" -type f -print0 2>/dev/null)
+    fi
     
     # Look for .bats files in current directory
     while IFS= read -r -d '' file; do

@@ -233,31 +233,8 @@ case "$1" in
             IFS=';' read -ra criteria <<< "$criteria_str"
             
         else
-            # Interactive mode
-            info "Creating new GitHub issue with acceptance criteria"
-            echo ""
-            
-            read -p "Issue title: " title
-            [[ -z "$title" ]] && error "Title is required"
-            
-            echo ""
-            info "Enter acceptance criteria (one per line, empty line to finish):"
-            info "Format: Each criterion should be a clear, testable requirement"
-            echo ""
-            
-            criteria=()
-            while true; do
-                read -p "Criterion $((${#criteria[@]} + 1)): " criterion
-                [[ -z "$criterion" ]] && break
-                criteria+=("$criterion")
-            done
-            
-            if [[ ${#criteria[@]} -eq 0 ]]; then
-                error "At least one acceptance criterion is required"
-            fi
-            
-            echo ""
-            read -p "Issue description (optional): " description
+            # No interactive mode - require command line parameters
+            error "Usage: board create --title 'Title' --criteria 'c1;c2;c3' [--description 'desc'] or board create --non-interactive"
         fi
         
         # Build issue body
