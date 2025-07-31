@@ -164,5 +164,74 @@ describe('Issue #204: CLI Interface Tests', () => {
         fs.unlinkSync('tests/test-output.test.ts');
       }
     });
+
+    describe('Edge Cases and Error Scenarios', () => {
+      it('should handle invalid issue numbers', () => {
+        const { execSync } = require('child_process');
+        
+        expect(() => {
+          execSync('node dist/cli.js generate-tests --issue abc --output tests/test.test.ts', 
+            { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
+        }).toThrow();
+      });
+
+      it('should handle negative issue numbers', () => {
+        const { execSync } = require('child_process');
+        
+        expect(() => {
+          execSync('node dist/cli.js generate-tests --issue -1 --output tests/test.test.ts', 
+            { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
+        }).toThrow();
+      });
+
+      it('should require .test.ts extension for output files', () => {
+        const { execSync } = require('child_process');
+        
+        expect(() => {
+          execSync('node dist/cli.js generate-tests --issue 204 --output tests/test.js', 
+            { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
+        }).toThrow();
+      });
+
+      it('should handle non-existent GitHub issues gracefully', () => {
+        const { execSync } = require('child_process');
+        
+        expect(() => {
+          execSync('node dist/cli.js generate-tests --issue 999999 --output tests/test.test.ts', 
+            { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
+        }).toThrow();
+      });
+
+      it('should create output directories if they do not exist', () => {
+        const { execSync } = require('child_process');
+        const fs = require('fs');
+        const path = require('path');
+        
+        const testDir = 'tests/nested/deep/dir';
+        const testFile = path.join(testDir, 'test.test.ts');
+        
+        // Clean up first
+        if (fs.existsSync(testFile)) {
+          fs.unlinkSync(testFile);
+        }
+        if (fs.existsSync(testDir)) {
+          fs.rmSync(testDir, { recursive: true, force: true });
+        }
+        
+        // Test directory creation
+        execSync(`node dist/cli.js generate-tests --issue 204 --output ${testFile}`, 
+          { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
+        
+        expect(fs.existsSync(testFile)).toBe(true);
+        
+        // Clean up
+        if (fs.existsSync(testFile)) {
+          fs.unlinkSync(testFile);
+        }
+        if (fs.existsSync('tests/nested')) {
+          fs.rmSync('tests/nested', { recursive: true, force: true });
+        }
+      });
+    });
   });
 });
