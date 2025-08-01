@@ -61,11 +61,24 @@ class FileSystemStateManager {
         try {
             const fs = await Promise.resolve().then(() => __importStar(require('fs/promises')));
             const content = await fs.readFile(this.stateFile, 'utf-8');
-            return JSON.parse(content);
+            const parsed = JSON.parse(content);
+            // Validate required fields exist
+            if (!parsed.issue || !parsed.totalACs || !parsed.currentAC || !parsed.currentPhase) {
+                console.warn('State file is corrupted, removing it');
+                await this.clear();
+                return null;
+            }
+            return parsed;
         }
         catch (error) {
-            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-                return null; // File doesn't exist
+            if (error instanceof Error) {
+                if ('code' in error && error.code === 'ENOENT') {
+                    return null; // File doesn't exist
+                }
+                // Handle JSON parse errors or other corruption
+                console.warn(`State file is corrupted (${error.message}), removing it`);
+                await this.clear();
+                return null;
             }
             throw error;
         }
