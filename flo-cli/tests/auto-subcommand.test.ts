@@ -260,4 +260,39 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       });
     });
   });
+
+  describe('@group ac-9', () => {
+    describe('AC-9: Use existing ./tdd commands for phase execution', () => {
+      it('should execute TDD phases using existing tdd script', () => {
+        // Given - an auto workflow initialized for an issue
+        // When - I run auto workflow with phase execution
+        const output = execSync('node dist/cli.js auto 250 --execute-phases', { encoding: 'utf8' });
+        
+        // Then - should integrate with existing ./tdd command phases
+        expect(output).toMatch(/executing.*tdd.*red/i);
+        expect(output).toMatch(/executing.*tdd.*green/i);
+        expect(output).toMatch(/tdd.*phase.*integration/i);
+      });
+
+      it('should use existing tdd command for RED phase execution', () => {
+        // Given - an auto workflow ready for RED phase
+        // When - I run auto with red phase execution
+        const output = execSync('node dist/cli.js auto 250 --execute-red', { encoding: 'utf8' });
+        
+        // Then - should call existing ./tdd red command
+        expect(output).toMatch(/calling.*tdd red/i);
+        expect(output).toMatch(/red.*phase.*via.*tdd/i);
+      });
+
+      it('should integrate with existing tdd workflow phases', () => {
+        // Given - an auto workflow with TDD integration
+        // When - I check auto help for phase execution options
+        const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+        
+        // Then - should show tdd integration options
+        expect(helpOutput).toMatch(/--execute-phases.*existing.*tdd/i);
+        expect(helpOutput).toMatch(/--execute-red.*tdd red/i);
+      });
+    });
+  });
 });
