@@ -6,6 +6,15 @@
   "bin": {
     "flo-cli": "dist/cli.js"
   },
+  "oclif": {
+    "bin": "flo-cli",
+    "dirname": "flo-cli",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "topicSeparator": ":"
+  },
   "directories": {
     "test": "tests"
   },
@@ -42,7 +51,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "commander": "^14.0.0",
+    "@oclif/core": "^4.5.2",
+    "@oclif/plugin-help": "^6.2.32",
     "ts-morph": "^26.0.0"
   }
 }

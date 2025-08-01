@@ -1,0 +1,1 @@
+{"version":3,"file":"base-command.d.ts","sourceRoot":"","sources":["../src/base-command.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,MAAM,aAAa,CAAC;AAGtC,8BAAsB,WAAY,SAAQ,OAAO;IAC/C,SAAS,CAAC,gBAAgB,CAAC,WAAW,EAAE,MAAM,EAAE,MAAM,GAAE,MAAe,GAAG,OAAO;IAUjF,SAAS,CAAC,mBAAmB,CAAC,QAAQ,EAAE,MAAM,GAAG,MAAM;CAOxD"}
