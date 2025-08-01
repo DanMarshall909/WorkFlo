@@ -40,6 +40,22 @@ function ensureDirectoryExists(outputPath: string): void {
   }
 }
 
+function outputResult(data: any, options: any): void {
+  if (options.json) {
+    console.log(JSON.stringify(data, null, 2));
+  } else {
+    // Human-readable output
+    if (data.success !== false) {
+      console.log(data.message);
+      if (data.details) {
+        data.details.forEach((detail: string) => console.log(detail));
+      }
+    } else {
+      console.error(`Error: ${data.error}`);
+    }
+  }
+}
+
 program
   .name('flo-cli')
   .description('CLI for flo project management')
@@ -171,6 +187,7 @@ program
   .option('--delegate-orchestrator', 'Delegate to auto-tdd for autonomous processing')
   .option('--compatibility', 'Maintain full compatibility with existing TDD workflow')
   .option('--tdd-integration', 'Support existing tdd commands without modification')
+  .option('--json', 'Output structured JSON for machine parsing')
   .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
@@ -199,18 +216,39 @@ with built-in quality gates and progress tracking.`)
         const state = await stateService.getCurrentState();
         
         if (!state) {
-          console.log('No active auto workflow running');
+          outputResult({
+            success: true,
+            active: false,
+            message: 'No active auto workflow running'
+          }, options);
           return;
         }
         
-        console.log('📊 Auto Workflow Status');
-        console.log('========================');
-        console.log(`Issue: #${state.issue}`);
-        console.log(`Progress: ${state.currentAC}/${state.totalACs} acceptance criteria`);
-        console.log(`Current phase: ${state.currentPhase}`);
-        console.log(`Status: ${state.status}`);
-        console.log(`Created: ${new Date(state.createdAt).toLocaleString()}`);
-        console.log(`Updated: ${new Date(state.updatedAt).toLocaleString()}`);
+        outputResult({
+          success: true,
+          active: true,
+          message: '📊 Auto Workflow Status',
+          data: {
+            issue: state.issue,
+            progress: {
+              current: state.currentAC,
+              total: state.totalACs,
+              percentage: Math.round((state.currentAC / state.totalACs) * 100)
+            },
+            currentPhase: state.currentPhase,
+            status: state.status,
+            created: state.createdAt,
+            updated: state.updatedAt
+          },
+          details: [
+            `Issue: #${state.issue}`,
+            `Progress: ${state.currentAC}/${state.totalACs} acceptance criteria`,
+            `Current phase: ${state.currentPhase}`,
+            `Status: ${state.status}`,
+            `Created: ${new Date(state.createdAt).toLocaleString()}`,
+            `Updated: ${new Date(state.updatedAt).toLocaleString()}`
+          ]
+        }, options);
         return;
       }
 
@@ -228,13 +266,17 @@ with built-in quality gates and progress tracking.`)
           const issueBody = (issueData as { body: string }).body;
           const criteria = parseAcceptanceCriteria(issueBody);
           
-          if (criteria.length === 0) {
-            console.log('No acceptance criteria found');
-            console.log('Found 0 criteria');
-          } else {
-            console.log(`Found ${criteria.length} acceptance criteria`);
-            console.log(`Criteria count: ${criteria.length}`);
-          }
+          outputResult({
+            success: true,
+            command: 'parse-only',
+            data: {
+              issue: issueNumber,
+              criteriaCount: criteria.length,
+              criteria: criteria
+            },
+            message: criteria.length === 0 ? 'No acceptance criteria found' : `Found ${criteria.length} acceptance criteria`,
+            details: criteria.length === 0 ? ['Found 0 criteria'] : [`Found ${criteria.length} acceptance criteria`, `Criteria count: ${criteria.length}`]
+          }, options);
           return;
         } catch (parseError: unknown) {
           const message = parseError instanceof Error ? parseError.message : 'Unknown error';
