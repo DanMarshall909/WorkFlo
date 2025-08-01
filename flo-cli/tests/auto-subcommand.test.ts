@@ -295,4 +295,40 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       });
     });
   });
+
+  describe('@group ac-10', () => {
+    describe('AC-10: Sequential processing - complete AC1 before starting AC2', () => {
+      it('should enforce sequential processing of acceptance criteria', () => {
+        // Given - an auto workflow with multiple acceptance criteria
+        // When - I run auto workflow with sequential processing
+        const output = execSync('node dist/cli.js auto 250 --sequential', { encoding: 'utf8' });
+        
+        // Then - should enforce AC1 completion before AC2
+        expect(output).toMatch(/sequential.*processing.*enabled/i);
+        expect(output).toMatch(/complete.*ac.*1.*before.*ac.*2/i);
+        expect(output).toMatch(/enforcing.*sequential.*order/i);
+      });
+
+      it('should prevent moving to AC2 when AC1 is incomplete', () => {
+        // Given - an auto workflow with AC1 incomplete
+        // When - I try to process AC2
+        const output = execSync('node dist/cli.js auto 250 --check-sequential', { encoding: 'utf8' });
+        
+        // Then - should block progression to AC2
+        expect(output).toMatch(/blocking.*ac.*2/i);
+        expect(output).toMatch(/ac.*1.*must.*be.*complete/i);
+        expect(output).toMatch(/sequential.*validation.*failed/i);
+      });
+
+      it('should show sequential processing options in help', () => {
+        // Given - the auto command with sequential processing
+        // When - I check auto help
+        const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+        
+        // Then - should show sequential processing options
+        expect(helpOutput).toMatch(/--sequential.*processing/i);
+        expect(helpOutput).toMatch(/--check-sequential.*validation/i);
+      });
+    });
+  });
 });

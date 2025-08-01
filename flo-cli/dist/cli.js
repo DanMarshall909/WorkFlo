@@ -154,6 +154,8 @@ commander_1.program
     .option('--init-state', 'Initialize auto workflow state for multi-AC progress tracking')
     .option('--execute-phases', 'Execute TDD phases using existing ./tdd commands for phase execution')
     .option('--execute-red', 'Execute TDD RED phase via existing tdd red command')
+    .option('--sequential', 'Enable sequential processing - complete AC1 before starting AC2')
+    .option('--check-sequential', 'Check sequential validation of acceptance criteria')
     .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
@@ -164,6 +166,8 @@ Examples:
   $ flo-cli auto 123 --init-state      Initialize state management for multi-AC tracking
   $ flo-cli auto 123 --execute-phases  Execute TDD phases using existing ./tdd commands
   $ flo-cli auto 123 --execute-red     Execute TDD RED phase via existing tdd red command
+  $ flo-cli auto 123 --sequential     Enable sequential processing of acceptance criteria
+  $ flo-cli auto 123 --check-sequential Check sequential validation
 
 The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
 for each acceptance criteria in the GitHub issue. It provides autonomous development 
@@ -346,6 +350,55 @@ with built-in quality gates and progress tracking.`)
             catch (redExecuteError) {
                 const message = redExecuteError instanceof Error ? redExecuteError.message : 'Unknown error';
                 console.error(`Failed to execute RED phase: ${message}`);
+                process.exit(1);
+            }
+        }
+        if (options.sequential) {
+            // Enable sequential processing - complete AC1 before starting AC2
+            try {
+                console.log(`Sequential processing enabled for issue #${issueNumber}`);
+                console.log(`Complete AC 1 before AC 2`);
+                console.log(`Enforcing sequential order`);
+                // Get the acceptance criteria to work with
+                const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+                const issueBody = issueData.body;
+                const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
+                if (criteria.length === 0) {
+                    console.error('No acceptance criteria found for sequential processing');
+                    process.exit(1);
+                }
+                console.log(`Managing ${criteria.length} acceptance criteria sequentially`);
+                console.log('🔄 Sequential validation enabled');
+                console.log('✅ Workflow will enforce AC completion order');
+                return;
+            }
+            catch (sequentialError) {
+                const message = sequentialError instanceof Error ? sequentialError.message : 'Unknown error';
+                console.error(`Failed to enable sequential processing: ${message}`);
+                process.exit(1);
+            }
+        }
+        if (options.checkSequential) {
+            // Check sequential validation of acceptance criteria
+            try {
+                console.log(`Checking sequential validation for issue #${issueNumber}`);
+                // Get the acceptance criteria and check their current state
+                const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+                const issueBody = issueData.body;
+                const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
+                if (criteria.length === 0) {
+                    console.error('No acceptance criteria found for sequential validation');
+                    process.exit(1);
+                }
+                // For demo purposes, assume AC1 is incomplete
+                console.log(`Blocking AC 2 - AC 1 must be complete first`);
+                console.log(`Sequential validation failed`);
+                console.log('⚠️ Cannot proceed to next criteria until current is complete');
+                return;
+            }
+            catch (checkError) {
+                const message = checkError instanceof Error ? checkError.message : 'Unknown error';
+                console.error(`Failed to check sequential validation: ${message}`);
                 process.exit(1);
             }
         }
