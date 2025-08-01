@@ -331,4 +331,40 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       });
     });
   });
+
+  describe('@group ac-11', () => {
+    describe('AC-11: Integrate with existing auto-tdd orchestrator', () => {
+      it('should integrate with existing auto-tdd orchestrator system', () => {
+        // Given - auto-tdd orchestrator exists in WorkFlo
+        // When - I run auto workflow with orchestrator integration
+        const output = execSync('node dist/cli.js auto 250 --orchestrator', { encoding: 'utf8' });
+        
+        // Then - should integrate with auto-tdd system
+        expect(output).toMatch(/integrating.*auto-tdd.*orchestrator/i);
+        expect(output).toMatch(/autonomous.*tdd.*workflow/i);
+        expect(output).toMatch(/orchestrator.*integration.*complete/i);
+      });
+
+      it('should delegate to auto-tdd for autonomous processing', () => {
+        // Given - an auto workflow ready for orchestrator delegation
+        // When - I run auto with orchestrator delegation
+        const output = execSync('node dist/cli.js auto 250 --delegate-orchestrator', { encoding: 'utf8' });
+        
+        // Then - should delegate to existing auto-tdd system
+        expect(output).toMatch(/delegating.*auto-tdd/i);
+        expect(output).toMatch(/autonomous.*processing.*started/i);
+        expect(output).toMatch(/orchestrator.*delegation.*complete/i);
+      });
+
+      it('should show auto-tdd orchestrator integration options in help', () => {
+        // Given - the auto command with orchestrator integration
+        // When - I check auto help
+        const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+        
+        // Then - should show orchestrator integration options
+        expect(helpOutput).toMatch(/--orchestrator.*auto-tdd/i);
+        expect(helpOutput).toMatch(/--delegate-orchestrator.*autonomous/i);
+      });
+    });
+  });
 });

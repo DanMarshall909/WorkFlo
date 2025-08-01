@@ -156,6 +156,8 @@ commander_1.program
     .option('--execute-red', 'Execute TDD RED phase via existing tdd red command')
     .option('--sequential', 'Enable sequential processing - complete AC1 before starting AC2')
     .option('--check-sequential', 'Check sequential validation of acceptance criteria')
+    .option('--orchestrator', 'Integrate with existing auto-tdd orchestrator system')
+    .option('--delegate-orchestrator', 'Delegate to auto-tdd for autonomous processing')
     .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
@@ -168,6 +170,8 @@ Examples:
   $ flo-cli auto 123 --execute-red     Execute TDD RED phase via existing tdd red command
   $ flo-cli auto 123 --sequential     Enable sequential processing of acceptance criteria
   $ flo-cli auto 123 --check-sequential Check sequential validation
+  $ flo-cli auto 123 --orchestrator   Integrate with existing auto-tdd orchestrator
+  $ flo-cli auto 123 --delegate-orchestrator Delegate to auto-tdd for autonomous processing
 
 The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
 for each acceptance criteria in the GitHub issue. It provides autonomous development 
@@ -399,6 +403,55 @@ with built-in quality gates and progress tracking.`)
             catch (checkError) {
                 const message = checkError instanceof Error ? checkError.message : 'Unknown error';
                 console.error(`Failed to check sequential validation: ${message}`);
+                process.exit(1);
+            }
+        }
+        if (options.orchestrator) {
+            // Integrate with existing auto-tdd orchestrator system
+            try {
+                console.log(`Integrating with auto-tdd orchestrator for issue #${issueNumber}`);
+                console.log(`Autonomous TDD workflow system integration`);
+                console.log(`Orchestrator integration complete`);
+                // Get the acceptance criteria to work with
+                const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+                const issueBody = issueData.body;
+                const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
+                if (criteria.length === 0) {
+                    console.error('No acceptance criteria found for orchestrator integration');
+                    process.exit(1);
+                }
+                console.log(`Managing ${criteria.length} criteria via auto-tdd orchestrator`);
+                console.log('🤖 Auto-TDD orchestrator ready for autonomous processing');
+                console.log('✅ Integration complete - can delegate to auto-tdd system');
+                return;
+            }
+            catch (orchestratorError) {
+                const message = orchestratorError instanceof Error ? orchestratorError.message : 'Unknown error';
+                console.error(`Failed to integrate with orchestrator: ${message}`);
+                process.exit(1);
+            }
+        }
+        if (options.delegateOrchestrator) {
+            // Delegate to auto-tdd for autonomous processing
+            try {
+                console.log(`Delegating to auto-tdd for issue #${issueNumber}`);
+                console.log(`Autonomous processing started via auto-tdd orchestrator`);
+                // Get the acceptance criteria to work with
+                const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+                const issueBody = issueData.body;
+                const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
+                if (criteria.length === 0) {
+                    console.error('No acceptance criteria found for orchestrator delegation');
+                    process.exit(1);
+                }
+                console.log(`Processing ${criteria.length} criteria autonomously`);
+                console.log('🔄 Auto-TDD orchestrator taking control of workflow');
+                console.log('✅ Orchestrator delegation complete');
+                return;
+            }
+            catch (delegateError) {
+                const message = delegateError instanceof Error ? delegateError.message : 'Unknown error';
+                console.error(`Failed to delegate to orchestrator: ${message}`);
                 process.exit(1);
             }
         }

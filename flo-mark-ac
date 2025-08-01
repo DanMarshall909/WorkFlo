@@ -15,4 +15,4 @@ AC_DESCRIPTION=$2
 
 # Change to flo-cli directory and run the command
 cd "$(dirname "$0")/flo-cli"
-node dist/cli.js mark-ac-complete --issue "$ISSUE_NUMBER" --description "$AC_DESCRIPTION"
+node dist/cli.js update-issue-ac --issue "$ISSUE_NUMBER" --criteria "$AC_DESCRIPTION"
