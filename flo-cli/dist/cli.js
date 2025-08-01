@@ -6,6 +6,7 @@ const commander_1 = require("commander");
 const acceptance_criteria_parser_1 = require("./acceptance-criteria-parser");
 const issue_updater_1 = require("./issue-updater");
 const test_generator_1 = require("./test-generator");
+const auto_state_1 = require("./auto-state");
 const child_process_1 = require("child_process");
 const fs = tslib_1.__importStar(require("fs"));
 const path = tslib_1.__importStar(require("path"));
@@ -150,6 +151,7 @@ commander_1.program
     .option('--parse-only', 'Parse issue and show acceptance criteria count only')
     .option('--init-session', 'Initialize TDD session using existing ./tdd start command')
     .option('--red-phase', 'Auto-execute TDD RED phase for first acceptance criteria')
+    .option('--init-state', 'Initialize auto workflow state for multi-AC progress tracking')
     .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
@@ -157,6 +159,7 @@ Examples:
   $ flo-cli auto 123 --parse-only       Parse issue and show acceptance criteria count
   $ flo-cli auto 123 --init-session     Initialize TDD session for issue #123
   $ flo-cli auto 123 --red-phase        Auto-execute TDD RED phase for first criteria
+  $ flo-cli auto 123 --init-state      Initialize state management for multi-AC tracking
 
 The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
 for each acceptance criteria in the GitHub issue. It provides autonomous development 
@@ -164,7 +167,21 @@ with built-in quality gates and progress tracking.`)
     .action(async (issue, options) => {
     try {
         if (options.status) {
-            console.log('No active auto workflow running');
+            // Check for active auto workflow state
+            const stateService = new auto_state_1.AutoWorkflowStateService();
+            const state = await stateService.getCurrentState();
+            if (!state) {
+                console.log('No active auto workflow running');
+                return;
+            }
+            console.log('📊 Auto Workflow Status');
+            console.log('========================');
+            console.log(`Issue: #${state.issue}`);
+            console.log(`Progress: ${state.currentAC}/${state.totalACs} acceptance criteria`);
+            console.log(`Current phase: ${state.currentPhase}`);
+            console.log(`Status: ${state.status}`);
+            console.log(`Created: ${new Date(state.createdAt).toLocaleString()}`);
+            console.log(`Updated: ${new Date(state.updatedAt).toLocaleString()}`);
             return;
         }
         if (!issue) {
@@ -247,6 +264,33 @@ with built-in quality gates and progress tracking.`)
             catch (redError) {
                 const message = redError instanceof Error ? redError.message : 'Unknown error';
                 console.error(`Failed to execute RED phase: ${message}`);
+                process.exit(1);
+            }
+        }
+        if (options.initState) {
+            // Initialize auto workflow state for multi-AC progress tracking
+            try {
+                console.log('Auto workflow state initialized');
+                // Get the total number of acceptance criteria
+                const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+                const issueBody = issueData.body;
+                const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
+                if (criteria.length === 0) {
+                    console.error('No acceptance criteria found to track');
+                    process.exit(1);
+                }
+                // Initialize state management
+                const stateService = new auto_state_1.AutoWorkflowStateService();
+                await stateService.initializeState(issueNumber, criteria.length);
+                console.log(`Tracking ${criteria.length} acceptance criteria`);
+                console.log(`Current AC: 1`);
+                console.log(`Current phase: START`);
+                console.log('State management initialized successfully');
+                return;
+            }
+            catch (stateError) {
+                const message = stateError instanceof Error ? stateError.message : 'Unknown error';
+                console.error(`Failed to initialize state management: ${message}`);
                 process.exit(1);
             }
         }

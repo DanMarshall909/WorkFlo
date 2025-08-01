@@ -222,4 +222,42 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       });
     });
   });
+
+  describe('@group ac-8', () => {
+    describe('AC-8: State management for multi-AC progress tracking', () => {
+      it('should create and persist auto workflow state', () => {
+        // Given - an issue with multiple acceptance criteria
+        // When - I start an auto workflow
+        const output = execSync('node dist/cli.js auto 250 --init-state', { encoding: 'utf8' });
+        
+        // Then - should create persistent state with progress tracking
+        expect(output).toContain('Auto workflow state initialized');
+        expect(output).toMatch(/tracking.*\d+.*acceptance criteria/i);
+        expect(output).toMatch(/current.*ac.*1/i);
+      });
+
+      it('should load and display existing workflow state', () => {
+        // Given - an existing auto workflow state
+        // When - I check auto status
+        const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
+        
+        // Then - should show current state and progress
+        expect(output).toMatch(/issue.*#?\d+/i);
+        expect(output).toMatch(/progress.*\d+\/\d+/i);
+        expect(output).toMatch(/current.*phase/i);
+      });
+
+      it('should update state as workflow progresses', () => {
+        // Given - an initialized auto workflow
+        // When - I run state management operations
+        const initOutput = execSync('node dist/cli.js auto 250 --init-state', { encoding: 'utf8' });
+        const statusOutput = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
+        
+        // Then - should maintain consistent state
+        expect(initOutput).toContain('state initialized');
+        expect(statusOutput).toMatch(/progress.*1\/\d+/i);
+        expect(statusOutput).toMatch(/current.*phase.*START/i);
+      });
+    });
+  });
 });
