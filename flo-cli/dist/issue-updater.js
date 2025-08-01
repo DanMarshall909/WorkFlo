@@ -1,6 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateIssue = updateIssue;
+exports.markCriterionComplete = markCriterionComplete;
+exports.markCriterionCompleteByText = markCriterionCompleteByText;
+exports.markCriterionCompleteById = markCriterionCompleteById;
+exports.markComplete = markComplete;
 const tslib_1 = require("tslib");
 const child_process_1 = require("child_process");
 const fs = tslib_1.__importStar(require("fs"));
@@ -53,5 +57,18 @@ async function updateIssue(issueNumber, acDescription) {
             message: `Failed to update issue ${issueNumber}: ${message}`
         };
     }
+}
+// Legacy aliases for backward compatibility with tests
+async function markCriterionComplete(issueNumber, acDescription) {
+    return await updateIssue(issueNumber, acDescription);
+}
+async function markCriterionCompleteByText(issueNumber, acDescription) {
+    return await updateIssue(issueNumber, acDescription);
+}
+async function markCriterionCompleteById(issueNumber, acId) {
+    return await updateIssue(issueNumber, acId);
+}
+async function markComplete(issueNumber, acDescription) {
+    return await updateIssue(issueNumber, acDescription);
 }
 //# sourceMappingURL=issue-updater.js.map

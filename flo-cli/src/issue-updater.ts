@@ -60,3 +60,20 @@ export async function updateIssue(issueNumber: number, acDescription: string): P
     };
   }
 }
+
+// Legacy aliases for backward compatibility with tests
+export async function markCriterionComplete(issueNumber: number, acDescription: string) {
+  return await updateIssue(issueNumber, acDescription);
+}
+
+export async function markCriterionCompleteByText(issueNumber: number, acDescription: string) {
+  return await updateIssue(issueNumber, acDescription);
+}
+
+export async function markCriterionCompleteById(issueNumber: number, acId: string) {
+  return await updateIssue(issueNumber, acId);
+}
+
+export async function markComplete(issueNumber: number, acDescription: string) {
+  return await updateIssue(issueNumber, acDescription);
+}

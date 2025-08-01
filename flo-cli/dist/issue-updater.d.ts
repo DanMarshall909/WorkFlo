@@ -8,4 +8,20 @@ export declare function updateIssue(issueNumber: number, acDescription: string):
     success: boolean;
     message: string;
 }>;
+export declare function markCriterionComplete(issueNumber: number, acDescription: string): Promise<{
+    success: boolean;
+    message: string;
+}>;
+export declare function markCriterionCompleteByText(issueNumber: number, acDescription: string): Promise<{
+    success: boolean;
+    message: string;
+}>;
+export declare function markCriterionCompleteById(issueNumber: number, acId: string): Promise<{
+    success: boolean;
+    message: string;
+}>;
+export declare function markComplete(issueNumber: number, acDescription: string): Promise<{
+    success: boolean;
+    message: string;
+}>;
 //# sourceMappingURL=issue-updater.d.ts.map

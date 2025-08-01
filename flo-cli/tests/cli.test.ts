@@ -147,7 +147,7 @@ describe('Issue #204: CLI Interface Tests', () => {
       // This should not throw when the command is implemented
       let commandSucceeded = false;
       try {
-        execSync('node dist/cli.js generate-tests --issue 250 --output tests/test-output.test.ts', 
+        execSync('node dist/cli.js generate-tests 250 tests/test-output.test.ts', 
           { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
         commandSucceeded = true;
       } catch (error) {
@@ -170,7 +170,7 @@ describe('Issue #204: CLI Interface Tests', () => {
         const { execSync } = require('child_process');
         
         expect(() => {
-          execSync('node dist/cli.js generate-tests --issue abc --output tests/test.test.ts', 
+          execSync('node dist/cli.js generate-tests abc tests/test.test.ts', 
             { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
         }).toThrow();
       });
@@ -179,7 +179,7 @@ describe('Issue #204: CLI Interface Tests', () => {
         const { execSync } = require('child_process');
         
         expect(() => {
-          execSync('node dist/cli.js generate-tests --issue -1 --output tests/test.test.ts', 
+          execSync('node dist/cli.js generate-tests -1 tests/test.test.ts', 
             { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
         }).toThrow();
       });
@@ -188,7 +188,7 @@ describe('Issue #204: CLI Interface Tests', () => {
         const { execSync } = require('child_process');
         
         expect(() => {
-          execSync('node dist/cli.js generate-tests --issue 250 --output tests/test.js', 
+          execSync('node dist/cli.js generate-tests 250 tests/test.js', 
             { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
         }).toThrow();
       });
@@ -197,7 +197,7 @@ describe('Issue #204: CLI Interface Tests', () => {
         const { execSync } = require('child_process');
         
         expect(() => {
-          execSync('node dist/cli.js generate-tests --issue 999999 --output tests/test.test.ts', 
+          execSync('node dist/cli.js generate-tests 999999 tests/test.test.ts', 
             { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
         }).toThrow();
       });
@@ -219,7 +219,7 @@ describe('Issue #204: CLI Interface Tests', () => {
         }
         
         // Test directory creation
-        execSync(`node dist/cli.js generate-tests --issue 250 --output ${testFile}`, 
+        execSync(`node dist/cli.js generate-tests 250 ${testFile}`, 
           { cwd: process.cwd(), encoding: 'utf8', stdio: 'pipe' });
         
         expect(fs.existsSync(testFile)).toBe(true);

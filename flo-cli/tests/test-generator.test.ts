@@ -22,10 +22,11 @@ describe('Issue #204: TypeScript/Jest test generator', () => {
           },
           {
             index: 2,
-            text: 'Validate email format',
+            id: 'AC-2',
+            text: 'AC-2: Validate email format',
             cleanText: 'Validate email format',
             checked: false,
-            raw: '- [ ] Validate email format'
+            raw: '- [ ] AC-2: Validate email format'
           }
         ],
         total: 2,
@@ -82,8 +83,8 @@ describe('Issue #204: TypeScript/Jest test generator', () => {
       const result = generateTests(parseResult);
 
       // Then
-      expect(result).toContain('@group unknown-issue');
-      expect(result).toContain("describe('Unknown Issue: Acceptance criteria tests', () => {");
+      expect(result).toContain('@group issue-unknown-issue');
+      expect(result).toContain("describe('#unknown-issue: Unknown Issue: Acceptance criteria tests', () => {");
     });
 
     it('should respect test generator options', () => {
@@ -103,6 +104,8 @@ describe('Issue #204: TypeScript/Jest test generator', () => {
         issueNumber: 456
       };
       const options: TestGeneratorOptions = {
+        strategy: 'new-file',
+        outputPath: 'test.ts',
         testFramework: 'jest',
         style: 'bdd'
       };
@@ -158,10 +161,11 @@ describe('Issue #204: TypeScript/Jest test generator', () => {
       const result = createParseResult(criteria);
 
       // Then
-      expect(result.criteria[0].id).toBeUndefined();
-      expect(result.criteria[0].text).toBe('Simple criterion');
-      expect(result.criteria[0].cleanText).toBe('Simple criterion');
-      expect(result.criteria[1].id).toBeUndefined();
+      expect(result.criteria).toHaveLength(2);
+      expect(result.criteria[0]?.id).toBeUndefined();
+      expect(result.criteria[0]?.text).toBe('Simple criterion');
+      expect(result.criteria[0]?.cleanText).toBe('Simple criterion');
+      expect(result.criteria[1]?.id).toBeUndefined();
     });
 
     it('should handle empty criteria array', () => {
