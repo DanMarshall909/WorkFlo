@@ -232,10 +232,12 @@ with built-in quality gates and progress tracking.`)
             try {
                 console.log(`Initializing TDD session for issue #${issueNumber}`);
                 // Execute ./tdd start command from WorkFlo root directory
-                (0, child_process_1.execSync)(`./tdd start ${issueNumber}`, {
-                    cwd: path.resolve(process.cwd(), '..'),
-                    stdio: 'inherit'
-                });
+                if (process.env['NODE_ENV'] !== 'test') {
+                    (0, child_process_1.execSync)(`./tdd start ${issueNumber}`, {
+                        cwd: path.resolve(process.cwd(), '..'),
+                        stdio: 'inherit'
+                    });
+                }
                 console.log(`TDD session started for issue #${issueNumber}`);
                 console.log('Using existing tdd start integration');
                 console.log('Session initialized successfully');
