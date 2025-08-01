@@ -186,4 +186,40 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
       }).toThrow();
     });
   });
+
+  describe('@group ac-7', () => {
+    describe('AC-7: Auto-execute TDD RED phase for first acceptance criteria', () => {
+      it('should automatically execute TDD RED phase for first criteria', () => {
+        // Given - an issue with acceptance criteria and initialized TDD session
+        // When - I run flo-cli auto with --red-phase option
+        const output = execSync('node dist/cli.js auto 250 --red-phase', { encoding: 'utf8' });
+        
+        // Then - should execute RED phase for first acceptance criteria
+        expect(output).toContain('Executing RED phase for acceptance criteria 1');
+        expect(output).toContain('Writing failing tests');
+        expect(output).toMatch(/red.*phase.*complete/i);
+      });
+
+      it('should integrate with existing tdd red command', () => {
+        // Given - an initialized TDD session for an issue
+        // When - I run auto with red-phase flag
+        const output = execSync('node dist/cli.js auto 250 --red-phase', { encoding: 'utf8' });
+        
+        // Then - should use existing TDD red integration
+        expect(output).toMatch(/using.*tdd.*red/i);
+        expect(output).toMatch(/failing.*test/i);
+      });
+
+      it('should handle RED phase execution errors gracefully', () => {
+        // Given - conditions that would cause RED phase to fail
+        // When - I run auto with red-phase on problematic setup
+        expect(() => {
+          execSync('node dist/cli.js auto 999999 --red-phase', { 
+            encoding: 'utf8', 
+            stdio: 'pipe' 
+          });
+        }).toThrow();
+      });
+    });
+  });
 });
