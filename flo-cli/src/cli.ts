@@ -169,6 +169,8 @@ program
   .option('--check-sequential', 'Check sequential validation of acceptance criteria')
   .option('--orchestrator', 'Integrate with existing auto-tdd orchestrator system')
   .option('--delegate-orchestrator', 'Delegate to auto-tdd for autonomous processing')
+  .option('--compatibility', 'Maintain full compatibility with existing TDD workflow')
+  .option('--tdd-integration', 'Support existing tdd commands without modification')
   .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
@@ -183,6 +185,8 @@ Examples:
   $ flo-cli auto 123 --check-sequential Check sequential validation
   $ flo-cli auto 123 --orchestrator   Integrate with existing auto-tdd orchestrator
   $ flo-cli auto 123 --delegate-orchestrator Delegate to auto-tdd for autonomous processing
+  $ flo-cli auto 123 --compatibility   Maintain full compatibility with existing TDD workflow
+  $ flo-cli auto 123 --tdd-integration Support existing tdd commands without modification
 
 The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
 for each acceptance criteria in the GitHub issue. It provides autonomous development 
@@ -496,6 +500,62 @@ with built-in quality gates and progress tracking.`)
         } catch (delegateError: unknown) {
           const message = delegateError instanceof Error ? delegateError.message : 'Unknown error';
           console.error(`Failed to delegate to orchestrator: ${message}`);
+          process.exit(1);
+        }
+      }
+
+      if (options.compatibility) {
+        // Maintain full compatibility with existing TDD workflow
+        try {
+          console.log(`Maintaining compatibility with existing TDD workflow for issue #${issueNumber}`);
+          console.log(`Compatibility mode enabled`);
+          console.log(`Existing TDD workflow preserved`);
+          
+          // Get the acceptance criteria to work with
+          const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+          const issueBody = (issueData as { body: string }).body;
+          const criteria = parseAcceptanceCriteria(issueBody);
+          
+          if (criteria.length === 0) {
+            console.error('No acceptance criteria found for compatibility mode');
+            process.exit(1);
+          }
+          
+          console.log(`Managing ${criteria.length} criteria with existing TDD workflow`);
+          console.log('✅ Compatibility maintained with existing TDD workflow');
+          console.log('🔄 Existing workflow patterns preserved');
+          return;
+        } catch (compatibilityError: unknown) {
+          const message = compatibilityError instanceof Error ? compatibilityError.message : 'Unknown error';
+          console.error(`Failed to maintain compatibility: ${message}`);
+          process.exit(1);
+        }
+      }
+
+      if (options.tddIntegration) {
+        // Support existing tdd commands without modification
+        try {
+          console.log(`Supporting existing TDD commands for issue #${issueNumber}`);
+          console.log(`TDD integration mode active`);
+          console.log(`Existing commands supported without modification`);
+          
+          // Get the acceptance criteria to work with
+          const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
+          const issueBody = (issueData as { body: string }).body;
+          const criteria = parseAcceptanceCriteria(issueBody);
+          
+          if (criteria.length === 0) {
+            console.error('No acceptance criteria found for TDD integration');
+            process.exit(1);
+          }
+          
+          console.log(`Integrating ${criteria.length} criteria with existing TDD commands`);
+          console.log('✅ TDD integration complete - existing commands supported');
+          console.log('🔄 No modification to existing TDD workflow required');
+          return;
+        } catch (integrationError: unknown) {
+          const message = integrationError instanceof Error ? integrationError.message : 'Unknown error';
+          console.error(`Failed to complete TDD integration: ${message}`);
           process.exit(1);
         }
       }

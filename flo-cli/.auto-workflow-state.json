@@ -1,9 +1,9 @@
 {
   "issue": 250,
-  "totalACs": 2,
+  "totalACs": 1,
   "currentAC": 1,
   "currentPhase": "START",
   "status": "running",
-  "createdAt": "2025-08-01T04:42:26.012Z",
-  "updatedAt": "2025-08-01T04:42:26.014Z"
+  "createdAt": "2025-08-01T05:11:40.219Z",
+  "updatedAt": "2025-08-01T05:11:40.221Z"
 }

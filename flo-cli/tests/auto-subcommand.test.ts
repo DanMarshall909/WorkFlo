@@ -366,5 +366,39 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
         expect(helpOutput).toMatch(/--delegate-orchestrator.*autonomous/i);
       });
     });
+
+    describe('@group ac-12', () => {
+      describe('AC-12: Maintain compatibility with current TDD workflow', () => {
+        it('should maintain full compatibility with existing tdd workflow', () => {
+          // Given - existing TDD workflow is in use
+          // When - I run auto with compatibility mode
+          const output = execSync('node dist/cli.js auto 250 --compatibility', { encoding: 'utf8' });
+          
+          // Then - should maintain compatibility with current workflow
+          expect(output).toMatch(/compatibility.*maintained/i);
+          expect(output).toMatch(/existing.*tdd.*workflow/i);
+        });
+
+        it('should support existing tdd commands without modification', () => {
+          // Given - existing tdd commands are available
+          // When - I run auto with tdd integration
+          const output = execSync('node dist/cli.js auto 250 --tdd-integration', { encoding: 'utf8' });
+          
+          // Then - should work with existing tdd commands unchanged
+          expect(output).toMatch(/tdd.*integration.*complete/i);
+          expect(output).toMatch(/existing.*commands.*supported/i);
+        });
+
+        it('should show TDD workflow compatibility options in help', () => {
+          // Given - the auto command with compatibility support
+          // When - I check auto help
+          const helpOutput = execSync('node dist/cli.js auto --help', { encoding: 'utf8' });
+          
+          // Then - should show compatibility options
+          expect(helpOutput).toMatch(/--compatibility.*existing.*tdd/i);
+          expect(helpOutput).toMatch(/--tdd-integration.*commands/i);
+        });
+      });
+    });
   });
 });

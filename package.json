@@ -3,5 +3,8 @@
   "private": true,
   "scripts": {
     "test": "cd vscode-extension && npm test"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
   }
 }
