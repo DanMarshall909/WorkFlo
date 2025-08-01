@@ -159,11 +159,13 @@ program
   .argument('[issue]', 'GitHub issue number')
   .option('--status', 'Show current auto workflow progress checking')
   .option('--parse-only', 'Parse issue and show acceptance criteria count only')
+  .option('--init-session', 'Initialize TDD session using existing ./tdd start command')
   .addHelpText('after', `
 Examples:
   $ flo-cli auto 123                    Start autonomous workflow for issue #123
   $ flo-cli auto --status               Check current workflow progress
   $ flo-cli auto 123 --parse-only       Parse issue and show acceptance criteria count
+  $ flo-cli auto 123 --init-session     Initialize TDD session for issue #123
 
 The auto command automatically cycles through TDD phases (RED-GREEN-REFACTOR-COVER-DOCUMENT) 
 for each acceptance criteria in the GitHub issue. It provides autonomous development 
@@ -200,6 +202,29 @@ with built-in quality gates and progress tracking.`)
         } catch (parseError: unknown) {
           const message = parseError instanceof Error ? parseError.message : 'Unknown error';
           console.error(`Failed to parse issue: ${message}`);
+          process.exit(1);
+        }
+      }
+
+      if (options.initSession) {
+        // Initialize TDD session using existing ./tdd start command
+        try {
+          console.log(`Initializing TDD session for issue #${issueNumber}`);
+          
+          // Execute ./tdd start command from WorkFlo root directory
+          execSync(`./tdd start ${issueNumber}`, { 
+            cwd: path.resolve(process.cwd(), '..'),
+            stdio: 'inherit'
+          });
+          
+          console.log(`TDD session started for issue #${issueNumber}`);
+          console.log('Using existing tdd start integration');
+          console.log('Session initialized successfully');
+          console.log('Ready to begin autonomous workflow');
+          return;
+        } catch (initError: unknown) {
+          const message = initError instanceof Error ? initError.message : 'Unknown error';
+          console.error(`Failed to initialize TDD session: ${message}`);
           process.exit(1);
         }
       }
