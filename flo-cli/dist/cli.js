@@ -10,6 +10,7 @@ const auto_state_1 = require("./auto-state");
 const child_process_1 = require("child_process");
 const fs = tslib_1.__importStar(require("fs"));
 const path = tslib_1.__importStar(require("path"));
+const command_handlers_1 = require("./command-handlers");
 // Utility functions
 function fetchGitHubIssue(issueNumber, fields = 'body') {
     try {
@@ -36,23 +37,6 @@ function ensureDirectoryExists(outputPath) {
     }
     if (!outputPath.endsWith('.test.ts')) {
         throw new Error(`Output path must end with '.test.ts': ${outputPath}`);
-    }
-}
-function outputResult(data, options) {
-    if (options.json) {
-        console.log(JSON.stringify(data, null, 2));
-    }
-    else {
-        // Human-readable output
-        if (data.success !== false) {
-            console.log(data.message);
-            if (data.details) {
-                data.details.forEach((detail) => console.log(detail));
-            }
-        }
-        else {
-            console.error(`Error: ${data.error}`);
-        }
     }
 }
 commander_1.program
@@ -200,43 +184,11 @@ for each acceptance criteria in the GitHub issue. It provides autonomous develop
 with built-in quality gates and progress tracking.`)
     .action(async (issue, options) => {
     try {
+        const router = new command_handlers_1.CommandRouter();
+        // Handle commands that don't require issue number
         if (options.status) {
-            // Check for active auto workflow state
-            const stateService = new auto_state_1.AutoWorkflowStateService();
-            const state = await stateService.getCurrentState();
-            if (!state) {
-                outputResult({
-                    success: true,
-                    active: false,
-                    message: 'No active auto workflow running'
-                }, options);
-                return;
-            }
-            outputResult({
-                success: true,
-                active: true,
-                message: '📊 Auto Workflow Status',
-                data: {
-                    issue: state.issue,
-                    progress: {
-                        current: state.currentAC,
-                        total: state.totalACs,
-                        percentage: Math.round((state.currentAC / state.totalACs) * 100)
-                    },
-                    currentPhase: state.currentPhase,
-                    status: state.status,
-                    created: state.createdAt,
-                    updated: state.updatedAt
-                },
-                details: [
-                    `Issue: #${state.issue}`,
-                    `Progress: ${state.currentAC}/${state.totalACs} acceptance criteria`,
-                    `Current phase: ${state.currentPhase}`,
-                    `Status: ${state.status}`,
-                    `Created: ${new Date(state.createdAt).toLocaleString()}`,
-                    `Updated: ${new Date(state.updatedAt).toLocaleString()}`
-                ]
-            }, options);
+            const result = await router.route(0, options);
+            (0, command_handlers_1.outputResult)(result, options);
             return;
         }
         if (!issue) {
@@ -244,53 +196,14 @@ with built-in quality gates and progress tracking.`)
             process.exit(1);
         }
         const issueNumber = validateIssueNumber(issue);
-        if (options.parseOnly) {
-            // Parse GitHub issue and extract acceptance criteria count
-            try {
-                const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
-                const issueBody = issueData.body;
-                const criteria = (0, acceptance_criteria_parser_1.parseAcceptanceCriteria)(issueBody);
-                outputResult({
-                    success: true,
-                    command: 'parse-only',
-                    data: {
-                        issue: issueNumber,
-                        criteriaCount: criteria.length,
-                        criteria: criteria
-                    },
-                    message: criteria.length === 0 ? 'No acceptance criteria found' : `Found ${criteria.length} acceptance criteria`,
-                    details: criteria.length === 0 ? ['Found 0 criteria'] : [`Found ${criteria.length} acceptance criteria`, `Criteria count: ${criteria.length}`]
-                }, options);
-                return;
-            }
-            catch (parseError) {
-                const message = parseError instanceof Error ? parseError.message : 'Unknown error';
-                console.error(`Failed to parse issue: ${message}`);
+        // Handle commands that require issue number using router
+        if (options.parseOnly || options.initSession) {
+            const result = await router.route(issueNumber, options);
+            (0, command_handlers_1.outputResult)(result, options);
+            if (!result.success) {
                 process.exit(1);
             }
-        }
-        if (options.initSession) {
-            // Initialize TDD session using existing ./tdd start command
-            try {
-                console.log(`Initializing TDD session for issue #${issueNumber}`);
-                // Execute ./tdd start command from WorkFlo root directory
-                if (process.env['NODE_ENV'] !== 'test') {
-                    (0, child_process_1.execSync)(`./tdd start ${issueNumber}`, {
-                        cwd: path.resolve(process.cwd(), '..'),
-                        stdio: 'inherit'
-                    });
-                }
-                console.log(`TDD session started for issue #${issueNumber}`);
-                console.log('Using existing tdd start integration');
-                console.log('Session initialized successfully');
-                console.log('Ready to begin autonomous workflow');
-                return;
-            }
-            catch (initError) {
-                const message = initError instanceof Error ? initError.message : 'Unknown error';
-                console.error(`Failed to initialize TDD session: ${message}`);
-                process.exit(1);
-            }
+            return;
         }
         if (options.redPhase) {
             // Auto-execute TDD RED phase for first acceptance criteria

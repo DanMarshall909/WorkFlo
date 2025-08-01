@@ -7,6 +7,7 @@ import { AutoWorkflowStateService } from './auto-state';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CommandRouter, AutoCommandOptions, outputResult as commandOutputResult } from './command-handlers';
 
 // Utility functions
 function fetchGitHubIssue(issueNumber: string, fields: string = 'body'): unknown {
@@ -40,21 +41,6 @@ function ensureDirectoryExists(outputPath: string): void {
   }
 }
 
-function outputResult(data: any, options: any): void {
-  if (options.json) {
-    console.log(JSON.stringify(data, null, 2));
-  } else {
-    // Human-readable output
-    if (data.success !== false) {
-      console.log(data.message);
-      if (data.details) {
-        data.details.forEach((detail: string) => console.log(detail));
-      }
-    } else {
-      console.error(`Error: ${data.error}`);
-    }
-  }
-}
 
 program
   .name('flo-cli')
@@ -210,45 +196,12 @@ for each acceptance criteria in the GitHub issue. It provides autonomous develop
 with built-in quality gates and progress tracking.`)
   .action(async (issue, options) => {
     try {
+      const router = new CommandRouter();
+      
+      // Handle commands that don't require issue number
       if (options.status) {
-        // Check for active auto workflow state
-        const stateService = new AutoWorkflowStateService();
-        const state = await stateService.getCurrentState();
-        
-        if (!state) {
-          outputResult({
-            success: true,
-            active: false,
-            message: 'No active auto workflow running'
-          }, options);
-          return;
-        }
-        
-        outputResult({
-          success: true,
-          active: true,
-          message: '📊 Auto Workflow Status',
-          data: {
-            issue: state.issue,
-            progress: {
-              current: state.currentAC,
-              total: state.totalACs,
-              percentage: Math.round((state.currentAC / state.totalACs) * 100)
-            },
-            currentPhase: state.currentPhase,
-            status: state.status,
-            created: state.createdAt,
-            updated: state.updatedAt
-          },
-          details: [
-            `Issue: #${state.issue}`,
-            `Progress: ${state.currentAC}/${state.totalACs} acceptance criteria`,
-            `Current phase: ${state.currentPhase}`,
-            `Status: ${state.status}`,
-            `Created: ${new Date(state.createdAt).toLocaleString()}`,
-            `Updated: ${new Date(state.updatedAt).toLocaleString()}`
-          ]
-        }, options);
+        const result = await router.route(0, options as AutoCommandOptions);
+        commandOutputResult(result, options);
         return;
       }
 
@@ -259,55 +212,14 @@ with built-in quality gates and progress tracking.`)
 
       const issueNumber = validateIssueNumber(issue);
 
-      if (options.parseOnly) {
-        // Parse GitHub issue and extract acceptance criteria count
-        try {
-          const issueData = fetchGitHubIssue(issueNumber.toString(), 'body');
-          const issueBody = (issueData as { body: string }).body;
-          const criteria = parseAcceptanceCriteria(issueBody);
-          
-          outputResult({
-            success: true,
-            command: 'parse-only',
-            data: {
-              issue: issueNumber,
-              criteriaCount: criteria.length,
-              criteria: criteria
-            },
-            message: criteria.length === 0 ? 'No acceptance criteria found' : `Found ${criteria.length} acceptance criteria`,
-            details: criteria.length === 0 ? ['Found 0 criteria'] : [`Found ${criteria.length} acceptance criteria`, `Criteria count: ${criteria.length}`]
-          }, options);
-          return;
-        } catch (parseError: unknown) {
-          const message = parseError instanceof Error ? parseError.message : 'Unknown error';
-          console.error(`Failed to parse issue: ${message}`);
+      // Handle commands that require issue number using router
+      if (options.parseOnly || options.initSession) {
+        const result = await router.route(issueNumber, options as AutoCommandOptions);
+        commandOutputResult(result, options);
+        if (!result.success) {
           process.exit(1);
         }
-      }
-
-      if (options.initSession) {
-        // Initialize TDD session using existing ./tdd start command
-        try {
-          console.log(`Initializing TDD session for issue #${issueNumber}`);
-          
-          // Execute ./tdd start command from WorkFlo root directory
-          if (process.env['NODE_ENV'] !== 'test') {
-            execSync(`./tdd start ${issueNumber}`, { 
-              cwd: path.resolve(process.cwd(), '..'),
-              stdio: 'inherit'
-            });
-          }
-          
-          console.log(`TDD session started for issue #${issueNumber}`);
-          console.log('Using existing tdd start integration');
-          console.log('Session initialized successfully');
-          console.log('Ready to begin autonomous workflow');
-          return;
-        } catch (initError: unknown) {
-          const message = initError instanceof Error ? initError.message : 'Unknown error';
-          console.error(`Failed to initialize TDD session: ${message}`);
-          process.exit(1);
-        }
+        return;
       }
 
       if (options.redPhase) {
