@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import * as fs from 'fs';
 
 /**
  * @group issue-250
@@ -42,6 +43,14 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
    * @group ac-3
    */
   describe('AC-3: Add flo-cli auto status for progress checking', () => {
+    beforeEach(() => {
+      // Clean up any existing state before each test
+      const stateFile = '.auto-workflow-state.json';
+      if (fs.existsSync(stateFile)) {
+        fs.unlinkSync(stateFile);
+      }
+    });
+
     it('should support auto status command without issue number', () => {
       // Given - flo-cli has auto subcommand with status option
       // When - I run flo-cli auto --status
@@ -62,7 +71,12 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
     });
 
     it('should handle status command gracefully when no workflow active', () => {
-      // Given - no active auto workflow
+      // Given - no active auto workflow (ensure clean state)
+      const stateFile = '.auto-workflow-state.json';
+      if (fs.existsSync(stateFile)) {
+        fs.unlinkSync(stateFile);
+      }
+      
       // When - I run flo-cli auto --status
       const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
       
@@ -234,10 +248,18 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
         expect(output).toContain('Auto workflow state initialized');
         expect(output).toMatch(/tracking.*\d+.*acceptance criteria/i);
         expect(output).toMatch(/current.*ac.*1/i);
+        
+        // Clean up state after test
+        const stateFile = '.auto-workflow-state.json';
+        if (fs.existsSync(stateFile)) {
+          fs.unlinkSync(stateFile);
+        }
       });
 
       it('should load and display existing workflow state', () => {
         // Given - an existing auto workflow state
+        execSync('node dist/cli.js auto 250 --init-state', { encoding: 'utf8' });
+        
         // When - I check auto status
         const output = execSync('node dist/cli.js auto --status', { encoding: 'utf8' });
         
@@ -245,6 +267,12 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
         expect(output).toMatch(/issue.*#?\d+/i);
         expect(output).toMatch(/progress.*\d+\/\d+/i);
         expect(output).toMatch(/current.*phase/i);
+        
+        // Clean up state after test
+        const stateFile = '.auto-workflow-state.json';
+        if (fs.existsSync(stateFile)) {
+          fs.unlinkSync(stateFile);
+        }
       });
 
       it('should update state as workflow progresses', () => {
@@ -257,6 +285,12 @@ describe('Issue #250: Core flo-cli auto subcommand foundation', () => {
         expect(initOutput).toContain('state initialized');
         expect(statusOutput).toMatch(/progress.*1\/\d+/i);
         expect(statusOutput).toMatch(/current.*phase.*START/i);
+        
+        // Clean up state after test
+        const stateFile = '.auto-workflow-state.json';
+        if (fs.existsSync(stateFile)) {
+          fs.unlinkSync(stateFile);
+        }
       });
     });
   });
