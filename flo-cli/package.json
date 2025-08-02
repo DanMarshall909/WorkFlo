@@ -4,11 +4,11 @@
   "description": "",
   "main": "dist/cli.js",
   "bin": {
-    "flo-cli": "dist/cli.js"
+    "flo": "dist/cli.js"
   },
   "oclif": {
-    "bin": "flo-cli",
-    "dirname": "flo-cli",
+    "bin": "flo",
+    "dirname": "flo",
     "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help"
@@ -20,6 +20,8 @@
   },
   "scripts": {
     "test": "jest",
+    "test:unit": "jest --testPathPatterns=unit",
+    "test:integration": "jest --testPathPatterns='^(?!.*unit).*'",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:mutation": "stryker run",

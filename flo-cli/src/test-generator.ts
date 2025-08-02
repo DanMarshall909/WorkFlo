@@ -3,6 +3,8 @@ export interface TestGenerationOptions {
   outputPath: string;
   testFramework?: string;
   style?: string;
+  marker?: string;
+  createFileIfMissing?: boolean;
 }
 
 // Legacy alias for backward compatibility
@@ -111,11 +113,31 @@ ${criteria.map((criterion, index) => `  /**
 });`;
   }
   
-  // Handle legacy interface (ParseResult)
+  // Handle ParseResult interface with options
   const parseResult = criteriaOrParseResult as ParseResult;
+  const options = issueNumberOrOptions as TestGeneratorOptions;
   
   if (parseResult.criteria.length === 0) {
     throw new Error('No acceptance criteria found to generate tests for');
+  }
+  
+  // Validate options based on strategy
+  if (options) {
+    if (!options.strategy) {
+      options.strategy = 'new-file';
+    }
+    
+    if (options.strategy !== 'new-file' && !options.outputPath) {
+      throw new Error('Target file required for insertion strategies');
+    }
+    
+    if (options.strategy === 'insert-at-marker' && !options.marker) {
+      throw new Error('Target file and marker required for insert-at-marker strategy');
+    }
+    
+    if (!['new-file', 'insert-before-end', 'insert-at-marker', 'insert-new-describe'].includes(options.strategy)) {
+      throw new Error('Unknown insertion strategy: ' + options.strategy);
+    }
   }
   
   // Try to extract issue info from ParseResult properties or first criterion
@@ -133,7 +155,7 @@ ${criteria.map((criterion, index) => `  /**
     title = issueId === 'unknown-issue' ? 'Unknown Issue: Acceptance criteria tests' : 'User registration feature';
   }
   
-  return `/**
+  const newTestContent = `/**
  * @group issue-${issueId}
  * @group generator
  * @group unit
@@ -143,7 +165,7 @@ describe('#${issueId}: ${title}', () => {
 ${parseResult.criteria.map((criterion) => `  /**
    * @group ac-${criterion.index}
    */
-  describe('${criterion.text}', () => {
+  describe('${criterion.id ? criterion.text : `AC-${criterion.index}: ${criterion.cleanText}`}', () => {
     it('should ${criterion.cleanText.toLowerCase()}', () => {
       // Given
       
@@ -154,6 +176,46 @@ ${parseResult.criteria.map((criterion) => `  /**
     });
   });`).join('\n\n')}
 });`;
+
+  // Handle different strategies if options provided
+  if (options && options.strategy !== 'new-file') {
+    const fs = require('fs');
+    
+    if (!fs.existsSync(options.outputPath)) {
+      if (options.createFileIfMissing === false) {
+        throw new Error(`Target file ${options.outputPath} does not exist`);
+      }
+      // Create file with new content
+      return newTestContent;
+    }
+    
+    const existingContent = fs.readFileSync(options.outputPath, 'utf8');
+    
+    switch (options.strategy) {
+      case 'insert-before-end':
+        // Insert before the last closing brace of the outer describe
+        return existingContent.replace(/(\}\);?\s*)$/, '\n\n' + newTestContent + '\n$1');
+        
+      case 'insert-at-marker':
+        if (!options.marker) {
+          throw new Error('Marker required for insert-at-marker strategy');
+        }
+        const marker = `// ${options.marker}`;
+        if (!existingContent.includes(marker)) {
+          throw new Error(`Marker "${options.marker}" not found in ${options.outputPath}`);
+        }
+        return existingContent.replace(marker, newTestContent + '\n' + marker);
+        
+      case 'insert-new-describe':
+        // Append new describe block to the end of the file
+        return existingContent.trim() + '\n\n' + newTestContent;
+        
+      default:
+        throw new Error('Unknown insertion strategy: ' + options.strategy);
+    }
+  }
+  
+  return newTestContent;
 }
 
 /**
@@ -169,7 +231,8 @@ export function generateTestContent(testContent: string, options: TestGeneration
     fs.mkdirSync(dir, { recursive: true });
   }
   
-  // Write the test content to file
+  // For strategies other than 'new-file', the content is already merged by generateTests
+  // So we just write it directly
   fs.writeFileSync(options.outputPath, testContent, 'utf8');
   
   return options.outputPath;
