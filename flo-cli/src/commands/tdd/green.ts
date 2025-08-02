@@ -40,7 +40,7 @@ export default class TddGreen extends BaseCommand {
     try {
       // Set environment variable to skip script tests, then run tests
       process.env['TDD_SKIP_SCRIPT_TESTS'] = '1';
-      execSync('./run-tests', { stdio: 'ignore' });
+      execSync('npm test', { stdio: 'ignore' });
       return true; // Tests passed
     } catch {
       return false; // Tests failed
