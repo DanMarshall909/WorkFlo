@@ -1,1 +1,0 @@
-{"version":3,"file":"update-issue-ac.d.ts","sourceRoot":"","sources":["../../src/commands/update-issue-ac.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,WAAW,EAAE,MAAM,iBAAiB,CAAC;AAE9C,MAAM,CAAC,OAAO,OAAO,aAAc,SAAQ,WAAW;IACpD,OAAgB,WAAW,SAAuD;IAElF,OAAgB,QAAQ,WAEtB;IAEF,OAAgB,IAAI;;;MAGlB;IAEI,GAAG,IAAI,OAAO,CAAC,IAAI,CAAC;CAW3B"}
