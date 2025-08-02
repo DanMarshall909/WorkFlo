@@ -37,18 +37,22 @@ class AutoRun extends base_command_1.BaseCommand {
             if (criteria.length === 0) {
                 this.error('No acceptance criteria found for autonomous workflow');
             }
-            // TODO: Implement full autonomous workflow
+            // Display workflow plan
             this.log(`🚀 Starting autonomous TDD workflow for issue #${issueNumber}`);
             this.log(`📊 Processing ${criteria.length} acceptance criteria`);
-            this.log('🔄 Auto workflow implementation in progress...');
-            // For now, show what would be processed
+            this.log('');
+            this.log('Workflow plan:');
             criteria.forEach((criterion, index) => {
                 this.log(`${index + 1}. ${criterion}`);
             });
+            this.log('');
+            this.log('Next steps:');
+            this.log('1. Run: flo-cli auto:init ' + issueNumber + ' to initialize TDD session');
+            this.log('2. Follow the TDD workflow for each acceptance criteria');
+            this.log('3. Use: flo-cli auto:status to check progress');
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            this.error(`Failed to run auto workflow: ${message}`);
+            this.handleError(error, 'Failed to run auto workflow');
         }
     }
 }

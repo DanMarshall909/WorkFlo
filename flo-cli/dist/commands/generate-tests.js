@@ -21,7 +21,7 @@ class GenerateTests extends base_command_1.BaseCommand {
                 this.error(`No acceptance criteria found in issue #${issueNumber}`);
             }
             // Generate tests based on criteria
-            const testContent = (0, test_generator_1.generateTests)(criteria, issueNumber, issue.title);
+            const testContent = (0, test_generator_1.generateTests)(criteria, issueNumber, issue.title || 'Unknown');
             // Configure test generation options
             const generationOptions = {
                 strategy: 'new-file',
@@ -32,8 +32,7 @@ class GenerateTests extends base_command_1.BaseCommand {
             this.log(`📊 Created ${criteria.length} test scenarios for issue #${issueNumber}`);
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            this.error(`Test generation failed: ${message}`);
+            this.handleError(error, 'Test generation failed');
         }
     }
     ensureDirectoryExists(outputPath) {

@@ -21,6 +21,13 @@ class BaseCommand extends core_1.Command {
         }
         return issueNumber;
     }
+    handleError(error, context) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        this.error(`${context}: ${errorMessage}`);
+    }
+    escapeShellArg(arg) {
+        return `'${arg.replace(/'/g, "'\"'\"'")}'`;
+    }
 }
 exports.BaseCommand = BaseCommand;
 //# sourceMappingURL=base-command.js.map

@@ -44,8 +44,7 @@ class ParseAc extends base_command_1.BaseCommand {
             }
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            this.error(`Failed to parse acceptance criteria: ${message}`);
+            this.handleError(error, 'Failed to parse acceptance criteria');
         }
     }
 }

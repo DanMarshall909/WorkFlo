@@ -52,8 +52,7 @@ class AutoInit extends base_command_1.BaseCommand {
             }
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            this.error(`Failed to initialize auto workflow: ${message}`);
+            this.handleError(error, 'Failed to initialize auto workflow');
         }
     }
 }

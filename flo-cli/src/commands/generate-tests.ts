@@ -28,14 +28,14 @@ export default class GenerateTests extends BaseCommand {
       const issue = this.fetchGitHubIssue(issueNumber.toString(), 'body,title');
 
       // Parse acceptance criteria from issue body
-      const criteria = parseAcceptanceCriteria((issue as { body: string }).body);
+      const criteria = parseAcceptanceCriteria(issue.body);
 
       if (criteria.length === 0) {
         this.error(`No acceptance criteria found in issue #${issueNumber}`);
       }
 
       // Generate tests based on criteria
-      const testContent = generateTests(criteria, issueNumber, (issue as { title: string }).title);
+      const testContent = generateTests(criteria, issueNumber, issue.title || 'Unknown');
 
       // Configure test generation options
       const generationOptions: TestGenerationOptions = {
@@ -49,8 +49,7 @@ export default class GenerateTests extends BaseCommand {
       this.log(`📊 Created ${criteria.length} test scenarios for issue #${issueNumber}`);
 
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      this.error(`Test generation failed: ${message}`);
+      this.handleError(error, 'Test generation failed');
     }
   }
 

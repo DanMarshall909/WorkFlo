@@ -30,7 +30,7 @@ export default class AutoInit extends BaseCommand {
       
       // Get acceptance criteria count
       const issueData = this.fetchGitHubIssue(issueNumber.toString(), 'body');
-      const issueBody = (issueData as { body: string }).body;
+      const issueBody = issueData.body;
       const criteria = parseAcceptanceCriteria(issueBody);
       
       if (criteria.length === 0) {
@@ -71,8 +71,7 @@ export default class AutoInit extends BaseCommand {
         this.log('✅ State management initialized');
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      this.error(`Failed to initialize auto workflow: ${message}`);
+      this.handleError(error, 'Failed to initialize auto workflow');
     }
   }
 }

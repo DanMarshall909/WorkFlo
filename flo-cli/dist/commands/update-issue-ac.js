@@ -12,8 +12,7 @@ class UpdateIssueAc extends base_command_1.BaseCommand {
             this.log(result.message);
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            this.error(`Failed to update issue: ${message}`);
+            this.handleError(error, 'Failed to update issue');
         }
     }
 }

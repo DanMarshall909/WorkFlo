@@ -22,8 +22,7 @@ export default class UpdateIssueAc extends BaseCommand {
       const result = await updateIssue(issueNumber, args.criteria);
       this.log(result.message);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      this.error(`Failed to update issue: ${message}`);
+      this.handleError(error, 'Failed to update issue');
     }
   }
 }

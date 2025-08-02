@@ -29,7 +29,7 @@ export default class ParseAc extends BaseCommand {
       if (args.issue) {
         const issueNumber = this.validateIssueNumber(args.issue);
         const issue = this.fetchGitHubIssue(issueNumber.toString(), 'body');
-        issueBody = (issue as { body: string }).body;
+        issueBody = issue.body;
       } else if (flags.body) {
         issueBody = flags.body;
       } else {
@@ -59,8 +59,7 @@ export default class ParseAc extends BaseCommand {
         }
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      this.error(`Failed to parse acceptance criteria: ${message}`);
+      this.handleError(error, 'Failed to parse acceptance criteria');
     }
   }
 }

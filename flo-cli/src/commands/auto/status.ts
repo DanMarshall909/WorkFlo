@@ -56,8 +56,7 @@ export default class AutoStatus extends BaseCommand {
         this.log(`Updated: ${new Date(state.updatedAt).toLocaleString()}`);
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      this.error(`Failed to get workflow status: ${message}`);
+      this.handleError(error, 'Failed to get workflow status');
     }
   }
 }
