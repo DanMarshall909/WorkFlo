@@ -13,9 +13,13 @@ setup() {
     
     # Copy necessary files
     cp "$BATS_TEST_DIRNAME"/../tdd ./
+    cp "$BATS_TEST_DIRNAME"/../ai-loader.sh ./
     mkdir -p lib
     cp "$BATS_TEST_DIRNAME"/../lib/document-phase.sh ./lib/document-phase.sh
+    mkdir -p ai-providers
+    cp "$BATS_TEST_DIRNAME"/../ai-providers/* ./ai-providers/ 2>/dev/null || true
     chmod +x ./tdd
+    chmod +x ./ai-loader.sh
     chmod +x ./lib/document-phase.sh
     
     # Create a basic CLAUDE.md file

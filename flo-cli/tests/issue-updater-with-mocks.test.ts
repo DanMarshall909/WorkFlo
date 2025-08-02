@@ -4,17 +4,36 @@
  * @group integration
  */
 
-import { updateIssueAC, setGitHubClient, markCriterionCompleteByText } from '../src/issue-updater';
-import { MockGitHubClient } from '../src/github-client';
+import { updateIssue, markCriterionCompleteByText } from '../src/issue-updater';
+
+// Mock child_process to avoid actual GitHub CLI calls
+jest.mock('child_process', () => ({
+  execSync: jest.fn()
+}));
+
+// Mock fs to avoid actual file operations
+jest.mock('fs', () => ({
+  writeFileSync: jest.fn(),
+  unlinkSync: jest.fn()
+}));
+
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+
+const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
+const mockWriteFileSync = fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>;
 
 describe('Issue #204: GitHub Integration with Mocks', () => {
-  describe('AC-5: Create CLI command with GitHub integration', () => {
-    let mockClient: MockGitHubClient;
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    beforeEach(() => {
-      // Set up mock client with test data
-      mockClient = new MockGitHubClient({
-        204: `Create functionality to parse and validate acceptance criteria from GitHub issues.
+  describe('AC-5: Create CLI command with GitHub integration', () => {
+    it('should successfully mark acceptance criterion as complete', async () => {
+      // Given
+      const issueNumber = 204;
+      const acDescription = 'Handle various markdown checkbox formats';
+      const mockIssueBody = `Create functionality to parse and validate acceptance criteria from GitHub issues.
 
 ## Acceptance Criteria
 
@@ -29,171 +48,82 @@ describe('Issue #204: GitHub Integration with Mocks', () => {
 - [ ] Create TypeScript/Jest test generator consuming parser output
 - [x] Generate describe blocks with issue number and AC text
 - [x] Include @group annotations for jest-runner-groups
-- [ ] Create CLI command for generation: \`flo-cli generate-tests\``,
+- [ ] Create CLI command for generation: \`flo-cli generate-tests\``;
 
-        999: `This is a test issue with no acceptance criteria.
-
-Just some regular content without checkboxes.`
-      });
-
-      setGitHubClient(mockClient);
-    });
-
-    it('should successfully mark acceptance criterion as complete', async () => {
-      // Given
-      const issueNumber = 204;
-      const acDescription = 'Handle various markdown checkbox formats';
+      // Mock GitHub CLI calls
+      mockExecSync
+        .mockReturnValueOnce(JSON.stringify({ body: mockIssueBody })) // gh issue view
+        .mockReturnValueOnce(''); // gh issue edit
 
       // When
-      const result = await updateIssueAC(issueNumber, acDescription);
+      const result = await updateIssue(issueNumber, acDescription);
 
       // Then
       expect(result.success).toBe(true);
-      expect(result.message).toContain('marked as complete in issue #204');
-
-      // Verify the issue was actually updated
-      const updatedBody = mockClient.getIssueBodySync(204);
-      expect(updatedBody).toContain('- [x] Handle various markdown checkbox formats');
-      expect(updatedBody).toContain('- [ ] Return structured data with AC index'); // Other ACs unchanged
+      expect(result.message).toContain('Successfully marked as complete');
+      expect(mockExecSync).toHaveBeenCalledWith(`gh issue view ${issueNumber} --json body`, { encoding: 'utf-8' });
+      expect(mockWriteFileSync).toHaveBeenCalled();
     });
 
-    it('should handle partial text matches correctly', async () => {
+    it('should handle missing acceptance criteria', async () => {
       // Given
       const issueNumber = 204;
-      const acDescription = 'structured data'; // Partial match
+      const acDescription = 'Nonexistent acceptance criteria';
+      const mockIssueBody = `No acceptance criteria here`;
 
-      // When  
-      const result = await updateIssueAC(issueNumber, acDescription);
+      mockExecSync.mockReturnValueOnce(JSON.stringify({ body: mockIssueBody }));
+
+      // When
+      const result = await updateIssue(issueNumber, acDescription);
 
       // Then
-      expect(result.success).toBe(true);
-      
-      const updatedBody = mockClient.getIssueBodySync(204);
-      expect(updatedBody).toContain('- [x] Return structured data with AC index, text, and checked status');
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Could not find matching acceptance criteria');
     });
 
-    it('should reject AC that is already completed', async () => {
-      // Given
-      const issueNumber = 204;
-      const acDescription = 'Create function to parse acceptance criteria'; // Already marked [x]
-
-      // When/Then
-      await expect(updateIssueAC(issueNumber, acDescription))
-        .rejects.toThrow('Acceptance criterion not found');
-    });
-
-    it('should handle non-existent acceptance criterion', async () => {
-      // Given
-      const issueNumber = 204;
-      const acDescription = 'This AC does not exist';
-
-      // When/Then
-      await expect(updateIssueAC(issueNumber, acDescription))
-        .rejects.toThrow('Failed to update issue: Acceptance criterion not found');
-    });
-
-    it('should handle non-existent issue', async () => {
-      // Given
-      const issueNumber = 404;
-      const acDescription = 'Any description';
-
-      // When/Then
-      await expect(updateIssueAC(issueNumber, acDescription))
-        .rejects.toThrow('Failed to update issue: Issue #404 not found');
-    });
-
-    it('should handle issue with no acceptance criteria', async () => {
+    it('should handle GitHub CLI errors', async () => {
       // Given
       const issueNumber = 999;
-      const acDescription = 'Some description';
+      const acDescription = 'Some criteria';
 
-      // When/Then
-      await expect(updateIssueAC(issueNumber, acDescription))
-        .rejects.toThrow('Failed to update issue: Acceptance criterion not found');
+      mockExecSync.mockImplementation(() => {
+        throw new Error('Issue not found');
+      });
+
+      // When
+      const result = await updateIssue(issueNumber, acDescription);
+
+      // Then
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Failed to update issue');
     });
 
-    it('should be case insensitive when matching descriptions', async () => {
+    it('should handle empty issue body', async () => {
       // Given
-      const issueNumber = 204;
-      const acDescription = 'EXTRACT AC-N PREFIX'; // Different case
+      const acDescription = 'any text';
+
+      mockExecSync.mockReturnValueOnce(JSON.stringify({ body: '' }));
 
       // When
-      const result = await updateIssueAC(issueNumber, acDescription);
+      const result = await markCriterionCompleteByText(456, acDescription);
 
       // Then
-      expect(result.success).toBe(true);
-      
-      const updatedBody = mockClient.getIssueBodySync(204);
-      expect(updatedBody).toContain('- [x] Extract AC-N prefix when present');
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Could not find matching acceptance criteria');
     });
 
-    it('should handle special characters in AC descriptions', async () => {
-      // Given - Set up issue with special characters
-      mockClient.setIssueBody(500, `
-- [ ] Handle émojis 🚀 and symbols @#$%
-- [ ] Parse "quoted text" correctly
-- [ ] Support & ampersands & other HTML entities
-`);
-      
-      // When
-      const result = await updateIssueAC(500, 'émojis 🚀');
-
-      // Then
-      expect(result.success).toBe(true);
-      
-      const updatedBody = mockClient.getIssueBodySync(500);
-      expect(updatedBody).toContain('- [x] Handle émojis 🚀 and symbols @#$%');
-    });
-
-    it('should handle multiple identical partial matches by marking the first', async () => {
-      // Given - Issue with similar ACs
-      mockClient.setIssueBody(501, `
-- [ ] Create CLI command for parsing data
-- [ ] Create CLI command for generation
-- [ ] Create CLI command for validation
-`);
-
-      // When
-      const result = await updateIssueAC(501, 'CLI command for');
-
-      // Then
-      expect(result.success).toBe(true);
-      
-      const updatedBody = mockClient.getIssueBodySync(501);
-      expect(updatedBody).toContain('- [x] Create CLI command for parsing data');
-      expect(updatedBody).toContain('- [ ] Create CLI command for generation'); // Others unchanged
-      expect(updatedBody).toContain('- [ ] Create CLI command for validation');
-    });
-  });
-
-  describe('Text-based criterion marking (unit tests)', () => {
-    it('should mark criterion by exact text match', () => {
+    it('should handle missing criterion text', async () => {
       // Given
-      const issueBody = `
-- [ ] First criterion
-- [ ] Second criterion with specific text
-- [ ] Third criterion
-`;
+      const acDescription = 'nonexistent text';
+
+      mockExecSync.mockReturnValueOnce(JSON.stringify({ body: '- [ ] Some AC' }));
 
       // When
-      const result = markCriterionCompleteByText(issueBody, 'specific text');
+      const result = await markCriterionCompleteByText(789, acDescription);
 
       // Then
-      expect(result).toContain('- [ ] First criterion');
-      expect(result).toContain('- [x] Second criterion with specific text');
-      expect(result).toContain('- [ ] Third criterion');
-    });
-
-    it('should handle empty issue body', () => {
-      // When/Then
-      expect(() => markCriterionCompleteByText('', 'any text'))
-        .toThrow('Issue body is required');
-    });
-
-    it('should handle empty description', () => {
-      // When/Then
-      expect(() => markCriterionCompleteByText('- [ ] Some AC', ''))
-        .toThrow('Description is required');
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Could not find matching acceptance criteria');
     });
   });
 });

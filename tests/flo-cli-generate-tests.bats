@@ -10,7 +10,7 @@
     [[ -f "$test_output_file" ]] && rm "$test_output_file"
     
     # When: The flo-cli generate-tests command is executed
-    run node flo-cli/dist/cli.js generate-tests --issue 204 --output "$test_output_file"
+    run node flo-cli/dist/cli.js generate-tests 204 "$test_output_file"
     
     # Then: The command should succeed
     [ "$status" -eq 0 ]

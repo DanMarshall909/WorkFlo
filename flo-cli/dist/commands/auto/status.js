@@ -11,7 +11,7 @@ class AutoStatus extends base_command_1.BaseCommand {
             const state = await stateService.getCurrentState();
             if (!state) {
                 if (flags.json) {
-                    this.log(JSON.stringify({ active: false, message: 'No active auto workflow running' }, null, 2));
+                    this.log(JSON.stringify({ success: true, active: false, message: 'No active auto workflow running' }, null, 2));
                 }
                 else {
                     this.log('No active auto workflow running');
@@ -32,7 +32,7 @@ class AutoStatus extends base_command_1.BaseCommand {
                 updated: state.updatedAt
             };
             if (flags.json) {
-                this.log(JSON.stringify(data, null, 2));
+                this.log(JSON.stringify({ success: true, ...data }, null, 2));
             }
             else {
                 this.log('📊 Auto Workflow Status');

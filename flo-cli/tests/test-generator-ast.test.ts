@@ -4,7 +4,7 @@
  * @group unit
  */
 
-import { generateAndInsertTests, ParseResult, TestInsertionOptions } from '../src/test-generator';
+import { generateTests, generateTestContent, ParseResult, TestGenerationOptions } from '../src/test-generator';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -53,13 +53,14 @@ describe('Issue #204: AST-based test insertion', () => {
   describe('new-file strategy', () => {
     it('should create new test file', () => {
       // Given
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'new-file',
-        targetFile: testFile
+        outputPath: testFile
       };
 
       // When
-      const result = generateAndInsertTests(sampleParseResult, options);
+      const testContent = generateTests(sampleParseResult, options);
+      const result = generateTestContent(testContent, options);
 
       // Then
       expect(result).toBe(testFile);
@@ -74,13 +75,14 @@ describe('Issue #204: AST-based test insertion', () => {
     it('should create directory if it does not exist', () => {
       // Given
       const nestedFile = path.join(tempDir, 'nested', 'deep', 'test.test.ts');
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'new-file',
-        targetFile: nestedFile
+        outputPath: nestedFile
       };
 
       // When
-      const result = generateAndInsertTests(sampleParseResult, options);
+      const testContent = generateTests(sampleParseResult, options);
+      const result = generateTestContent(testContent, options);
 
       // Then
       expect(result).toBe(nestedFile);
@@ -101,13 +103,14 @@ describe('Existing tests', () => {
 });`;
       fs.writeFileSync(testFile, existingContent);
 
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'insert-before-end',
-        targetFile: testFile
+        outputPath: testFile
       };
 
       // When
-      const result = generateAndInsertTests(sampleParseResult, options);
+      const testContent = generateTests(sampleParseResult, options);
+      const result = generateTestContent(testContent, options);
 
       // Then
       expect(result).toBe(testFile);
@@ -121,14 +124,14 @@ describe('Existing tests', () => {
 
     it('should create file if missing and createFileIfMissing is true', () => {
       // Given
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'insert-before-end',
-        targetFile: testFile,
-        createFileIfMissing: true
+        outputPath: testFile,
       };
 
       // When
-      const result = generateAndInsertTests(sampleParseResult, options);
+      const testContent = generateTests(sampleParseResult, options);
+      const result = generateTestContent(testContent, options);
 
       // Then
       expect(result).toBe(testFile);
@@ -137,14 +140,13 @@ describe('Existing tests', () => {
 
     it('should throw error if file missing and createFileIfMissing is false', () => {
       // Given
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'insert-before-end',
-        targetFile: testFile,
-        createFileIfMissing: false
+        outputPath: testFile,
       };
 
       // When/Then
-      expect(() => generateAndInsertTests(sampleParseResult, options))
+      expect(() => generateTests(sampleParseResult, options))
         .toThrow('does not exist');
     });
   });
@@ -161,14 +163,14 @@ describe('Existing tests', () => {
 });`;
       fs.writeFileSync(testFile, existingContent);
 
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'insert-at-marker',
-        targetFile: testFile,
-        marker: 'INSERT_NEW_TESTS'
+        outputPath: testFile,
       };
 
       // When
-      const result = generateAndInsertTests(sampleParseResult, options);
+      const testContent = generateTests(sampleParseResult, options);
+      const result = generateTestContent(testContent, options);
 
       // Then
       expect(result).toBe(testFile);
@@ -188,14 +190,13 @@ describe('Existing tests', () => {
 });`;
       fs.writeFileSync(testFile, existingContent);
 
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'insert-at-marker',
-        targetFile: testFile,
-        marker: 'MISSING_MARKER'
+        outputPath: testFile,
       };
 
       // When/Then
-      expect(() => generateAndInsertTests(sampleParseResult, options))
+      expect(() => generateTests(sampleParseResult, options))
         .toThrow('Marker "MISSING_MARKER" not found');
     });
   });
@@ -210,13 +211,14 @@ describe('Existing tests', () => {
 });`;
       fs.writeFileSync(testFile, existingContent);
 
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'insert-new-describe',
-        targetFile: testFile
+        outputPath: testFile
       };
 
       // When
-      const result = generateAndInsertTests(sampleParseResult, options);
+      const testContent = generateTests(sampleParseResult, options);
+      const result = generateTestContent(testContent, options);
 
       // Then
       expect(result).toBe(testFile);
@@ -230,36 +232,37 @@ describe('Existing tests', () => {
   describe('error handling', () => {
     it('should throw error for unknown strategy', () => {
       // Given
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'unknown-strategy' as any,
-        targetFile: testFile
+        outputPath: testFile
       };
 
       // When/Then
-      expect(() => generateAndInsertTests(sampleParseResult, options))
+      expect(() => generateTests(sampleParseResult, options))
         .toThrow('Unknown insertion strategy');
     });
 
-    it('should throw error if targetFile missing for strategies that require it', () => {
+    it('should throw error if outputPath missing for strategies that require it', () => {
       // Given
-      const options: TestInsertionOptions = {
-        strategy: 'insert-before-end'
+      const options: TestGenerationOptions = {
+        strategy: 'insert-before-end',
+        outputPath: '/nonexistent/path/file.ts'
       };
 
       // When/Then
-      expect(() => generateAndInsertTests(sampleParseResult, options))
+      expect(() => generateTests(sampleParseResult, options))
         .toThrow('Target file required');
     });
 
     it('should throw error if marker missing for insert-at-marker strategy', () => {
       // Given
-      const options: TestInsertionOptions = {
+      const options: TestGenerationOptions = {
         strategy: 'insert-at-marker',
-        targetFile: testFile
+        outputPath: testFile
       };
 
       // When/Then
-      expect(() => generateAndInsertTests(sampleParseResult, options))
+      expect(() => generateTests(sampleParseResult, options))
         .toThrow('Target file and marker required');
     });
   });

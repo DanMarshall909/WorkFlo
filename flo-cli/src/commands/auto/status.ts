@@ -23,7 +23,7 @@ export default class AutoStatus extends BaseCommand {
       
       if (!state) {
         if (flags.json) {
-          this.log(JSON.stringify({ active: false, message: 'No active auto workflow running' }, null, 2));
+          this.log(JSON.stringify({ success: true, active: false, message: 'No active auto workflow running' }, null, 2));
         } else {
           this.log('No active auto workflow running');
         }
@@ -45,7 +45,7 @@ export default class AutoStatus extends BaseCommand {
       };
 
       if (flags.json) {
-        this.log(JSON.stringify(data, null, 2));
+        this.log(JSON.stringify({ success: true, ...data }, null, 2));
       } else {
         this.log('📊 Auto Workflow Status');
         this.log(`Issue: #${state.issue}`);

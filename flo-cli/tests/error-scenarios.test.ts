@@ -1,4 +1,6 @@
 import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * @group error-scenarios
@@ -8,154 +10,162 @@ describe('Error Scenarios and Edge Cases', () => {
   describe('Invalid Input Handling', () => {
     it('should handle invalid issue numbers gracefully', () => {
       // Given - invalid issue number
-      // When - I run auto with invalid issue
-      expect(() => {
-        execSync('node dist/cli.js auto abc --parse-only', { 
+      // When - I run parse-ac with invalid issue
+      let error: any;
+      try {
+        execSync('node dist/cli.js parse-ac abc', { 
           encoding: 'utf8', 
           stdio: 'pipe' 
         });
-      }).toThrow();
+      } catch (e) {
+        error = e;
+      }
+      
+      // Then - should throw an error
+      expect(error).toBeDefined();
+      expect(error.message).toContain('Invalid issue number');
     });
 
     it('should handle non-existent issue numbers', () => {
       // Given - non-existent issue number
-      // When - I run auto with non-existent issue
-      expect(() => {
-        execSync('node dist/cli.js auto 999999 --parse-only', { 
+      // When - I run parse-ac with non-existent issue
+      let error: any;
+      try {
+        execSync('node dist/cli.js parse-ac 999999', { 
           encoding: 'utf8', 
           stdio: 'pipe' 
         });
-      }).toThrow();
+      } catch (e) {
+        error = e;
+      }
+      
+      // Then - should throw an error
+      expect(error).toBeDefined();
+      expect(error.stderr?.toString() || error.message).toContain('Could not resolve');
     });
 
     it('should require issue number for most commands', () => {
       // Given - no issue number provided
-      // When - I run auto without issue number
-      expect(() => {
-        execSync('node dist/cli.js auto --parse-only', { 
+      // When - I run parse-ac without issue number
+      let error: any;
+      try {
+        execSync('node dist/cli.js parse-ac', { 
           encoding: 'utf8', 
           stdio: 'pipe' 
         });
-      }).toThrow();
+      } catch (e) {
+        error = e;
+      }
+      
+      // Then - should throw an error
+      expect(error).toBeDefined();
+      expect(error.message).toContain('Either issue number or --body must be provided');
     });
   });
 
   describe('Command Conflicts', () => {
-    it('should handle conflicting options gracefully', () => {
-      // Given - conflicting options
-      // When - I run auto with multiple conflicting flags
-      const output = execSync('node dist/cli.js auto 250 --status --parse-only', { 
-        encoding: 'utf8'
-      });
-      
-      // Then - should process first option and ignore others
-      // Currently no validation exists, but should not crash
-      expect(output).toBeDefined();
-    });
-
     it('should handle unknown options', () => {
       // Given - unknown option
-      // When - I run auto with unknown flag
-      expect(() => {
-        execSync('node dist/cli.js auto 250 --unknown-option', { 
+      // When - I run command with unknown flag
+      let error: any;
+      try {
+        execSync('node dist/cli.js parse-ac 250 --unknown-option', { 
           encoding: 'utf8', 
           stdio: 'pipe' 
         });
-      }).toThrow(/unknown option/i);
-    });
-  });
-
-  describe('GitHub API Errors', () => {
-    it('should handle network timeouts gracefully', () => {
-      // Given - network issues (simulated by non-existent issue in test environment)
-      // When - GitHub API is unreachable
-      // This is a placeholder test - actual implementation would need network mocking
-      expect(true).toBe(true); // Placeholder until network mocking implemented
-    });
-
-    it('should handle rate limiting gracefully', () => {
-      // Given - GitHub API rate limiting
-      // When - API returns rate limit error
-      // This is a placeholder test - actual implementation would need API mocking
-      expect(true).toBe(true); // Placeholder until API mocking implemented
-    });
-  });
-
-  describe('File System Errors', () => {
-    it('should handle permission errors for state file', () => {
-      // Given - insufficient permissions for state file
-      // When - trying to write state
-      // This would require chmod testing in CI environment
-      expect(true).toBe(true); // Placeholder until filesystem mocking implemented
-    });
-
-    it('should handle disk full scenarios', () => {
-      // Given - disk full condition
-      // When - trying to write state file
-      // This would require filesystem mocking
-      expect(true).toBe(true); // Placeholder until filesystem mocking implemented
+      } catch (e) {
+        error = e;
+      }
+      
+      // Then - should report unknown flag
+      expect(error).toBeDefined();
+      expect(error.message.toLowerCase()).toContain('nonexistent flag');
     });
   });
 
   describe('State Corruption Recovery', () => {
+    let stateFile: string;
+    
+    beforeEach(() => {
+      stateFile = path.join(process.cwd(), '.auto-state');
+      // Clean up any existing state
+      if (fs.existsSync(stateFile)) {
+        fs.unlinkSync(stateFile);
+      }
+    });
+    
+    afterEach(() => {
+      // Clean up
+      if (fs.existsSync(stateFile)) {
+        fs.unlinkSync(stateFile);
+      }
+    });
+
     it('should handle corrupted state file', () => {
-      // Given - corrupted state file
-      const corruptStateFile = '.auto-workflow-state.json';
-      require('fs').writeFileSync(corruptStateFile, '{ invalid json');
+      // Given - corrupted state file (write it in the working directory)
+      const corruptedStateFile = path.join(process.cwd(), '.auto-state');
+      fs.writeFileSync(corruptedStateFile, '{ invalid json content');
       
-      // When - I run status command
-      const output = execSync('node dist/cli.js auto --status --json', { 
-        encoding: 'utf8'
+      // When - I run auto:status
+      const output = execSync('node dist/cli.js auto:status', { 
+        encoding: 'utf8' 
       });
       
-      // Then - should handle gracefully
-      const result = JSON.parse(output);
-      expect(result.success).toBe(true);
-      expect(result.active).toBe(false);
+      // Then - should handle gracefully and show no active workflow
+      expect(output).toContain('No active auto workflow running');
       
       // Clean up
-      if (require('fs').existsSync(corruptStateFile)) {
-        require('fs').unlinkSync(corruptStateFile);
+      if (fs.existsSync(corruptedStateFile)) {
+        fs.unlinkSync(corruptedStateFile);
       }
     });
 
     it('should handle missing state file gracefully', () => {
-      // Given - no state file exists
-      const stateFile = '.auto-workflow-state.json';
-      if (require('fs').existsSync(stateFile)) {
-        require('fs').unlinkSync(stateFile);
+      // Given - no state file exists (clean up any existing state)
+      if (fs.existsSync('.auto-state')) {
+        fs.unlinkSync('.auto-state');
       }
       
-      // When - I run status command
-      const output = execSync('node dist/cli.js auto --status --json', { 
-        encoding: 'utf8'
+      // When - I run auto:status
+      const output = execSync('node dist/cli.js auto:status', { 
+        encoding: 'utf8' 
       });
       
       // Then - should indicate no active workflow
-      const result = JSON.parse(output);
-      expect(result.success).toBe(true);
-      expect(result.active).toBe(false);
-      expect(result.message).toBe('No active auto workflow running');
+      expect(output).toContain('No active auto workflow running');
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle issue with no acceptance criteria', () => {
-      // Given - issue with no acceptance criteria (would need mocking)
-      // This test depends on having a test issue with no ACs
-      expect(true).toBe(true); // Placeholder until issue mocking implemented
-    });
-
-    it('should handle very large number of acceptance criteria', () => {
-      // Given - issue with 100+ acceptance criteria
-      // This would test performance and UI limits
-      expect(true).toBe(true); // Placeholder until large issue testing implemented
-    });
-
-    it('should handle special characters in acceptance criteria', () => {
-      // Given - ACs with special characters, emojis, etc.
-      // This would test parsing robustness
-      expect(true).toBe(true); // Placeholder until special character testing implemented
+  describe('File System Errors', () => {
+    it('should handle read-only output directory', () => {
+      // Given - read-only directory
+      const readOnlyDir = path.join(process.cwd(), 'read-only-test');
+      
+      try {
+        // Create directory and make it read-only
+        fs.mkdirSync(readOnlyDir);
+        fs.chmodSync(readOnlyDir, 0o444);
+        
+        // When - I try to generate tests in read-only directory
+        let error: any;
+        try {
+          execSync(`node dist/cli.js generate-tests 204 ${path.join(readOnlyDir, 'test.test.ts')}`, {
+            encoding: 'utf8',
+            stdio: 'pipe'
+          });
+        } catch (e) {
+          error = e;
+        }
+        
+        // Then - should fail with permission error
+        expect(error).toBeDefined();
+      } finally {
+        // Cleanup
+        if (fs.existsSync(readOnlyDir)) {
+          fs.chmodSync(readOnlyDir, 0o755);
+          fs.rmdirSync(readOnlyDir);
+        }
+      }
     });
   });
 });

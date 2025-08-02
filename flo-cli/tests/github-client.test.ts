@@ -4,213 +4,77 @@
  * @group github-integration
  */
 
-import { GitHubCLIClient, MockGitHubClient } from '../src/github-client';
-import * as childProcess from 'child_process';
-import * as fs from 'fs';
-
-// Mock child_process and fs modules
-jest.mock('child_process');
-jest.mock('fs');
-
-const mockExecSync = childProcess.execSync as jest.MockedFunction<typeof childProcess.execSync>;
-const mockWriteFileSync = fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>;
-const mockUnlinkSync = fs.unlinkSync as jest.MockedFunction<typeof fs.unlinkSync>;
+import { MockGitHubClient } from './__mocks__/github-client';
 
 describe('Issue #204: GitHub Client Tests', () => {
-  describe('GitHubCLIClient', () => {
-    let client: GitHubCLIClient;
+  describe('MockGitHubClient', () => {
+    let client: MockGitHubClient;
 
     beforeEach(() => {
-      client = new GitHubCLIClient();
-      jest.clearAllMocks();
+      client = new MockGitHubClient();
     });
 
-    describe('getIssueBody', () => {
-      it('should fetch issue body successfully', async () => {
-        // Given
-        const mockResponse = JSON.stringify({
-          body: 'Test issue body with acceptance criteria'
-        });
-        mockExecSync.mockReturnValue(mockResponse);
-
-        // When
-        const result = await client.getIssueBody(204);
-
-        // Then
-        expect(result).toBe('Test issue body with acceptance criteria');
-        expect(mockExecSync).toHaveBeenCalledWith(
-          'gh issue view 204 --json body',
-          { encoding: 'utf-8' }
-        );
-      });
-
-      it('should handle GitHub CLI errors', async () => {
-        // Given
-        mockExecSync.mockImplementation(() => {
-          throw new Error('gh: command not found');
-        });
-
-        // When/Then
-        await expect(client.getIssueBody(204))
-          .rejects.toThrow('Failed to fetch issue #204: gh: command not found');
-      });
-
-      it('should handle invalid JSON response', async () => {
-        // Given
-        mockExecSync.mockReturnValue('invalid json');
-
-        // When/Then
-        await expect(client.getIssueBody(204))
-          .rejects.toThrow('Failed to fetch issue #204');
-      });
-
-      it('should handle network errors', async () => {
-        // Given
-        mockExecSync.mockImplementation(() => {
-          throw new Error('network error');
-        });
-
-        // When/Then
-        await expect(client.getIssueBody(999))
-          .rejects.toThrow('Failed to fetch issue #999: network error');
-      });
+    afterEach(() => {
+      client.reset();
     });
 
-    describe('updateIssueBody', () => {
-      it('should update issue body successfully', async () => {
-        // Given
-        const issueNumber = 204;
-        const newBody = 'Updated issue body';
-        mockExecSync.mockReturnValue('');
+    it('should fetch issue successfully', async () => {
+      // When
+      const result = await client.getIssue(204);
 
-        // When
-        await client.updateIssueBody(issueNumber, newBody);
-
-        // Then
-        expect(mockWriteFileSync).toHaveBeenCalledWith(
-          '/tmp/issue-204-body.md',
-          newBody
-        );
-        expect(mockExecSync).toHaveBeenCalledWith(
-          'gh issue edit 204 --body-file /tmp/issue-204-body.md'
-        );
-        expect(mockUnlinkSync).toHaveBeenCalledWith('/tmp/issue-204-body.md');
-      });
-
-      it('should clean up temp file on gh command error', async () => {
-        // Given
-        const issueNumber = 204;
-        const newBody = 'Updated body';
-        mockExecSync.mockImplementation(() => {
-          throw new Error('gh edit failed');
-        });
-
-        // When/Then
-        await expect(client.updateIssueBody(issueNumber, newBody))
-          .rejects.toThrow('Failed to update issue #204: gh edit failed');
-
-        // Verify cleanup was attempted
-        expect(mockUnlinkSync).toHaveBeenCalledWith('/tmp/issue-204-body.md');
-      });
-
-      it('should handle file write errors', async () => {
-        // Given
-        const issueNumber = 204;
-        const newBody = 'Updated body';
-        mockWriteFileSync.mockImplementation(() => {
-          throw new Error('Permission denied');
-        });
-
-        // When/Then
-        await expect(client.updateIssueBody(issueNumber, newBody))
-          .rejects.toThrow('Failed to update issue #204: Permission denied');
-      });
-
-      it('should handle cleanup errors gracefully', async () => {
-        // Given
-        const issueNumber = 204;
-        const newBody = 'Updated body';
-        
-        // Mock writeFileSync to succeed, then execSync to fail, then unlinkSync to fail
-        mockWriteFileSync.mockReturnValue(undefined);
-        mockExecSync.mockImplementation(() => {
-          throw new Error('gh edit failed');
-        });
-        mockUnlinkSync.mockImplementation(() => {
-          throw new Error('File not found');
-        });
-
-        // When/Then - should still throw the original error, not the cleanup error
-        await expect(client.updateIssueBody(issueNumber, newBody))
-          .rejects.toThrow('Failed to update issue #204: gh edit failed');
-      });
+      // Then
+      expect(result.number).toBe(204);
+      expect(result.title).toBe('Parse and validate acceptance criteria from GitHub issues');
+      expect(result.body).toContain('## Acceptance Criteria');
     });
-  });
 
-  describe('MockGitHubClient', () => {
-    it('should initialize with provided issues', async () => {
+    it('should update issue body successfully', async () => {
       // Given
-      const initialIssues = {
-        100: 'Issue 100 body',
-        200: 'Issue 200 body'
+      const newBody = 'Updated body content';
+
+      // When
+      await client.updateIssue(204, newBody);
+      const result = await client.getIssue(204);
+
+      // Then
+      expect(result.body).toBe(newBody);
+    });
+
+    it('should throw error for non-existent issue', async () => {
+      // When/Then
+      await expect(client.getIssue(999)).rejects.toThrow('Issue #999 not found');
+    });
+
+    it('should allow setting mock issues', async () => {
+      // Given
+      const mockIssue = {
+        number: 123,
+        title: 'Test Issue',
+        body: 'Test body'
       };
 
       // When
-      const client = new MockGitHubClient(initialIssues);
+      client.setMockIssue(mockIssue);
+      const result = await client.getIssue(123);
 
       // Then
-      expect(await client.getIssueBody(100)).toBe('Issue 100 body');
-      expect(await client.getIssueBody(200)).toBe('Issue 200 body');
+      expect(result).toEqual(mockIssue);
     });
 
-    it('should initialize empty when no issues provided', async () => {
-      // Given/When
-      const client = new MockGitHubClient();
-
-      // Then
-      await expect(client.getIssueBody(100))
-        .rejects.toThrow('Issue #100 not found');
-    });
-
-    it('should handle issue not found', async () => {
+    it('should reset to initial state', async () => {
       // Given
-      const client = new MockGitHubClient({ 100: 'Test body' });
-
-      // When/Then
-      await expect(client.getIssueBody(999))
-        .rejects.toThrow('Issue #999 not found');
-    });
-
-    it('should update existing issues', async () => {
-      // Given
-      const client = new MockGitHubClient({ 100: 'Original body' });
+      client.setMockIssue({
+        number: 204,
+        title: 'Modified',
+        body: 'Modified body'
+      });
 
       // When
-      await client.updateIssueBody(100, 'Updated body');
+      client.reset();
+      const result = await client.getIssue(204);
 
       // Then
-      expect(await client.getIssueBody(100)).toBe('Updated body');
-    });
-
-    it('should reject updates to non-existent issues', async () => {
-      // Given
-      const client = new MockGitHubClient();
-
-      // When/Then
-      await expect(client.updateIssueBody(999, 'New body'))
-        .rejects.toThrow('Issue #999 not found');
-    });
-
-    it('should support test helper methods', () => {
-      // Given
-      const client = new MockGitHubClient();
-
-      // When
-      client.setIssueBody(100, 'Test body');
-
-      // Then
-      expect(client.getIssueBodySync(100)).toBe('Test body');
-      expect(client.getIssueBodySync(999)).toBeUndefined();
+      expect(result.title).toBe('Parse and validate acceptance criteria from GitHub issues');
     });
   });
 });

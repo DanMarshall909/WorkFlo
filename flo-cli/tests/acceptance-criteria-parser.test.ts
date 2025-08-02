@@ -201,7 +201,7 @@ Some other text
 
       // Then
       expect(criteria).toEqual([longText]);
-      expect(criteria[0].length).toBe(500);
+      expect(criteria[0]?.length).toBe(500);
     });
 
     it('handles special characters and unicode', () => {
