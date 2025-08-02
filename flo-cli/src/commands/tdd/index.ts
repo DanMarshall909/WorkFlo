@@ -1,11 +1,11 @@
-import { Command, Help } from '@oclif/core';
+import { Command } from '@oclif/core';
 
 export default class TddCommand extends Command {
-  static description = 'TDD workflow commands';
+  static override description = 'TDD workflow commands';
 
-  static usage = 'flo tdd COMMAND';
+  static override usage = 'flo tdd COMMAND';
 
-  static examples = [
+  static override examples = [
     'flo tdd start 123   # Start TDD workflow for issue #123',
     'flo tdd red         # Write failing test (RED phase)',
     'flo tdd green       # Minimal implementation (GREEN phase)',
@@ -15,7 +15,7 @@ export default class TddCommand extends Command {
     'flo tdd status      # Show current TDD session status',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     this.log('TDD Workflow Commands:');
     this.log('');
     this.log('  start <issue>     Start TDD workflow for GitHub issue');

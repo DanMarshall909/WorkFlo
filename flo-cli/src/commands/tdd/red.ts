@@ -4,13 +4,13 @@ import { TddStateService } from '../../services/tdd-state';
 import { execSync } from 'child_process';
 
 export default class TddRed extends BaseCommand {
-  static description = 'Write failing test (RED phase)';
+  static override description = 'Write failing test (RED phase)';
 
-  static examples = [
+  static override examples = [
     '<%= config.bin %> <%= command.id %>',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const state = TddStateService.loadState();
     if (!state) {
       this.error('No active TDD session. Run: flo tdd start <issue>');
@@ -39,13 +39,13 @@ export default class TddRed extends BaseCommand {
   private runTestsWithSkip(): boolean {
     try {
       // Set environment variable to skip script tests, then run tests
-      process.env.TDD_SKIP_SCRIPT_TESTS = '1';
+      process.env['TDD_SKIP_SCRIPT_TESTS'] = '1';
       execSync('./run-tests', { stdio: 'ignore' });
       return true; // Tests passed
     } catch {
       return false; // Tests failed (expected in RED phase)
     } finally {
-      delete process.env.TDD_SKIP_SCRIPT_TESTS;
+      delete process.env['TDD_SKIP_SCRIPT_TESTS'];
     }
   }
 }

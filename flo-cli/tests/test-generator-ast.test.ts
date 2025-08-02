@@ -38,10 +38,11 @@ describe('Issue #204: AST-based test insertion', () => {
       },
       {
         index: 2,
-        text: 'Validate password',
+        id: 'AC-2',
+        text: 'AC-2: Validate password',
         cleanText: 'Validate password',
         checked: false,
-        raw: '- [ ] Validate password'
+        raw: '- [ ] AC-2: Validate password'
       }
     ],
     total: 2,
@@ -143,6 +144,7 @@ describe('Existing tests', () => {
       const options: TestGenerationOptions = {
         strategy: 'insert-before-end',
         outputPath: testFile,
+        createFileIfMissing: false
       };
 
       // When/Then
@@ -166,6 +168,7 @@ describe('Existing tests', () => {
       const options: TestGenerationOptions = {
         strategy: 'insert-at-marker',
         outputPath: testFile,
+        marker: 'INSERT_NEW_TESTS'
       };
 
       // When
@@ -193,6 +196,7 @@ describe('Existing tests', () => {
       const options: TestGenerationOptions = {
         strategy: 'insert-at-marker',
         outputPath: testFile,
+        marker: 'MISSING_MARKER'
       };
 
       // When/Then
@@ -244,9 +248,8 @@ describe('Existing tests', () => {
 
     it('should throw error if outputPath missing for strategies that require it', () => {
       // Given
-      const options: TestGenerationOptions = {
-        strategy: 'insert-before-end',
-        outputPath: '/nonexistent/path/file.ts'
+      const options: any = {
+        strategy: 'insert-before-end'
       };
 
       // When/Then

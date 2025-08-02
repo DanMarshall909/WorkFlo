@@ -4,13 +4,13 @@ import { ProjectDetector } from '../services/project-detector';
 import { execSync } from 'child_process';
 
 export default class QualityCheck extends BaseCommand {
-  static description = 'Run quality checks';
+  static override description = 'Run quality checks';
 
-  static examples = [
+  static override examples = [
     '<%= config.bin %> <%= command.id %>',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const projectType = ProjectDetector.detectProjectType();
     Logger.info(`Running quality checks for ${projectType} project...`);
 

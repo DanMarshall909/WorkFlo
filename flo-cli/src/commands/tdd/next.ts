@@ -3,13 +3,13 @@ import { Logger } from '../../services/logger';
 import { TddStateService } from '../../services/tdd-state';
 
 export default class TddNext extends BaseCommand {
-  static description = 'Move to next acceptance criteria (HARD STOP)';
+  static override description = 'Move to next acceptance criteria (HARD STOP)';
 
-  static examples = [
+  static override examples = [
     '<%= config.bin %> <%= command.id %>',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const state = TddStateService.loadState();
     if (!state) {
       this.error('No active TDD session');
@@ -31,7 +31,7 @@ export default class TddNext extends BaseCommand {
       return;
     }
 
-    const newState = TddStateService.loadState()!;
+    // const newState = TddStateService.loadState()!; // TODO: Use if needed
     
     this.log('');
     Logger.info('Moving to next acceptance criteria...');

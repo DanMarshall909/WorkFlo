@@ -5,25 +5,25 @@ import { ProjectDetector } from '../services/project-detector';
 // import { existsSync } from 'fs'; // TODO: Remove when persona validation is implemented
 
 export default class FloCommand extends Command {
-  static description = 'Flo - Universal TDD Workflow Toolkit';
+  static override description = 'Flo - Universal TDD Workflow Toolkit';
 
-  static usage = 'flo [COMMAND] [OPTIONS]';
+  static override usage = 'flo [COMMAND] [OPTIONS]';
 
-  static args = {
+  static override args = {
     command: Args.string({
       description: 'Command to run',
       required: false,
     }),
   };
 
-  static flags = {
+  static override flags = {
     persona: Flags.string({
       description: 'Switch to a different AI persona (e.g., claude, gemini)',
     }),
     help: Flags.help({ char: 'h' }),
   };
 
-  static examples = [
+  static override examples = [
     'flo tdd start 123    # Start TDD workflow for issue #123',
     'flo qc               # Run quality checks',
     'flo test             # Run project tests',
@@ -32,7 +32,7 @@ export default class FloCommand extends Command {
     'flo help             # Show this help',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const { args, flags } = await this.parse(FloCommand);
 
     // Handle persona switching

@@ -3,13 +3,13 @@ import { Logger } from '../../services/logger';
 import { TddStateService } from '../../services/tdd-state';
 
 export default class TddStatus extends BaseCommand {
-  static description = 'Show current TDD session status';
+  static override description = 'Show current TDD session status';
 
-  static examples = [
+  static override examples = [
     '<%= config.bin %> <%= command.id %>',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const state = TddStateService.loadState();
     
     if (!state) {

@@ -61,7 +61,7 @@ export class ProjectDetector {
     }
 
     // Return primary project type (first detected)
-    return projectTypes[0];
+    return projectTypes[0] || 'generic';
   }
 
   private static hasBashTests(projectRoot: string): boolean {

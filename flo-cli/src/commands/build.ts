@@ -4,13 +4,13 @@ import { ProjectDetector } from '../services/project-detector';
 import { execSync } from 'child_process';
 
 export default class BuildCommand extends BaseCommand {
-  static description = 'Build project';
+  static override description = 'Build project';
 
-  static examples = [
+  static override examples = [
     '<%= config.bin %> <%= command.id %>',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const projectType = ProjectDetector.detectProjectType();
     const buildCmd = ProjectDetector.getBuildCommand(projectType);
 

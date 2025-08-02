@@ -4,13 +4,13 @@ import { TddStateService } from '../../services/tdd-state';
 import { execSync } from 'child_process';
 
 export default class TddCover extends BaseCommand {
-  static description = 'Add comprehensive tests (COVER phase)';
+  static override description = 'Add comprehensive tests (COVER phase)';
 
-  static examples = [
+  static override examples = [
     '<%= config.bin %> <%= command.id %>',
   ];
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const state = TddStateService.loadState();
     if (!state) {
       this.error('No active TDD session');

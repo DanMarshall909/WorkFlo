@@ -6,21 +6,21 @@ import { ProjectDetector } from '../../services/project-detector';
 import { TddStateService } from '../../services/tdd-state';
 
 export default class TddStart extends BaseCommand {
-  static description = 'Start TDD workflow for GitHub issue';
+  static override description = 'Start TDD workflow for GitHub issue';
 
-  static examples = [
+  static override examples = [
     'flo tdd start 123',
     'flo tdd start 456',
   ];
 
-  static args = {
+  static override args = {
     issue: Args.string({
       description: 'GitHub issue number',
       required: true,
     }),
   };
 
-  async run(): Promise<void> {
+  override async run(): Promise<void> {
     const { args } = await this.parse(TddStart);
     const issueNumber = this.validateIssueNumber(args.issue);
 
@@ -31,17 +31,17 @@ export default class TddStart extends BaseCommand {
 
     // Validate issue exists
     try {
-      this.fetchGitHubIssue(args.issue, 'title,body');
+      this.fetchGitHubIssue(args.issue!, 'title,body');
     } catch (error) {
       this.handleError(error, `Issue #${issueNumber} not found`);
     }
 
     // Get issue details for branch naming
-    const issueData = this.fetchGitHubIssue(args.issue, 'title,body');
+    const issueData = this.fetchGitHubIssue(args.issue!, 'title,body');
     const branchName = `feature/issue-${issueNumber}`;
 
     // Handle branch creation/switching
-    await this.handleBranch(branchName, issueNumber, issueData.title);
+    await this.handleBranch(branchName, issueNumber, issueData.title || `Issue #${issueNumber}`);
 
     // Count acceptance criteria
     const total = this.countAcceptanceCriteria(issueData.body);

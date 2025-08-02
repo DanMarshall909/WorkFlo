@@ -24,18 +24,19 @@ export class TddStateService {
 
       for (const line of lines) {
         const [key, value] = line.split('=');
+        if (!key || !value) continue;
         switch (key) {
           case 'ISSUE':
-            state.issue = parseInt(value);
+            state.issue = parseInt(value!);
             break;
           case 'CRITERIA':
-            state.criteria = parseInt(value);
+            state.criteria = parseInt(value!);
             break;
           case 'PHASE':
-            state.phase = value as TddPhase;
+            state.phase = value! as TddPhase;
             break;
           case 'TOTAL':
-            state.total = parseInt(value);
+            state.total = parseInt(value!);
             break;
         }
       }
