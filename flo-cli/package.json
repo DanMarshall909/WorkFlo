@@ -1,0 +1,58 @@
+{
+  "name": "flo-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/cli.js",
+  "bin": {
+    "flo-cli": "dist/cli.js"
+  },
+  "oclif": {
+    "bin": "flo-cli",
+    "dirname": "flo-cli",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "topicSeparator": ":"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:mutation": "stryker run",
+    "build": "npm run lint && tsc",
+    "dev": "tsc --watch",
+    "start": "npm run build && node dist/cli.js",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "lint:test": "eslint tests/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "quality": "npm run lint && npm run type-check && npm run test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@stryker-mutator/core": "^9.0.1",
+    "@stryker-mutator/jest-runner": "^9.0.1",
+    "@stryker-mutator/typescript-checker": "^9.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@oclif/core": "^4.5.2",
+    "@oclif/plugin-help": "^6.2.32",
+    "ts-morph": "^26.0.0"
+  }
+}

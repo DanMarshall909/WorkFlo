@@ -402,7 +402,8 @@ validate_phase() {
         RED) [[ "$1" == "green" ]] || error "After RED: tdd green" ;;
         GREEN) [[ "$1" =~ ^(refactor|cover)$ ]] || error "After GREEN: tdd refactor OR tdd cover" ;;
         REFACTOR) [[ "$1" == "cover" ]] || error "After REFACTOR: tdd cover" ;;
-        COVER) [[ "$1" == "next" ]] || error "After COVER: tdd next" ;;
+        COVER) [[ "$1" == "document" ]] || error "After COVER: tdd document" ;;
+        DOCUMENT) [[ "$1" == "next" ]] || error "After DOCUMENT: tdd next" ;;
     esac
 }
 
@@ -766,7 +767,28 @@ TDD-Session: START
         PHASE=COVER
         save_state
         update_board "COVER"
-        success "COVER phase complete. Next: tdd next"
+        success "COVER phase complete. Next: tdd document"
+        ;;
+    
+    document)
+        [[ -z "$ISSUE" ]] && error "No active TDD session"
+        validate_phase document
+        
+        info "📝 DOCUMENT Phase - Capture project learnings"
+        echo "Documenting learnings from issue #$ISSUE, criteria $CRITERIA"
+        
+        # Run the document phase script
+        if [[ -x "./lib/document-phase.sh" ]]; then
+            ./lib/document-phase.sh
+        else
+            error "Document phase script not found or not executable"
+        fi
+        
+        # Update phase to DOCUMENT for state tracking
+        PHASE=DOCUMENT
+        save_state
+        
+        success "✅ DOCUMENT phase complete. Next: tdd next"
         ;;
     
     next)
@@ -852,6 +874,7 @@ TDD-Session: START
         echo "  green        Minimal implementation (GREEN phase)"
         echo "  refactor     Improve code quality (REFACTOR phase)"
         echo "  cover        Add comprehensive tests (COVER phase)"
+        echo "  document     Capture project learnings (DOCUMENT phase)"
         echo "  next         Move to next criteria (HARD STOP)"
         echo "  status       Show current TDD session status"
         echo "  scores       Show gamification scores only"
@@ -859,7 +882,7 @@ TDD-Session: START
         echo "  ai-list      List available AI providers"
         echo "  help         Show this help message"
         echo ""
-        echo "TDD Cycle: RED → GREEN → REFACTOR → COVER → NEXT (repeat)"
+        echo "TDD Cycle: RED → GREEN → REFACTOR → COVER → DOCUMENT → NEXT (repeat)"
         echo ""
         echo "Constraints:"
         echo "  • Work on ONE acceptance criteria at a time"

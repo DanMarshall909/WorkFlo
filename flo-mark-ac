@@ -1,0 +1,18 @@
+#!/bin/bash
+# WorkFlo CLI wrapper for marking acceptance criteria as complete
+# Usage: flo-mark-ac <issue-number> "<ac-description>"
+
+set -e
+
+if [[ $# -ne 2 ]]; then
+    echo "Usage: flo-mark-ac <issue-number> \"<ac-description>\""
+    echo "Example: flo-mark-ac 204 \"Create CLI command for parsing\""
+    exit 1
+fi
+
+ISSUE_NUMBER=$1
+AC_DESCRIPTION=$2
+
+# Change to flo-cli directory and run the command
+cd "$(dirname "$0")/flo-cli"
+node dist/cli.js update-issue-ac --issue "$ISSUE_NUMBER" --criteria "$AC_DESCRIPTION"

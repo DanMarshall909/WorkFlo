@@ -6,15 +6,11 @@ This file provides guidance to Claude Code when working with the WorkFlo reposit
 
 YOU MUST read [AI_GUIDELINES.md](AI_GUIDELINES.md) at the start of every session.
 
-## Best Practices
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
 
-- don't try to continue using a workaround if a script doesn't work. fix it!
-
-## Mutation Testing Changes
-
-As of Issue #153, mutation testing has been moved from the TDD COVER phase to PR submission time. This change:
-
-- Removes mutation testing from individual TDD cycles
-- Runs mutation testing during PR creation for comprehensive validation
-- Updates confidence scoring to use PR-time mutation results
-- Maintains the 85% mutation testing threshold at PR level
+      
+      IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.

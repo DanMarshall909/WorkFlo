@@ -695,3 +695,8 @@ k8s.secrets
 .vscode/settings.json
 
 build/
+
+# Test Coverage and Build Artifacts
+coverage/
+reports/
+dist/

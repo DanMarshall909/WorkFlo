@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress", "json"],
+  "testRunner": "jest",
+  "jest": {
+    "projectType": "custom",
+    "configFile": "jest.config.js",
+    "enableFindRelatedTests": true
+  },
+  "coverageAnalysis": "perTest",
+  "tsconfigFile": "tsconfig.json",
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.d.ts",
+    "!src/**/*.test.ts",
+    "!src/cli.ts"
+  ],
+  "thresholds": {
+    "high": 85,
+    "low": 70,
+    "break": 80
+  },
+  "timeoutMS": 300000,
+  "maxConcurrentTestRunners": 2,
+  "checkers": ["typescript"],
+  "typescript": {
+    "prioritizePerformanceOverAccuracy": false
+  }
+}
