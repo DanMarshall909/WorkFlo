@@ -2,6 +2,7 @@ import { BaseCommand } from '../../base-command';
 import { Logger } from '../../services/logger';
 import { TddStateService } from '../../services/tdd-state';
 import { execSync } from 'child_process';
+import { Flags } from '@oclif/core';
 
 export default class TddRefactor extends BaseCommand {
   static override description = 'Improve code quality (REFACTOR phase)';
@@ -10,7 +11,15 @@ export default class TddRefactor extends BaseCommand {
     '<%= config.bin %> <%= command.id %>',
   ];
 
+  static override flags = {
+    manual: Flags.boolean({
+      description: 'Manual mode - stop after this phase instead of auto-proceeding',
+      default: false,
+    }),
+  };
+
   override async run(): Promise<void> {
+    const { flags } = await this.parse(TddRefactor);
     const state = TddStateService.loadState();
     if (!state) {
       this.error('No active TDD session');
@@ -38,7 +47,14 @@ export default class TddRefactor extends BaseCommand {
     }
 
     TddStateService.updatePhase('REFACTOR');
-    Logger.success('REFACTOR phase complete. Next: flo tdd cover');
+    
+    if (flags.manual) {
+      Logger.success('REFACTOR phase complete. Next: flo tdd cover');
+    } else {
+      Logger.success('REFACTOR phase complete. Auto-proceeding to COVER phase...');
+      // Automatically proceed to COVER phase
+      await this.proceedToNextPhase('cover');
+    }
   }
 
   private hasNoChanges(): boolean {
@@ -60,6 +76,18 @@ export default class TddRefactor extends BaseCommand {
       return false; // Tests failed
     } finally {
       delete process.env['TDD_SKIP_SCRIPT_TESTS'];
+    }
+  }
+
+  private async proceedToNextPhase(nextPhase: string): Promise<void> {
+    try {
+      // Import and run the next phase command dynamically
+      const NextPhaseCommand = await import(`./${nextPhase}`);
+      const nextCommand = new NextPhaseCommand.default([], this.config);
+      await nextCommand.run();
+    } catch (error: any) {
+      Logger.error(`Failed to auto-proceed to ${nextPhase.toUpperCase()} phase: ${error.message}`);
+      Logger.info(`Please run manually: flo tdd ${nextPhase}`);
     }
   }
 }

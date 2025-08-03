@@ -593,7 +593,7 @@ case "$1" in
         export CONFIG_FILE
         
         # Delegate to TypeScript implementation
-        node "flo-cli/dist/cli.js" tdd:start "$2" "$3"
+        node "flo-cli/dist/cli.js" tdd:start "$2"
         exit $?
         ;;
     
