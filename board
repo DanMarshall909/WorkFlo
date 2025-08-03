@@ -105,6 +105,17 @@ update_board_phase() {
 # Main commands
 case "$1" in
     list)
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
+        
+        # Delegate to TypeScript implementation
+        if [[ -f "flo-cli/dist/cli.js" ]]; then
+            node "flo-cli/dist/cli.js" board:list "$@"
+            exit $?
+        fi
+        
+        # Fallback to shell implementation
         check_prereqs
         
         # Get project ID with error handling
@@ -163,6 +174,17 @@ case "$1" in
         ;;
     
     show)
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
+        
+        # Delegate to TypeScript implementation
+        if [[ -f "flo-cli/dist/cli.js" ]]; then
+            node "flo-cli/dist/cli.js" board:show "$2"
+            exit $?
+        fi
+        
+        # Fallback to shell implementation
         check_prereqs
         ISSUE=$2
         [[ -z "$ISSUE" ]] && error "Usage: board show <issue_number>"
@@ -199,6 +221,17 @@ case "$1" in
         ;;
     
     create)
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
+        
+        # Delegate to TypeScript implementation
+        if [[ -f "flo-cli/dist/cli.js" ]]; then
+            node "flo-cli/dist/cli.js" board:create "$@"
+            exit $?
+        fi
+        
+        # Fallback to shell implementation
         check_prereqs
         
         # Command line mode: board create --title "Title" --criteria "c1;c2;c3" --description "desc"

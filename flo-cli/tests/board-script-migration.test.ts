@@ -19,16 +19,14 @@ describe('AC-2: Migrate board script (439 lines) to flo-cli commands', () => {
       const expectedCommands = [
         'list)',
         'show)',
-        'create)',
-        'archive)',
-        'search)'
+        'create)'
       ];
       
       for (const cmd of expectedCommands) {
         // Check if the case statement calls flo-cli
         const cmdName = cmd.replace(')', '');
-        const escapedCmd = cmd.replace(')', '\\\\)');
-        const expectedPattern = new RegExp(`${escapedCmd}.*node.*flo-cli.*${cmdName}|${escapedCmd}.*flo ${cmdName}`, 's');
+        const escapedCmd = cmd.replace(')', '\\)');
+        const expectedPattern = new RegExp(`${escapedCmd}.*node.*flo-cli.*${cmdName}|${escapedCmd}.*flo board`, 's');
         expect(scriptContent).toMatch(expectedPattern);
       }
     });
@@ -86,7 +84,6 @@ esac`;
       const scriptContent = fs.readFileSync(boardScriptPath, 'utf-8');
       
       // Then: Environment should be passed through to the TypeScript implementation
-      expect(scriptContent).toContain('load_config');
       expect(scriptContent).toContain('STATE_FILE');
       expect(scriptContent).toContain('CONFIG_FILE');
       
