@@ -602,6 +602,15 @@ case "$1" in
         export STATE_FILE
         export CONFIG_FILE
         
+        # AI Integration Point: Test Generation
+        if [[ "${AI_ENABLED:-true}" == "true" ]]; then
+            local criteria_text=$(get_criteria)
+            local project_type=$(detect_project_type)
+            
+            # Offer AI assistance for test generation
+            invoke_ai_if_creative "RED" "test_generation" "ai_generate_test" "$ISSUE" "$CRITERIA" "$criteria_text" "$project_type"
+        fi
+        
         # Delegate to TypeScript implementation
         node "flo-cli/dist/cli.js" tdd:red
         exit $?
@@ -611,6 +620,21 @@ case "$1" in
         # Export environment variables for TypeScript delegation
         export STATE_FILE
         export CONFIG_FILE
+        
+        # AI Integration Point: Implementation Guidance
+        if [[ "${AI_ENABLED:-true}" == "true" ]]; then
+            local criteria_text=$(get_criteria)
+            local project_type=$(detect_project_type)
+            local test_output=""
+            
+            # Capture test failure output for AI analysis
+            if ! run_tests true 2>/dev/null; then
+                test_output=$(run_tests 2>&1 | tail -10)
+            fi
+            
+            # Offer AI assistance for minimal implementation
+            invoke_ai_if_creative "GREEN" "implementation" "ai_implement_minimal" "$test_output" "$criteria_text" "$project_type"
+        fi
         
         # Delegate to TypeScript implementation
         node "flo-cli/dist/cli.js" tdd:green
@@ -622,6 +646,20 @@ case "$1" in
         export STATE_FILE
         export CONFIG_FILE
         
+        # AI Integration Point: Refactoring Suggestions
+        if [[ "${AI_ENABLED:-true}" == "true" ]]; then
+            local criteria_text=$(get_criteria)
+            local current_code=""
+            
+            # Get recent changes for refactoring analysis
+            if git rev-parse --git-dir >/dev/null 2>&1; then
+                current_code=$(git diff HEAD~1 2>/dev/null || git diff --cached 2>/dev/null || echo "No changes detected")
+            fi
+            
+            # Offer AI assistance for refactoring
+            invoke_ai_if_creative "REFACTOR" "code_quality" "ai_suggest_refactoring" "$current_code" "$criteria_text" "REFACTOR"
+        fi
+        
         # Delegate to TypeScript implementation
         node "flo-cli/dist/cli.js" tdd:refactor
         exit $?
@@ -631,6 +669,25 @@ case "$1" in
         # Export environment variables for TypeScript delegation
         export STATE_FILE
         export CONFIG_FILE
+        
+        # AI Integration Point: Comprehensive Test Coverage
+        if [[ "${AI_ENABLED:-true}" == "true" ]]; then
+            local criteria_text=$(get_criteria)
+            local existing_tests=""
+            local implementation=""
+            
+            # Gather context for edge case analysis
+            if [[ -d "tests" ]] || [[ -d "test" ]]; then
+                existing_tests=$(find . -name "*.test.*" -o -name "*.spec.*" | xargs cat 2>/dev/null || echo "No tests found")
+            fi
+            
+            if [[ -d "src" ]]; then
+                implementation=$(find src -name "*.ts" -o -name "*.js" -o -name "*.cs" | xargs cat 2>/dev/null || echo "No implementation found")
+            fi
+            
+            # Offer AI assistance for comprehensive test coverage
+            invoke_ai_if_creative "COVER" "edge_cases" "ai_design_edge_cases" "$criteria_text" "$existing_tests" "$implementation"
+        fi
         
         # Delegate to TypeScript implementation
         node "flo-cli/dist/cli.js" tdd:cover
@@ -678,26 +735,54 @@ case "$1" in
         exit $?
         ;;
     
+    ai-config)
+        setting="$2"
+        value="$3"
+        if [[ -n "$setting" ]]; then
+            configure_ai_invocation "$setting" "$value"
+        else
+            echo "AI Configuration Commands:"
+            echo "  tdd ai-config enable         Enable AI assistance"
+            echo "  tdd ai-config disable        Disable AI assistance"
+            echo "  tdd ai-config auto-invoke true|false"
+            echo "  tdd ai-config timeout <seconds>"
+            echo ""
+            echo "Current Configuration:"
+            echo "  AI Enabled: ${AI_ENABLED:-true}"
+            echo "  Auto-invoke: ${AI_AUTO_INVOKE:-true}"
+            echo "  Timeout: ${AI_TIMEOUT:-30}s"
+            echo "  Max Retries: ${AI_MAX_RETRIES:-3}"
+        fi
+        ;;
+    
     help|--help|-h)
         echo "Ultra-Minimal TDD Command for Acceptance Criteria"
         echo ""
-        echo "Usage: tdd {start|red|green|refactor|cover|next|status|ai-switch|ai-list|help}"
+        echo "Usage: tdd {start|red|green|refactor|cover|next|status|ai-*|help}"
         echo ""
-        echo "Commands:"
+        echo "TDD Workflow Commands:"
         echo "  start ISSUE  Start TDD workflow for GitHub issue"
-        echo "  red          Write failing test (RED phase)"
-        echo "  green        Minimal implementation (GREEN phase)"
-        echo "  refactor     Improve code quality (REFACTOR phase)"
-        echo "  cover        Add comprehensive tests (COVER phase)"
+        echo "  red          Write failing test (RED phase) + AI test generation"
+        echo "  green        Minimal implementation (GREEN phase) + AI guidance"
+        echo "  refactor     Improve code quality (REFACTOR phase) + AI suggestions"
+        echo "  cover        Add comprehensive tests (COVER phase) + AI edge cases"
         echo "  document     Capture project learnings (DOCUMENT phase)"
         echo "  next         Move to next criteria (HARD STOP)"
         echo "  status       Show current TDD session status"
         echo "  scores       Show gamification scores only"
-        echo "  ai-switch    Switch AI provider (claude|gemini)"
-        echo "  ai-list      List available AI providers"
-        echo "  help         Show this help message"
+        echo ""
+        echo "AI Integration Commands:"
+        echo "  ai-switch    Switch AI provider (claude|gemini|fallback)"
+        echo "  ai-list      List available AI providers and configuration"
+        echo "  ai-config    Configure AI invocation settings"
         echo ""
         echo "TDD Cycle: RED → GREEN → REFACTOR → COVER → DOCUMENT → NEXT (repeat)"
+        echo ""
+        echo "AI Integration:"
+        echo "  🤖 Automatic AI assistance for creative tasks only"
+        echo "  🔧 Mechanical tasks (git, tests, builds) remain automated"
+        echo "  ⚙️  Configurable AI invocation and timeout settings"
+        echo "  🛡️  Fallback to enhanced analysis when AI unavailable"
         echo ""
         echo "Constraints:"
         echo "  • Work on ONE acceptance criteria at a time"
@@ -710,7 +795,8 @@ case "$1" in
         echo "Self-Contained Workflow:"
         echo "  • No manual git/gh commands needed"
         echo "  • Board management handled automatically"
-        echo "  • Focus only on writing tests and code"
+        echo "  • AI assists only with creative problem-solving"
+        echo "  • Focus on writing tests and code with AI guidance"
         ;;
     
     ai-switch)
@@ -728,6 +814,11 @@ case "$1" in
         echo "Current AI provider: ${AI_PROVIDER:-unknown}"
         echo ""
         list_ai_providers
+        echo ""
+        echo "AI Configuration:"
+        echo "  Enabled: ${AI_ENABLED:-true}"
+        echo "  Auto-invoke: ${AI_AUTO_INVOKE:-true}"
+        echo "  Timeout: ${AI_TIMEOUT:-30}s"
         ;;
     
     scores)
