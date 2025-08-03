@@ -78,7 +78,9 @@ This repository enforces **ONE acceptance criteria at a time** with hard stops t
 
 **🚫 HARD RULE: Work on exactly ONE acceptance criteria, write ONE test, then STOP.**
 
-**✅ SELF-CONTAINED: No manual git/gh commands needed - everything is automated.**
+**✅ SELF-CONTAINED: No manual git/gh commands needed - everything is automated through flo.**
+
+**🚫 DISABLE DIRECT GITHUB COMMANDS: All GitHub operations MUST use flo workflow automation.**
 
 ### Complete Self-Contained Workflow
 
@@ -128,7 +130,7 @@ flo board:list     # See board with TDD phases
 - **Automatic commits** for each TDD phase with structured messages (🔴RED, 🟢GREEN, etc.)
 - **Automatic board updates** track TDD phase progress  
 - **Automatic issue completion** when all criteria finished
-- **No manual git/gh commands** required by user
+- **No manual git/gh commands** required by user - all automated through flo
 - **No skipping** of TDD phases allowed
 
 ### Issue Format Required
@@ -166,6 +168,50 @@ GitHub issues must have acceptance criteria in this format:
 - .NET SDK for running tests and mutation testing
 
 This system is designed to constrain AI agents to focused, high-quality development with built-in stops to prevent scope creep. The workflow is completely self-contained - AI agents never need to run git, gh, or board management commands manually.
+
+## 🚫 GitHub Command Restrictions
+
+**CRITICAL: All GitHub operations MUST be automated through the flo workflow system.**
+
+### Disabled Direct Commands
+```bash
+# ❌ NEVER use these commands directly:
+gh pr create                    # Use: flo auto:run --auto-pr
+gh pr merge                     # Use: flo workflow automation
+gh issue create                 # Use: flo board:create
+gh issue close                  # Use: flo workflow automation
+git commit                      # Use: flo tdd:red/green/refactor/cover
+git push                        # Use: flo workflow automation
+git merge                       # Use: flo workflow automation
+git checkout -b                 # Use: flo tdd:start (auto-creates branches)
+```
+
+### Required flo Automation
+```bash
+# ✅ Use flo automation instead:
+flo auto:run <issue> --auto-pr           # Creates PR automatically
+flo auto:run <issue> --no-pr             # Skip PR creation  
+flo auto:run <issue> --draft-pr          # Create draft PR
+flo tdd:red/green/refactor/cover         # Auto-commits with proper messages
+flo board:create                         # Creates issues with acceptance criteria
+flo tdd:start <issue>                    # Auto-creates branches and initializes
+```
+
+### Enforcement Policy
+- **AI agents MUST use flo commands** for all GitHub operations
+- **Direct gh/git commands are DISABLED** except for read-only operations
+- **Workflow automation ensures consistency** and prevents manual errors
+- **All commits, PRs, and issue management automated** through flo system
+
+### Read-Only Operations (Allowed)
+```bash
+# ✅ Read-only commands are still allowed:
+git status                      # Check repository status
+git log                         # View commit history
+gh issue view <number>          # Read issue details
+gh pr list                      # List pull requests
+git diff                        # View changes
+```
 
 ## 🚨 Critical AI Agent Rules
 
