@@ -1,6 +1,7 @@
 import { Args, Flags } from '@oclif/core';
 import { parseAcceptanceCriteria } from '../../acceptance-criteria-parser';
 import { BaseCommand } from '../../base-command';
+import { PRAutomationService, WorkflowContext, AutoRunFlags } from '../../services/pr-automation';
 
 export default class AutoRun extends BaseCommand {
   static override description = 'Run autonomous TDD workflow for multiple acceptance criteria';
@@ -18,6 +19,11 @@ export default class AutoRun extends BaseCommand {
     'parse-only': Flags.boolean({ description: 'Parse issue and show acceptance criteria count only' }),
     json: Flags.boolean({ description: 'Output structured JSON for machine parsing' }),
     criteria: Flags.string({ description: 'Target specific criteria (e.g., 3 or 2-4)' }),
+    'auto-pr': Flags.boolean({ description: 'Automatically create PR after successful completion' }),
+    'no-pr': Flags.boolean({ description: 'Skip PR creation' }),
+    'draft-pr': Flags.boolean({ description: 'Create PR as draft' }),
+    'pr-template': Flags.string({ description: 'Use specific PR template' }),
+    'assign-reviewers': Flags.boolean({ description: 'Auto-assign reviewers based on code changes' }),
     from: Flags.integer({ description: 'Start from specific criteria number' }),
     to: Flags.integer({ description: 'End at specific criteria number' }),
     execute: Flags.boolean({ description: 'Execute full TDD cycle automation' }),
@@ -33,6 +39,9 @@ export default class AutoRun extends BaseCommand {
       const issueData = this.fetchGitHubIssue(issueNumber.toString(), 'body');
       const issueBody = issueData.body;
       const allCriteria = parseAcceptanceCriteria(issueBody);
+      
+      // Validate PR automation flags
+      PRAutomationService.validatePRFlags(flags);
       
       // Validate and parse criteria targeting
       const targetedIndices = this.parseTargeting(flags, allCriteria.length);
@@ -57,7 +66,7 @@ export default class AutoRun extends BaseCommand {
 
       // Handle execution mode
       if (flags.execute) {
-        await this.executeWorkflow(issueNumber, criteria, targetedIndices);
+        await this.executeWorkflow(issueNumber, criteria, targetedIndices, flags);
         return;
       }
 
@@ -130,7 +139,7 @@ export default class AutoRun extends BaseCommand {
     }
   }
 
-  private parseTargeting(flags: any, totalCriteria: number): number[] | null {
+  private parseTargeting(flags: { criteria?: string | undefined; from?: number | undefined; to?: number | undefined }, totalCriteria: number): number[] | null {
     const { criteria, from, to } = flags;
     
     // Validate conflicting flags
@@ -141,7 +150,7 @@ export default class AutoRun extends BaseCommand {
     // Handle range syntax in criteria flag (e.g., "2-4")
     if (criteria) {
       const rangeMatch = criteria.match(/^(\d+)-(\d+)$/);
-      if (rangeMatch) {
+      if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
         const start = parseInt(rangeMatch[1]);
         const end = parseInt(rangeMatch[2]);
         return this.validateRange(start, end, totalCriteria);
@@ -191,7 +200,7 @@ export default class AutoRun extends BaseCommand {
     }
   }
 
-  private async executeWorkflow(issueNumber: number, criteria: string[], targetedIndices: number[] | null): Promise<void> {
+  private async executeWorkflow(issueNumber: number, criteria: string[], targetedIndices: number[] | null, flags: AutoRunFlags): Promise<void> {
     this.log('🚀 Starting TDD execution');
     this.log(`📊 Processing ${criteria.length} acceptance criteria for issue #${issueNumber}`);
     this.log('');
@@ -226,6 +235,14 @@ export default class AutoRun extends BaseCommand {
       this.log('\n🎉 All criteria completed successfully!');
       this.log('✅ TDD cycle automation finished');
       
+      // Handle PR automation after successful completion
+      if (PRAutomationService.shouldCreatePR(flags)) {
+        await this.handlePRAutomation(issueNumber, criteria, flags);
+      } else {
+        this.log('');
+        this.log('💡 PR creation skipped. Create manually when ready.');
+      }
+      
     } catch (error: unknown) {
       this.log('\n❌ Error during TDD execution');
       this.log('Error recovery options:');
@@ -238,5 +255,40 @@ export default class AutoRun extends BaseCommand {
 
   private async sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  private async handlePRAutomation(issueNumber: number, criteria: string[], flags: AutoRunFlags): Promise<void> {
+    try {
+      this.log('');
+      this.log('🚀 Creating Pull Request...');
+      
+      const config = PRAutomationService.getPRConfig(flags, issueNumber);
+      const context: WorkflowContext = {
+        issueNumber,
+        completedCriteria: criteria,
+        totalCriteria: criteria.length,
+        branchName: `feature/issue-${issueNumber}`
+      };
+      
+      const prUrl = await PRAutomationService.createPR(config, context);
+      
+      this.log('✅ Pull Request created successfully!');
+      this.log(`🔗 ${prUrl}`);
+      
+      if (config.isDraft) {
+        this.log('📝 Created as draft PR - mark as ready for review when appropriate');
+      }
+      
+      if (config.assignReviewers) {
+        this.log('👥 Reviewers assigned automatically');
+      }
+      
+    } catch (error: unknown) {
+      this.log('⚠️  Failed to create PR automatically');
+      this.log(`Error: ${error}`);
+      this.log('');
+      this.log('💡 You can create the PR manually:');
+      this.log(`   gh pr create --title "feat: Issue #${issueNumber}" --body "Implements ${criteria.length} acceptance criteria"`);
+    }
   }
 }
