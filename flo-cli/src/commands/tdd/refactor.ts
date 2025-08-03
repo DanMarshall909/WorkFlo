@@ -25,6 +25,14 @@ export default class TddRefactor extends BaseCommand {
       this.error('No active TDD session');
     }
 
+    // Check if we're running out of sequence
+    if (state.phase !== 'GREEN' && state.phase !== 'REFACTOR') {
+      Logger.warn(`⚠️  AI AGENT HINT: Current phase is ${state.phase}, but REFACTOR phase should follow GREEN phase`);
+      Logger.warn('💡 TDD workflow should be: RED → GREEN → REFACTOR → COVER → NEXT');
+      Logger.warn('🤖 If you manually implemented GREEN phase, consider updating TDD state first');
+      this.log('');
+    }
+
     Logger.info('🔵 REFACTOR Phase - Improve code quality');
 
     this.log('Improve the code while keeping all tests green.');

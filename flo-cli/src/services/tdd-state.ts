@@ -82,6 +82,23 @@ export class TddStateService {
     }
   }
 
+  /**
+   * AI Agent helper: Manually sync TDD state when phases were implemented outside TDD commands
+   * Use this when you manually implemented code and need to update the TDD state to match
+   */
+  static syncToPhase(targetPhase: TddPhase, reason?: string): void {
+    const state = this.loadState();
+    if (state) {
+      console.log(`🤖 AI AGENT: Syncing TDD state from ${state.phase} to ${targetPhase}`);
+      if (reason) {
+        console.log(`📝 Reason: ${reason}`);
+      }
+      console.log('💡 HINT: Next time use TDD commands (flo tdd red/green/refactor/cover) for auto-flow');
+      state.phase = targetPhase;
+      this.saveState(state);
+    }
+  }
+
   static nextCriteria(): boolean {
     const state = this.loadState();
     if (!state) {
