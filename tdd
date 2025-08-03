@@ -588,186 +588,53 @@ run_mutation_testing() {
 # Main commands
 case "$1" in
     start)
-        check_prereqs
-        ISSUE=$2
-        NON_INTERACTIVE=false
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
         
-        # Check for --non-interactive flag
-        if [[ "$3" == "--non-interactive" ]]; then
-            NON_INTERACTIVE=true
-        fi
-        
-        [[ -z "$ISSUE" ]] && error "Usage: tdd start <issue_number> [--non-interactive]"
-        
-        info "Starting TDD workflow for issue #$ISSUE"
-        
-        # Validate issue exists
-        gh issue view "$ISSUE" >/dev/null || error "Issue #$ISSUE not found"
-        
-        # Get issue title for branch naming
-        ISSUE_TITLE=$(gh issue view "$ISSUE" --json title | jq -r '.title')
-        BRANCH_NAME="feature/issue-${ISSUE}"
-        
-        # Check if we're already on the correct branch
-        CURRENT_BRANCH=$(git branch --show-current)
-        if [[ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]]; then
-            # Check if branch exists
-            if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
-                info "Switching to existing branch: $BRANCH_NAME"
-                git checkout "$BRANCH_NAME" || error "Failed to switch to branch $BRANCH_NAME"
-            else
-                info "Creating and switching to new branch: $BRANCH_NAME"
-                git checkout -b "$BRANCH_NAME" || error "Failed to create branch $BRANCH_NAME"
-                
-                # Link branch to issue immediately
-                info "Linking branch to issue #$ISSUE"
-                git commit --allow-empty -m "feat: initialize TDD workflow for issue #$ISSUE
-
-$ISSUE_TITLE
-
-Linked-to: #$ISSUE
-Branch: $BRANCH_NAME
-TDD-Session: START
-
-🤖 Generated with WorkFlo TDD automation" || warn "Failed to create initial commit"
-            fi
-        fi
-        
-        # Count acceptance criteria
-        TOTAL=$(gh issue view "$ISSUE" --json body | jq -r '.body' | grep -c '^- \[ \]' || echo 0)
-        [[ $TOTAL -eq 0 ]] && error "No acceptance criteria found in issue #$ISSUE (use '- [ ] criteria' format)"
-        
-        CRITERIA=1
-        PHASE=START
-        save_state
-        
-        # Add to board if not already there and update phase
-        if command -v ./board >/dev/null; then
-            ./board list >/dev/null 2>&1 # Ensure board exists
-            # Board integration handled by board script
-        fi
-        
-        success "Started issue #$ISSUE with $TOTAL acceptance criteria"
-        success "Working on branch: $BRANCH_NAME"
-        show_current
-        info "Next step: tdd red"
+        # Delegate to TypeScript implementation
+        node "flo-cli/dist/cli.js" tdd:start "$2" "$3"
+        exit $?
         ;;
     
     red)
-        [[ -z "$ISSUE" ]] && error "No active TDD session. Run: tdd start <issue>"
-        validate_phase red
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
         
-        info "🔴 RED Phase - Write failing test"
-        show_current
-        
-        echo "Write a failing test for the current acceptance criteria."
-        echo "The test should:"
-        echo "  • Cover ONLY the current criteria"
-        echo "  • Use business scenario naming (not 'should' statements)"
-        echo "  • Follow Given-When-Then structure"
-        echo ""
-        
-        # Verify test fails
-        info "Verifying test fails..."
-        if run_tests true; then
-            error "Tests are passing! RED phase requires failing tests"
-        fi
-        
-        success "✅ Tests failing as expected"
-        commit_phase "RED"
-        PHASE=RED
-        save_state
-        update_board "RED"
-        success "RED phase complete. Next: tdd green"
+        # Delegate to TypeScript implementation
+        node "flo-cli/dist/cli.js" tdd:red
+        exit $?
         ;;
     
     green)
-        [[ -z "$ISSUE" ]] && error "No active TDD session"
-        validate_phase green
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
         
-        info "🟢 GREEN Phase - Minimal implementation"
-        show_current
-        
-        echo "Implement the MINIMAL code needed to make the test pass."
-        echo "Requirements:"
-        echo "  • Simplest possible solution"
-        echo "  • No extra features or optimizations"
-        echo "  • Just enough to make the test green"
-        echo ""
-        
-        # Verify tests pass
-        info "Verifying tests pass..."
-        if ! run_tests true; then
-            error "Tests still failing! GREEN phase requires passing tests"
-        fi
-        
-        success "✅ All tests passing"
-        commit_phase "GREEN"
-        PHASE=GREEN
-        save_state
-        update_board "GREEN"
-        success "GREEN phase complete. Next: tdd refactor OR tdd cover"
+        # Delegate to TypeScript implementation
+        node "flo-cli/dist/cli.js" tdd:green
+        exit $?
         ;;
     
     refactor)
-        [[ -z "$ISSUE" ]] && error "No active TDD session"
-        validate_phase refactor
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
         
-        info "🔵 REFACTOR Phase - Improve code quality"
-        
-        echo "Improve the code while keeping all tests green."
-        echo "Focus on:"
-        echo "  • Code readability and structure"
-        echo "  • Removing duplication"
-        echo "  • Better naming and organization"
-        echo ""
-        
-        # Check if changes were made
-        if git diff --quiet; then
-            info "No changes detected - skipping refactor commit"
-        else
-            # Verify tests still pass
-            info "Verifying tests still pass after refactoring..."
-            if ! run_tests true; then
-                error "Tests failing after refactor! Fix the refactoring"
-            fi
-            success "✅ Tests still passing after refactor"
-            commit_phase "REFACTOR"
-        fi
-        
-        PHASE=REFACTOR
-        save_state
-        update_board "REFACTOR"
-        success "REFACTOR phase complete. Next: tdd cover"
+        # Delegate to TypeScript implementation
+        node "flo-cli/dist/cli.js" tdd:refactor
+        exit $?
         ;;
     
     cover)
-        [[ -z "$ISSUE" ]] && error "No active TDD session"
-        validate_phase cover
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
         
-        info "📊 COVER Phase - Comprehensive test coverage"
-        
-        echo "Add comprehensive test coverage for the current criteria."
-        echo "Include:"
-        echo "  • Edge cases and boundary conditions"
-        echo "  • Error scenarios and exception handling"
-        echo "  • Different input variations"
-        echo ""
-        
-        # Verify all tests pass
-        info "Running all tests..."
-        if ! run_tests false; then
-            error "Tests must pass before completing COVER phase"
-        fi
-        
-        # Note: Mutation testing will run during PR submission
-        info "Mutation testing will be performed during PR submission"
-        
-        commit_phase "COVER"
-        PHASE=COVER
-        save_state
-        update_board "COVER"
-        success "COVER phase complete. Next: tdd document"
+        # Delegate to TypeScript implementation
+        node "flo-cli/dist/cli.js" tdd:cover
+        exit $?
         ;;
     
     document)
@@ -792,75 +659,23 @@ TDD-Session: START
         ;;
     
     next)
-        [[ -z "$ISSUE" ]] && error "No active TDD session"
-        validate_phase next
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
         
-        success "✅ Acceptance criteria $CRITERIA completed!"
-        
-        # Move to next criteria
-        ((CRITERIA++))
-        
-        if [[ $CRITERIA -gt $TOTAL ]]; then
-            success "🎉 ALL $TOTAL acceptance criteria completed for issue #$ISSUE!"
-            
-            # Auto-complete issue on board
-            if [[ -x "./board" ]]; then
-                info "🔄 Auto-completing issue on board..."
-                ./board complete "$ISSUE" >/dev/null 2>&1 || warn "Board update failed"
-            fi
-            
-            # Auto-prune completed subissues
-            if [[ -x "./cleanup-orphaned-subissues.sh" ]]; then
-                info "🧹 Auto-pruning completed subissues for issue #$ISSUE..."
-                ./cleanup-orphaned-subissues.sh >/dev/null 2>&1 || warn "Subissue cleanup failed"
-            fi
-            
-            echo ""
-            info "✅ Issue #$ISSUE is complete and ready for PR"
-            info "💡 Next step: Create Pull Request when ready"
-            echo ""
-            rm -f $STATE_FILE
-            exit 0
-        fi
-        
-        PHASE=START
-        save_state
-        
-        echo ""
-        info "Moving to next acceptance criteria..."
-        show_current
-        warn "🛑 HARD STOP"
-        warn "To prevent scope creep, you must explicitly continue"
-        echo ""
-        info "To continue: tdd red"
+        # Delegate to TypeScript implementation
+        node "flo-cli/dist/cli.js" tdd:next
+        exit $?
         ;;
     
     status)
-        if [[ -z "$ISSUE" ]]; then
-            warn "No active TDD session"
-            info "Start with: tdd start <issue_number>"
-            exit 0
-        fi
+        # Export environment variables for TypeScript delegation
+        export STATE_FILE
+        export CONFIG_FILE
         
-        echo ""
-        echo "📊 TDD Session Status"
-        echo "===================="
-        echo "Issue: #$ISSUE"
-        echo "Progress: $CRITERIA/$TOTAL acceptance criteria"
-        echo "Current Phase: $PHASE"
-        echo ""
-        show_current
-        
-        # Show gamification scores
-        show_scores
-        
-        case "$PHASE" in
-            START) info "Next: tdd red" ;;
-            RED) info "Next: tdd green" ;;
-            GREEN) info "Next: tdd refactor OR tdd cover" ;;
-            REFACTOR) info "Next: tdd cover" ;;
-            COVER) info "Next: tdd next" ;;
-        esac
+        # Delegate to TypeScript implementation
+        node "flo-cli/dist/cli.js" tdd:status
+        exit $?
         ;;
     
     help|--help|-h)
