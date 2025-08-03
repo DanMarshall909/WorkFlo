@@ -604,8 +604,8 @@ case "$1" in
         
         # AI Integration Point: Test Generation
         if [[ "${AI_ENABLED:-true}" == "true" ]]; then
-            local criteria_text=$(get_criteria)
-            local project_type=$(detect_project_type)
+            criteria_text=$(get_criteria)
+            project_type=$(detect_project_type)
             
             # Offer AI assistance for test generation
             invoke_ai_if_creative "RED" "test_generation" "ai_generate_test" "$ISSUE" "$CRITERIA" "$criteria_text" "$project_type"
@@ -623,9 +623,9 @@ case "$1" in
         
         # AI Integration Point: Implementation Guidance
         if [[ "${AI_ENABLED:-true}" == "true" ]]; then
-            local criteria_text=$(get_criteria)
-            local project_type=$(detect_project_type)
-            local test_output=""
+            criteria_text=$(get_criteria)
+            project_type=$(detect_project_type)
+            test_output=""
             
             # Capture test failure output for AI analysis
             if ! run_tests true 2>/dev/null; then
@@ -648,8 +648,8 @@ case "$1" in
         
         # AI Integration Point: Refactoring Suggestions
         if [[ "${AI_ENABLED:-true}" == "true" ]]; then
-            local criteria_text=$(get_criteria)
-            local current_code=""
+            criteria_text=$(get_criteria)
+            current_code=""
             
             # Get recent changes for refactoring analysis
             if git rev-parse --git-dir >/dev/null 2>&1; then
