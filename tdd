@@ -672,9 +672,9 @@ case "$1" in
         
         # AI Integration Point: Comprehensive Test Coverage
         if [[ "${AI_ENABLED:-true}" == "true" ]]; then
-            local criteria_text=$(get_criteria)
-            local existing_tests=""
-            local implementation=""
+            criteria_text=$(get_criteria)
+            existing_tests=""
+            implementation=""
             
             # Gather context for edge case analysis
             if [[ -d "tests" ]] || [[ -d "test" ]]; then
