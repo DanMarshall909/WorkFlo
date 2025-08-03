@@ -14,14 +14,20 @@ source "$SCRIPT_DIR/lib/project-detection.sh"
 STATE_FILE=".tdd-state"
 [[ -f $STATE_FILE ]] && source $STATE_FILE
 
-# Load persona from config if available
-PERSONA="claude" # Default persona
-if [[ -f ".workflo-config" ]]; then
-    if grep -q "^PERSONA=" ".workflo-config"; then
-        PERSONA=$(grep "^PERSONA=" ".workflo-config" | cut -d'=' -f2)
+# Load configuration
+load_config() {
+    # Load persona from config if available
+    PERSONA="claude" # Default persona
+    if [[ -f ".workflo-config" ]]; then
+        if grep -q "^PERSONA=" ".workflo-config"; then
+            PERSONA=$(grep "^PERSONA=" ".workflo-config" | cut -d'=' -f2)
+        fi
     fi
-fi
-export PERSONA
+    export PERSONA
+}
+
+# Initialize configuration
+load_config
 
 # Show usage information
 show_usage() {
@@ -746,7 +752,7 @@ flo_mark_ac() {
 }
 
 # Main command dispatcher
-case "${1:-help}" in
+case "$1" in
     --persona)      switch_persona "$2" ;;
     # TDD workflow
     start)          tdd_start "$2" ;;
@@ -784,10 +790,22 @@ case "${1:-help}" in
         esac
         ;;
     
-    # Quality & testing
-    qc)             run_quality_checks ;;
-    test)           run_tests ;;
-    build)          run_build ;;
+    # Quality & testing - delegated to TypeScript
+    qc)             
+        export STATE_FILE
+        export CONFIG_FILE
+        node "flo-cli/dist/cli.js" qc
+        ;;
+    test)           
+        export STATE_FILE
+        export CONFIG_FILE
+        node "flo-cli/dist/cli.js" test
+        ;;
+    build)          
+        export STATE_FILE
+        export CONFIG_FILE
+        node "flo-cli/dist/cli.js" build
+        ;;;
     
     # Pull requests
     pr)
@@ -801,9 +819,36 @@ case "${1:-help}" in
     # Acceptance criteria management
     mark-ac)        flo_mark_ac "$2" "$3" ;;
     
-    # Information
-    info)           show_project_info ;;
-    help|--help|-h) show_usage ;;
+    # Information - delegated to TypeScript
+    status)         
+        export STATE_FILE
+        export CONFIG_FILE
+        node "flo-cli/dist/cli.js" tdd:status
+        ;;
+    info)           
+        export STATE_FILE
+        export CONFIG_FILE
+        node "flo-cli/dist/cli.js" --help
+        ;;
+    help) 
+        export STATE_FILE
+        export CONFIG_FILE
+        node "flo-cli/dist/cli.js" --help
+        ;;
+    --help|-h) 
+        export STATE_FILE
+        export CONFIG_FILE
+        node "flo-cli/dist/cli.js" --help
+        ;;
     
-    *)              error "Unknown command: $1. Use 'flo help' for usage information" ;;
+    ""|*)           
+        if [[ -z "$1" ]]; then
+            # No command provided, show help
+            export STATE_FILE
+            export CONFIG_FILE
+            node "flo-cli/dist/cli.js" --help
+        else
+            error "Unknown command: $1. Use 'flo help' for usage information"
+        fi
+        ;;
 esac
