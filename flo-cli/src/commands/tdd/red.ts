@@ -25,6 +25,14 @@ export default class TddRed extends BaseCommand {
       this.error('No active TDD session. Run: flo tdd start <issue>');
     }
 
+    // Check if we're running out of sequence
+    if (state.phase !== 'START' && state.phase !== 'RED') {
+      Logger.warn(`⚠️  AI AGENT HINT: Current phase is ${state.phase}, but RED phase should follow START or be repeated`);
+      Logger.warn('💡 TDD workflow should be: RED → GREEN → REFACTOR → COVER → NEXT');
+      Logger.warn('🤖 If you need to write more tests, this is acceptable. Otherwise consider the correct phase.');
+      this.log('');
+    }
+
     Logger.info('🔴 RED Phase - Write failing test');
 
     this.log('Write a failing test for the current acceptance criteria.');

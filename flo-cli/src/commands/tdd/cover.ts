@@ -16,6 +16,14 @@ export default class TddCover extends BaseCommand {
       this.error('No active TDD session');
     }
 
+    // Check if we're running out of sequence
+    if (state.phase !== 'REFACTOR' && state.phase !== 'GREEN' && state.phase !== 'COVER') {
+      Logger.warn(`⚠️  AI AGENT HINT: Current phase is ${state.phase}, but COVER phase should follow REFACTOR or GREEN phase`);
+      Logger.warn('💡 TDD workflow should be: RED → GREEN → REFACTOR → COVER → NEXT');
+      Logger.warn('🤖 If you manually completed earlier phases, consider updating TDD state appropriately');
+      this.log('');
+    }
+
     Logger.info('📊 COVER Phase - Comprehensive test coverage');
 
     this.log('Add comprehensive test coverage for the current criteria.');
@@ -40,7 +48,7 @@ export default class TddCover extends BaseCommand {
 
   private runTests(): boolean {
     try {
-      execSync('cd flo-cli && npm test', { stdio: 'ignore' });
+      execSync('npm test', { stdio: 'ignore' });
       return true; // Tests passed
     } catch {
       return false; // Tests failed

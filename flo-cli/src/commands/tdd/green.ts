@@ -25,6 +25,14 @@ export default class TddGreen extends BaseCommand {
       this.error('No active TDD session');
     }
 
+    // Check if we're running out of sequence
+    if (state.phase !== 'RED') {
+      Logger.warn(`⚠️  AI AGENT HINT: Current phase is ${state.phase}, but GREEN phase should follow RED phase`);
+      Logger.warn('💡 TDD workflow should be: RED → GREEN → REFACTOR → COVER → NEXT');
+      Logger.warn('🤖 If you manually implemented changes, consider updating the TDD state appropriately');
+      this.log('');
+    }
+
     Logger.info('🟢 GREEN Phase - Minimal implementation');
 
     this.log('Implement the MINIMAL code needed to make the test pass.');
@@ -37,6 +45,9 @@ export default class TddGreen extends BaseCommand {
     // Verify tests pass
     Logger.info('Verifying tests pass...');
     if (!this.runTestsWithSkip()) {
+      Logger.error('Tests still failing! GREEN phase requires passing tests');
+      Logger.warn('💡 AI AGENT HINT: If you manually implemented code, ensure all tests pass before running TDD commands');
+      Logger.warn('🔧 Debug: Run "npm test" to see which tests are failing');
       this.error('Tests still failing! GREEN phase requires passing tests');
     }
 

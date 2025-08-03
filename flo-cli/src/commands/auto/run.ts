@@ -17,6 +17,9 @@ export default class AutoRun extends BaseCommand {
   static override flags = {
     'parse-only': Flags.boolean({ description: 'Parse issue and show acceptance criteria count only' }),
     json: Flags.boolean({ description: 'Output structured JSON for machine parsing' }),
+    criteria: Flags.string({ description: 'Target specific criteria (e.g., 3 or 2-4)' }),
+    from: Flags.integer({ description: 'Start from specific criteria number' }),
+    to: Flags.integer({ description: 'End at specific criteria number' }),
   };
 
   async run(): Promise<void> {
@@ -26,13 +29,24 @@ export default class AutoRun extends BaseCommand {
       const issueNumber = this.validateIssueNumber(args.issue);
       const issueData = this.fetchGitHubIssue(issueNumber.toString(), 'body');
       const issueBody = issueData.body;
-      const criteria = parseAcceptanceCriteria(issueBody);
+      const allCriteria = parseAcceptanceCriteria(issueBody);
+      
+      // Validate and parse criteria targeting
+      const targetedIndices = this.parseTargeting(flags, allCriteria.length);
+      const criteria: string[] = targetedIndices 
+        ? targetedIndices.map((i: number) => allCriteria[i - 1]).filter((c): c is string => Boolean(c))
+        : allCriteria;
       
       if (flags['parse-only']) {
         const result = {
           issue: issueNumber,
-          criteriaCount: criteria.length,
+          totalCriteria: allCriteria.length,
+          targetedCriteria: criteria.length,
           criteria: criteria,
+          targeting: targetedIndices ? {
+            indices: targetedIndices,
+            range: `${targetedIndices[0]}-${targetedIndices[targetedIndices.length - 1]}`
+          } : null,
           message: criteria.length === 0 ? 'No acceptance criteria found' : `Found ${criteria.length} acceptance criteria`
         };
 
@@ -43,8 +57,11 @@ export default class AutoRun extends BaseCommand {
             this.log('No acceptance criteria found');
           } else {
             this.log(`Found ${criteria.length} acceptance criteria:`);
-            criteria.forEach((criterion, index) => {
-              this.log(`${index + 1}. ${criterion}`);
+            criteria.forEach((criterion: string, index: number) => {
+              const originalIndex = targetedIndices 
+                ? targetedIndices[index] 
+                : index + 1;
+              this.log(`${originalIndex}. ${criterion}`);
             });
           }
         }
@@ -60,8 +77,11 @@ export default class AutoRun extends BaseCommand {
       this.log(`📊 Processing ${criteria.length} acceptance criteria`);
       this.log('');
       this.log('Workflow plan:');
-      criteria.forEach((criterion, index) => {
-        this.log(`${index + 1}. ${criterion}`);
+      criteria.forEach((criterion: string, index: number) => {
+        const originalIndex = targetedIndices 
+          ? targetedIndices[index] 
+          : index + 1;
+        this.log(`${originalIndex}. ${criterion}`);
       });
       this.log('');
       this.log('Next steps:');
@@ -71,6 +91,67 @@ export default class AutoRun extends BaseCommand {
 
     } catch (error: unknown) {
       this.handleError(error, 'Failed to run auto workflow');
+    }
+  }
+
+  private parseTargeting(flags: any, totalCriteria: number): number[] | null {
+    const { criteria, from, to } = flags;
+    
+    // Validate conflicting flags
+    if (criteria && (from || to)) {
+      this.error('Cannot use --criteria with --from or --to flags');
+    }
+    
+    // Handle range syntax in criteria flag (e.g., "2-4")
+    if (criteria) {
+      const rangeMatch = criteria.match(/^(\d+)-(\d+)$/);
+      if (rangeMatch) {
+        const start = parseInt(rangeMatch[1]);
+        const end = parseInt(rangeMatch[2]);
+        return this.validateRange(start, end, totalCriteria);
+      }
+      
+      // Single criteria number
+      const single = parseInt(criteria);
+      if (isNaN(single)) {
+        this.error(`Invalid criteria number: ${criteria}`);
+      }
+      this.validateCriteriaNumber(single, totalCriteria);
+      return [single];
+    }
+    
+    // Handle from/to flags
+    if (from || to) {
+      const start = from || 1;
+      const end = to || totalCriteria;
+      return this.validateRange(start, end, totalCriteria);
+    }
+    
+    // No targeting specified - process all
+    return null;
+  }
+  
+  private validateRange(start: number, end: number, total: number): number[] {
+    if (start < 1 || start > total) {
+      this.error(`Invalid start criteria: ${start}. Must be between 1 and ${total}`);
+    }
+    if (end < 1 || end > total) {
+      this.error(`Invalid end criteria: ${end}. Must be between 1 and ${total}`);
+    }
+    if (start > end) {
+      this.error(`Invalid range: start (${start}) cannot be greater than end (${end})`);
+    }
+    
+    const indices: number[] = [];
+    for (let i = start; i <= end; i++) {
+      indices.push(i);
+    }
+    return indices;
+  }
+  
+  private validateCriteriaNumber(num: number, total: number): void {
+    if (num < 1 || num > total) {
+      this.error(`Invalid criteria number: ${num}. Must be between 1 and ${total}`);
     }
   }
 }
