@@ -40,7 +40,7 @@ export default class TddCover extends BaseCommand {
 
   private runTests(): boolean {
     try {
-      execSync('npm test', { stdio: 'ignore' });
+      execSync('cd flo-cli && npm test', { stdio: 'ignore' });
       return true; // Tests passed
     } catch {
       return false; // Tests failed
