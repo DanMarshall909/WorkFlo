@@ -1,40 +1,59 @@
 {
   "hooks": {
-    "session-start-hook": "/home/dan/code/WorkFlo/.claude/workflo-automation-hook.sh",
-    "user-prompt-submit-hook": "/home/dan/.claude/github-automation-reminder.sh"
-  },
-  "permissions": {
-    "inherit_global": true,
-    "additional_deny": [
-      "Bash(git add:*)",
-      "Bash(git commit:*)", 
-      "Bash(git push:*)",
-      "Bash(git merge:*)",
-      "Bash(git checkout -b:*)",
-      "Bash(gh pr create:*)",
-      "Bash(gh pr merge:*)",
-      "Bash(gh issue create:*)"
-    ],
-    "additional_allow": [
-      "Bash(flo:*)",
-      "Bash(./flo:*)",
-      "Bash(flo-cli/dist/cli.js:*)",
-      "Bash(node flo-cli/dist/cli.js:*)"
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "github-automation-reminder.sh"
+          }
+        ]
+      }
     ]
   },
-  "project_rules": {
-    "github_automation_enforcement": {
-      "enabled": true,
-      "strict_mode": true,
-      "reminder_frequency": "every_session",
-      "policy_document": "AI_GUIDELINES.md"
-    }
-  },
-  "notifications": {
-    "github_command_blocked": {
-      "enabled": true,
-      "message": "🚫 Blocked: Use flo automation instead. See workflo-automation-hook.sh for available commands.",
-      "show_alternatives": true
-    }
+  "permissions": {
+    "allow": [
+      "Bash(lsblk:*)",
+      "Bash(mkdir:*)",
+      "Bash(git clone:*)",
+      "Bash(git status:*)",
+      "Bash(git branch:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git stash pop)",
+      "Bash(git stash list)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(flo:*)",
+      "Bash(./flo:*)",
+      "Bash(node flo-cli/dist/cli.js:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm build:*)"
+    ],
+    "deny": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(gh repo create:*)",
+      "Bash(gh repo delete:*)"
+    ]
   }
 }
