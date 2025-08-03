@@ -46,7 +46,7 @@ The test generator supports four insertion strategies:
 flo-cli generate-tests --issue 204 --output tests/feature.test.ts
 
 # Mark acceptance criteria complete
-flo-mark-ac 204 "Create CLI command for generation"
+flo mark-ac 204 "Create CLI command for generation"
 ```
 
 ## TDD Workflow Issue (Issue #250)
@@ -84,22 +84,22 @@ This repository enforces **ONE acceptance criteria at a time** with hard stops t
 
 ```bash
 # 1. Create issue with acceptance criteria (if needed)
-./board create
+flo board:create
 
 # 2. Start TDD workflow for a GitHub issue  
-./tdd start <issue_number>
+flo tdd:start <issue_number>
 
 # 3. Follow the enforced TDD cycle (auto-commits, auto-updates board):
-./tdd red        # 🔴 Write ONE failing test for current criteria
-./tdd green      # 🟢 Minimal implementation to pass the test  
-./tdd refactor   # 🔵 Improve code quality (optional)
-./tdd cover      # 📊 Add comprehensive test coverage (unit tests only)
-./tdd document   # 📝 Document learnings for future AI agents
-./tdd next       # ➡️ Move to next criteria (HARD STOP - must be explicit)
+flo tdd:red        # 🔴 Write ONE failing test for current criteria
+flo tdd:green      # 🟢 Minimal implementation to pass the test  
+flo tdd:refactor   # 🔵 Improve code quality (optional)
+flo tdd:cover      # 📊 Add comprehensive test coverage (unit tests only)
+flo tdd:document   # 📝 Document learnings for future AI agents
+flo tdd:next       # ➡️ Move to next criteria (HARD STOP - must be explicit)
 
 # 4. Check current status
-./tdd status
-./board list     # See board with TDD phases
+flo tdd:status
+flo board:list     # See board with TDD phases
 
 # Issue automatically completed when all criteria done!
 ```
@@ -143,9 +143,8 @@ GitHub issues must have acceptance criteria in this format:
 
 ### Repository Structure
 
-- `./tdd` - Ultra-minimal TDD command (main workflow)
-- `./board` - GitHub board management (auto-creates board)
-- `legacy/` - All previous complex scripts (archived)
+- `flo-cli/` - TypeScript CLI application (main workflow)
+- `./tdd` - Legacy TDD script (being migrated to TypeScript)
 - `.tdd-state` - Current session state (auto-managed)
 
 ## Key Principles
@@ -156,10 +155,11 @@ GitHub issues must have acceptance criteria in this format:
 4. **Quality First**: Mutation testing and comprehensive coverage required
 5. **Complete Automation**: No manual git/gh commands needed
 6. **Self-Contained**: Focus only on writing tests and code
-7. **Minimal Complexity**: Two simple scripts replace entire complex system
+7. **Minimal Complexity**: TypeScript CLI replaces complex shell scripts
 
 ## Prerequisites
 
+- [Node.js](https://nodejs.org/) (version 16 or higher) for TypeScript CLI
 - GitHub CLI (`gh`) with authentication
 - `jq` for JSON processing: `sudo apt-get install jq`
 - `bc` for calculations: `sudo apt-get install bc`

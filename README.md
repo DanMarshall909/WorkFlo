@@ -1,12 +1,12 @@
 # WorkFlo: The AI-Native TDD Workflow Engine
 
-**WorkFlo is a universal, AI-native workflow engine designed to bring structure, quality, and automation to your development process. It combines a powerful CLI tool (`flo`) with a seamless VS Code extension to create a comprehensive TDD environment for any project type.**
+**WorkFlo is a universal, AI-native workflow engine designed to bring structure, quality, and automation to your development process. It combines a powerful TypeScript CLI tool (`flo-cli`) with a seamless VS Code extension to create a comprehensive TDD environment for any project type.**
 
 ## What is WorkFlo?
 
 WorkFlo is an opinionated Test-Driven Development (TDD) workflow system built for the modern, AI-assisted development era. It enforces a strict, one-task-at-a-time workflow, ensuring that developers (both human and AI) stay focused and produce high-quality, well-tested code.
 
-The system is built around the `flo` command-line tool, which provides a rich set of commands for managing your entire development lifecycle, from creating issues and running quality checks to managing pull requests and automating feature development.
+The system is built around the `flo-cli` TypeScript command-line tool, which provides a rich set of commands for managing your entire development lifecycle, from creating issues and running quality checks to managing pull requests and automating feature development.
 
 ## Key Features
 
@@ -22,6 +22,7 @@ The system is built around the `flo` command-line tool, which provides a rich se
 
 ### Prerequisites
 
+*   [Node.js](https://nodejs.org/) (version 16 or higher)
 *   [GitHub CLI (`gh`)](https://cli.github.com/)
 *   `jq`
 *   `bc`
@@ -32,27 +33,29 @@ The system is built around the `flo` command-line tool, which provides a rich se
     ```bash
     git clone https://github.com/DanMarshall909/WorkFlo.git
     ```
-2.  Add the `flo` script to your `PATH`:
+2.  Build and install the TypeScript CLI:
     ```bash
-    cd WorkFlo
-    export PATH=$PWD:$PATH
+    cd WorkFlo/flo-cli
+    npm install
+    npm run build
+    npm link  # Makes 'flo' command globally available
     ```
 
 ### Basic Usage
 
 1.  **Start a new TDD session:**
     ```bash
-    flo start <issue-number>
+    flo tdd:start <issue-number>
     ```
 2.  **Follow the TDD cycle:**
-    *   `flo red`: Write a failing test.
-    *   `flo green`: Write the minimum code to make the test pass.
-    *   `flo refactor`: Improve the code quality.
-    *   `flo cover`: Add more tests and ensure full coverage.
-    *   `flo next`: Move to the next acceptance criteria.
+    *   `flo tdd:red`: Write a failing test.
+    *   `flo tdd:green`: Write the minimum code to make the test pass.
+    *   `flo tdd:refactor`: Improve the code quality.
+    *   `flo tdd:cover`: Add more tests and ensure full coverage.
+    *   `flo tdd:next`: Move to the next acceptance criteria.
 3.  **Automate feature development:**
     ```bash
-    flo feature <issue-number>
+    flo auto:run <issue-number>
     ```
 
 ## Core Concepts
@@ -77,51 +80,76 @@ The concept of "Hard Stops" is central to WorkFlo. After completing each phase o
 
 ## Commands
 
-The `flo` tool provides a wide range of commands to manage your workflow:
+The `flo-cli` TypeScript tool provides a wide range of commands to manage your workflow:
 
+### TDD Commands
 | Command | Description |
 | --- | --- |
-| `flo start <issue>` | Start a new TDD session for a GitHub issue. |
-| `flo red` | Enter the RED phase (write a failing test). |
-| `flo green` | Enter the GREEN phase (write minimal code). |
-| `flo refactor` | Enter the REFACTOR phase (improve code quality). |
-| `flo cover` | Enter the COVER phase (add comprehensive tests). |
-| `flo next` | Move to the next acceptance criterion. |
-| `flo status` | Show the current TDD session status. |
-| `flo-mark-ac <issue> "<description>"` | Mark an acceptance criterion as complete in a GitHub issue. |
-| `flo feature <issue>` | Automate the entire feature development workflow. |
-| `flo board list` | List all issues on the project board. |
-| `flo board show <id>` | Show the details of a specific issue. |
-| `flo board create` | Create a new issue. |
-| `flo issue create` | Create a new GitHub issue. |
-| `flo label create` | Create a new GitHub label. |
+| `flo tdd:start <issue>` | Start a new TDD session for a GitHub issue. |
+| `flo tdd:red` | Enter the RED phase (write a failing test). |
+| `flo tdd:green` | Enter the GREEN phase (write minimal code). |
+| `flo tdd:refactor` | Enter the REFACTOR phase (improve code quality). |
+| `flo tdd:cover` | Enter the COVER phase (add comprehensive tests). |
+| `flo tdd:next` | Move to the next acceptance criterion. |
+| `flo tdd:status` | Show the current TDD session status. |
+
+### Auto Workflow Commands
+| Command | Description |
+| --- | --- |
+| `flo auto:init <issue>` | Initialize auto workflow state for an issue. |
+| `flo auto:run <issue>` | Run autonomous TDD workflow for multiple acceptance criteria. |
+| `flo auto:status` | Show current auto workflow progress. |
+
+### Board Management Commands
+| Command | Description |
+| --- | --- |
+| `flo board:list` | List all issues on the project board. |
+| `flo board:show <id>` | Show the details of a specific issue. |
+| `flo board:create` | Create a new issue. |
+| `flo board:search <query>` | Search for issues on the board. |
+| `flo board:archive <issue>` | Archive completed issue. |
+
+### Issue Management Commands
+| Command | Description |
+| --- | --- |
+| `flo mark-ac <issue> "<description>"` | Mark an acceptance criterion as complete in a GitHub issue. |
+| `flo parse-ac <issue>` | Parse acceptance criteria from GitHub issue. |
+| `flo update-issue-ac <issue> <criteria>` | Update acceptance criteria status in GitHub issue. |
+
+### Project Commands
+| Command | Description |
+| --- | --- |
+| `flo feature <issue>` | Complete end-to-end automated feature development. |
 | `flo qc` | Run quality checks (build, test, etc.). |
 | `flo test` | Run the project's tests. |
 | `flo build` | Build the project. |
-| `flo pr create` | Create a new pull request. |
-| `flo pr review` | Review the current changes. |
-| `flo info` | Show project information and available commands. |
+| `flo generate-tests` | Generate comprehensive tests from GitHub issue acceptance criteria. |
 | `flo help` | Show the help message. |
 
 ## VS Code Extension
 
-The WorkFlo VS Code extension provides a seamless integration with the `flo` workflow:
+The WorkFlo VS Code extension provides a seamless integration with the `flo-cli` workflow:
 
 *   **Real-time Status:** A dedicated view in the activity bar shows the current TDD session status, including the current issue, phase, and progress.
 *   **TDD Phase Tracking:** The extension automatically updates the status as you move through the TDD cycle.
-*   **Integrated Commands:** Run `flo` commands directly from the VS Code command palette.
+*   **Integrated Commands:** Run `flo-cli` commands directly from the VS Code command palette.
 *   **Auto-Refresh:** The status automatically refreshes, keeping you up-to-date with the latest changes.
 
 ## Project Structure
 
 ```
 /
-├── flo              # Main workflow command
-├── tdd              # Core TDD logic (used by flo)
-├── board            # Project board management script
-├── lib/             # Helper scripts and libraries
-├── tests/           # BATS tests for the workflow scripts
+├── flo-cli/         # TypeScript CLI application
+│   ├── src/         # TypeScript source code
+│   │   ├── commands/    # CLI command implementations
+│   │   ├── services/    # Business logic services
+│   │   └── lib/         # Utility libraries
+│   ├── tests/       # Jest unit tests
+│   ├── dist/        # Compiled JavaScript output
+│   └── package.json # Node.js package configuration
 ├── vscode-extension/  # VS Code extension source code
+├── tdd              # Legacy TDD script (being migrated)
+├── lib/             # Legacy helper scripts (being migrated)
 ├── docs/            # Documentation
 └── README.md        # This file
 ```
@@ -130,7 +158,7 @@ The WorkFlo VS Code extension provides a seamless integration with the `flo` wor
 
 WorkFlo was born out of the need for a structured, disciplined, and automated TDD workflow that can be used by both human and AI developers. In a world of increasingly complex software and AI-assisted development, it's more important than ever to have a system that enforces best practices and ensures high-quality, well-tested code.
 
-By combining a powerful CLI with a seamless VS Code extension, WorkFlo provides a comprehensive solution for modern software development that is both flexible and opinionated, powerful and easy to use.
+By combining a powerful TypeScript CLI with a seamless VS Code extension, WorkFlo provides a comprehensive solution for modern software development that is both flexible and opinionated, powerful and easy to use.
 
 ## Contributing
 
