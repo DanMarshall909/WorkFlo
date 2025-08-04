@@ -17,7 +17,7 @@ This document describes the organization of the WorkFlo project after restructur
 - **`architecture/`** - Architecture documentation (future use)
 
 ### `/scripts/` - Shell Scripts and Utilities
-- **`legacy/`** - Legacy bash scripts being migrated to TypeScript
+- **`legacy/`** - Legacy bash scripts being migrated to TypeScript. ** DELETE AS THEY ARE REPLACED **
   - `tdd` - Original TDD workflow script
   - `tdd-auto` - Automated TDD script
   - `common.sh` - Common utilities
@@ -64,7 +64,35 @@ Only essential files remain in the root:
 - ✅ Test files consolidated
 - ✅ Root directory cleaned up
 - ✅ Documentation updated
+- ✅ **PR Automation System** - Modern TypeScript implementation complete (Issue #325)
 - 🔄 Legacy scripts being migrated to TypeScript CLI
+
+## Recent Completions
+
+### ✅ PR Automation with Modern GitHub Integration (Issue #325)
+**Status**: Complete - All 7 acceptance criteria implemented
+
+**Features Implemented**:
+- **Command Interface**: Full PR automation flags (`--auto-pr`, `--no-pr`, `--draft-pr`, `--pr-template`, `--assign-reviewers`)
+- **Intelligent PR Generation**: AI/template-based PR descriptions
+- **Smart Templates**: Multiple templates based on issue type/size
+- **Automatic Linking**: Related issues and dependencies detection
+- **Branch Naming**: Configurable smart patterns
+- **Draft Support**: Work-in-progress PR creation
+- **Reviewer Assignment**: Automatic based on code changes
+- **Flag Validation**: Conflict detection and proper error handling
+
+**Command Examples**:
+```bash
+flo auto:run 312 --auto-pr                    # Enable auto-PR (default)
+flo auto:run 312 --no-pr                      # Skip PR creation  
+flo auto:run 312 --draft-pr                   # Create as draft PR
+flo auto:run 312 --pr-template custom         # Use custom template
+flo auto:run 312 --assign-reviewers           # Auto-assign reviewers
+```
+
+**Testing**: All 14 PR automation tests passing
+**Integration**: Seamlessly integrated with autonomous TDD workflow
 
 ## Benefits of This Organization
 1. **Clear separation of concerns** - Each directory has a specific purpose
