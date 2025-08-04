@@ -139,19 +139,24 @@ The WorkFlo VS Code extension provides a seamless integration with the `flo-cli`
 
 ```
 /
-├── flo-cli/         # TypeScript CLI application
-│   ├── src/         # TypeScript source code
-│   │   ├── commands/    # CLI command implementations
-│   │   ├── services/    # Business logic services
-│   │   └── lib/         # Utility libraries
-│   ├── tests/       # Jest unit tests
-│   ├── dist/        # Compiled JavaScript output
-│   └── package.json # Node.js package configuration
-├── vscode-extension/  # VS Code extension source code
-├── tdd              # Legacy TDD script (being migrated)
-├── lib/             # Legacy helper scripts (being migrated)
-├── docs/            # Documentation
-└── README.md        # This file
+├── flo-cli/           # TypeScript CLI application
+│   ├── src/           # TypeScript source code
+│   │   ├── commands/  # CLI command implementations
+│   │   └── services/  # Business logic services
+│   ├── tests/         # Jest unit tests
+│   └── dist/          # Compiled JavaScript output
+├── vscode-extension/  # VS Code extension
+├── scripts/           # Shell scripts and utilities
+│   ├── legacy/        # Legacy bash scripts (being migrated)
+│   ├── test/          # Test scripts
+│   └── utils/         # Utility scripts
+├── tests/             # Integration and system tests
+├── docs/              # Documentation
+│   ├── guidelines/    # Development guidelines
+│   ├── workflows/     # Workflow documentation
+│   └── architecture/  # Architecture documentation
+├── ai-providers/      # AI provider configurations
+└── README.md          # This file
 ```
 
 ## Motivation

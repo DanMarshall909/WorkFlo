@@ -25,7 +25,7 @@ export class ProjectDetector {
   static detectProjectType(projectRoot: string = process.cwd()): ProjectType {
     const projectTypes: ProjectType[] = [];
 
-    // Check for Bash projects first (prioritize when run-tests exists)
+    // Check for Bash projects first (based on test files)
     if (this.hasBashTests(projectRoot)) {
       projectTypes.push('bash');
     }
@@ -65,17 +65,29 @@ export class ProjectDetector {
   }
 
   private static hasBashTests(projectRoot: string): boolean {
-    if (existsSync(join(projectRoot, 'run-tests'))) {
-      return true;
-    }
-
+    // Check for BATS test files
     const batsFiles = this.findFiles(projectRoot, '.bats');
     if (batsFiles.length > 0) {
       return true;
     }
 
+    // Check for test scripts
     const testScripts = this.findFiles(projectRoot, 'test-*.sh');
-    return testScripts.length > 0;
+    if (testScripts.length > 0) {
+      return true;
+    }
+
+    // Check for npm test script in bash projects
+    if (existsSync(join(projectRoot, 'package.json'))) {
+      try {
+        const packageJson = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'));
+        return packageJson.scripts?.test && packageJson.scripts.test.includes('.sh');
+      } catch {
+        return false;
+      }
+    }
+
+    return false;
   }
 
   private static findFiles(dir: string, pattern: string): string[] {
@@ -136,7 +148,7 @@ export class ProjectDetector {
     }
   }
 
-  static getProjectCommands(projectType: ProjectType): ProjectCommands {
+  static getProjectCommands(projectType: ProjectType, projectRoot: string = process.cwd()): ProjectCommands {
     switch (projectType) {
       case 'dotnet-api':
       case 'dotnet-mcp':
@@ -167,10 +179,20 @@ export class ProjectDetector {
           restore: 'pip install -r requirements.txt'
         };
 
-      case 'bash':
-        return {
-          test: './run-tests'
-        };
+      case 'bash': {
+        // Try to find the appropriate test command for bash projects
+        const batsFiles = this.findFiles(projectRoot, '.bats');
+        if (batsFiles.length > 0) {
+          return { test: 'bats tests/' };
+        }
+        
+        const testScripts = this.findFiles(projectRoot, 'test-*.sh');
+        if (testScripts.length > 0) {
+          return { test: `bash ${testScripts[0]}` };
+        }
+        
+        return { test: 'echo "No bash tests found"' };
+      }
 
       default:
         return {
@@ -196,9 +218,9 @@ export class ProjectDetector {
       return false;
     }
 
-    // For bash projects, check if run-tests exists
+    // For bash projects, check if we have any test files
     if (projectType === 'bash') {
-      return existsSync(join(projectRoot, 'run-tests'));
+      return this.hasBashTests(projectRoot);
     }
 
     // For other projects, assume tests exist if we have a test command

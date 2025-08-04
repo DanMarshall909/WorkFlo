@@ -193,7 +193,7 @@ describe('TDD Workflow Logic (Comprehensive Unit Tests)', () => {
       try {
         // Simulate test run with skip environment variable
         process.env['TDD_SKIP_SCRIPT_TESTS'] = '1';
-        mockExecSync('./run-tests');
+        mockExecSync('npm test');
       } catch (error) {
         // Tests failed as expected in RED phase
         mockLogger.success('✅ Tests failing as expected');
@@ -222,7 +222,7 @@ describe('TDD Workflow Logic (Comprehensive Unit Tests)', () => {
       
       try {
         process.env['TDD_SKIP_SCRIPT_TESTS'] = '1';
-        mockExecSync('./run-tests');
+        mockExecSync('npm test');
         mockLogger.success('✅ Tests passing');
         mockTddStateService.updatePhase('GREEN');
         mockLogger.success('GREEN phase complete. Next: flo tdd refactor OR flo tdd cover');
@@ -321,7 +321,7 @@ describe('TDD Workflow Logic (Comprehensive Unit Tests)', () => {
       
       // Then: Should detect Bash project
       expect(projectType).toBe('bash');
-      expect(testCmd).toBe('./run-tests');
+      expect(testCmd).toBe('npm test');
     });
   });
 });

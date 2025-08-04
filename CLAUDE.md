@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with the WorkFlo reposit
 
 ## Mandatory Reading. CRITICAL!
 
-YOU MUST read [AI_GUIDELINES.md](AI_GUIDELINES.md) at the start of every session.
+YOU MUST read [AI_GUIDELINES.md](docs/guidelines/AI_GUIDELINES.md) at the start of every session.
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.

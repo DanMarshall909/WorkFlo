@@ -48,7 +48,12 @@ load_config
 [[ -f $STATE_FILE ]] && source $STATE_FILE
 
 # Load AI provider system
-source ai-loader.sh
+# Get the script directory and project root
+SCRIPT_BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_BASE_DIR/../.." && pwd)"
+
+# Source ai-loader from utils directory
+source "$SCRIPT_BASE_DIR/../utils/ai-loader.sh"
 load_ai_provider
 
 # Debug mode for verbose output (set TDD_DEBUG=1 for debugging)
@@ -301,8 +306,8 @@ show_scores() {
 
 # Detect project type
 detect_project_type() {
-    # Prioritize bash projects when run-tests exists (similar to lib/project-detection.sh)
-    if [[ -x "./run-tests" ]] || find . -name "*.bats" -type f 2>/dev/null | grep -q . || find . -name "test-*.sh" -type f 2>/dev/null | grep -q .; then
+    # Detect bash projects by presence of test files
+    if find . -name "*.bats" -type f 2>/dev/null | grep -q . || find . -name "test-*.sh" -type f 2>/dev/null | grep -q .; then
         echo "bash"
     elif [[ -f "package.json" ]]; then
         echo "nodejs"
@@ -329,7 +334,10 @@ check_prereqs() {
             ;;
         bash)
             command -v bats >/dev/null || warn "BATS recommended: https://bats-core.readthedocs.io/"
-            [[ -x "./run-tests" ]] || warn "run-tests script not found - tests may not work"
+            # Check for BATS or test scripts
+            if ! find . -name "*.bats" -type f 2>/dev/null | grep -q . && ! find . -name "test-*.sh" -type f 2>/dev/null | grep -q .; then
+                warn "No test files found - install BATS or create test-*.sh scripts"
+            fi
             ;;
     esac
     
@@ -357,20 +365,23 @@ run_tests() {
             fi
             ;;
         bash)
-            if [[ -x "./run-tests" ]]; then
-                # During RED/GREEN phases, skip script tests to focus on .NET test failures
-                local test_env=""
-                if [[ "$PHASE" == "RED" || "$PHASE" == "GREEN" ]]; then
-                    test_env="TDD_SKIP_SCRIPT_TESTS=1"
-                fi
-                
+            # Run BATS tests if available
+            if find . -name "*.bats" -type f 2>/dev/null | grep -q .; then
                 if [[ "$quiet_mode" == "true" ]]; then
-                    env $test_env ./run-tests >/dev/null 2>&1
+                    bats tests/ >/dev/null 2>&1 || bats . >/dev/null 2>&1
                 else
-                    env $test_env ./run-tests
+                    bats tests/ 2>/dev/null || bats .
+                fi
+            # Run test scripts if available
+            elif find . -name "test-*.sh" -type f 2>/dev/null | grep -q .; then
+                local test_script=$(find . -name "test-*.sh" -type f 2>/dev/null | head -1)
+                if [[ "$quiet_mode" == "true" ]]; then
+                    bash "$test_script" >/dev/null 2>&1
+                else
+                    bash "$test_script"
                 fi
             else
-                warn "No run-tests script found. Create ./run-tests or install BATS tests."
+                warn "No test files found. Install BATS or create test-*.sh scripts."
                 return 1
             fi
             ;;
