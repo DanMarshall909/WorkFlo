@@ -2,6 +2,12 @@
 # Hook that runs before file edits to check TDD state
 # This helps ensure AI agents follow TDD workflow
 
+# CHECK FOR OVERRIDE - Simple env variable check
+if [ "$TDD_OVERRIDE" = "true" ] || [ "$TDD_OVERRIDE" = "1" ]; then
+  echo "⚠️  TDD enforcement DISABLED (TDD_OVERRIDE=$TDD_OVERRIDE)"
+  exit 0
+fi
+
 echo "🔍 TDD Enforcement Check..."
 
 # Get the file being edited

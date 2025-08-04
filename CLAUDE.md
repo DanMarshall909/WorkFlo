@@ -39,6 +39,22 @@ YOU MUST read [AI_GUIDELINES.md](docs/guidelines/AI_GUIDELINES.md) at the start 
 - **Before writing tests**: Ensure you're in RED or COVER phase
 - **Check if TDD required**: `./scripts/utils/check-tdd-required.sh <issue>`
 
+### TDD Override (Emergency Use Only!)
+
+To temporarily disable TDD enforcement:
+```bash
+# Disable for current session
+export TDD_OVERRIDE=true
+
+# Re-enable enforcement
+unset TDD_OVERRIDE
+```
+
+⚠️ **WARNING**: Only use for:
+- Emergency hotfixes
+- Fixing broken TDD state
+- Non-code changes (docs, configs)
+
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.

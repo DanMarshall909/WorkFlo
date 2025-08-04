@@ -37,3 +37,15 @@ if [ -f ".tdd-state" ]; then
   echo "════════════════════════════════════════════════════════════"
   echo ""
 fi
+
+# Check for override
+if [ "$TDD_OVERRIDE" = "true" ] || [ "$TDD_OVERRIDE" = "1" ]; then
+  echo ""
+  echo "⚠️  ⚠️  ⚠️  WARNING: TDD ENFORCEMENT DISABLED ⚠️  ⚠️  ⚠️"
+  echo ""
+  echo "TDD_OVERRIDE=$TDD_OVERRIDE"
+  echo ""
+  echo "To re-enable enforcement:"
+  echo "  unset TDD_OVERRIDE"
+  echo "════════════════════════════════════════════════════════════"
+fi

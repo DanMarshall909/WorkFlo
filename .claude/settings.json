@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "pre-edit": {
+      "command": ".claude/workflo-tdd-enforcement.sh",
+      "blocking": true,
+      "args": ["${file_path}"]
+    },
+    "pre-write": {
+      "command": ".claude/workflo-tdd-enforcement.sh", 
+      "blocking": true,
+      "args": ["${file_path}"]
+    },
+    "session-start": {
+      "command": ".claude/session-start-hook.sh",
+      "blocking": false
+    }
+  }
+}
