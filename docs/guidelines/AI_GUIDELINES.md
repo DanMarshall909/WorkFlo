@@ -2,6 +2,36 @@
 
 **🤖 CRITICAL: AI agents MUST read this file at the start of every session.**
 
+## 🚨 MANDATORY TDD WORKFLOW ENFORCEMENT
+
+### CRITICAL: Direct File Editing Prohibited
+**NEVER edit implementation files directly when working on issues with acceptance criteria.**
+
+### Required Workflow:
+1. **ALWAYS start with**: `flo tdd:start <issue>` or `node flo-cli/dist/cli.js tdd:start <issue>`
+2. **ONLY write code during appropriate TDD phases**:
+   - Test files (*.test.ts): Only during RED and COVER phases
+   - Implementation files: Only during GREEN and REFACTOR phases
+3. **NEVER skip TDD phases** - each phase builds on the previous
+4. **NEVER implement without failing tests first** - RED must come before GREEN
+
+### Enforcement Checklist:
+- [ ] Did you run `flo tdd:start` before any coding?
+- [ ] Are you in the RED phase before writing tests?
+- [ ] Are you in the GREEN phase before writing implementation?
+- [ ] Did you complete all phases before moving to next AC?
+- [ ] Did you use `flo tdd:next` to advance criteria?
+
+### When User Requests Implementation:
+```bash
+# WRONG: Directly editing files
+❌ "Let me implement the PR automation feature..."
+
+# CORRECT: Using TDD workflow
+✅ "I'll implement this using the TDD workflow. Let me start:
+    flo tdd:start 325"
+```
+
 ## Session Startup (Optimized)
 
 1. **Read AI_GUIDELINES.md** (this file) - MANDATORY
