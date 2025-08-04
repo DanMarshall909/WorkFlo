@@ -13,6 +13,61 @@
     "session-start": {
       "command": ".claude/session-start-hook.sh",
       "blocking": false
-    }
+    },
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "github-automation-reminder.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(lsblk:*)",
+      "Bash(mkdir:*)",
+      "Bash(git clone:*)",
+      "Bash(git status:*)",
+      "Bash(git branch:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git stash pop)",
+      "Bash(git stash list)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(flo:*)",
+      "Bash(./flo:*)",
+      "Bash(node flo-cli/dist/cli.js:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm build:*)"
+    ],
+    "deny": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(gh repo create:*)",
+      "Bash(gh repo delete:*)"
+    ]
   }
 }

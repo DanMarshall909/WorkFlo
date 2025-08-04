@@ -140,6 +140,9 @@ export default class FloCommand extends Command {
     this.log('  pr create         Create pull request');
     this.log('  pr review         Review current changes');
     this.log('');
+    this.log('Maintenance:');
+    this.log('  cleanup           Clean generated files and organize project');
+    this.log('');
     this.log('Project Info:');
     this.log('  info              Show project type and available commands');
     this.log('  help              Show this help message');

@@ -165,7 +165,18 @@ flo tdd:next     # Move to next criteria
 | `flo test` | Run the project's tests. |
 | `flo build` | Build the project. |
 | `flo generate-tests` | Generate comprehensive tests from GitHub issue acceptance criteria. |
+| `flo cleanup` | Clean up generated files and organize project structure. |
 | `flo help` | Show the help message. |
+
+### Cleanup Commands
+| Command | Description |
+| --- | --- |
+| `flo cleanup --coverage` | Remove generated coverage reports. |
+| `flo cleanup --temp` | Remove temporary and debug files. |
+| `flo cleanup --docs` | Clean up obsolete documentation. |
+| `flo cleanup --all` | Clean all categories. |
+| `flo cleanup --dry-run` | Preview what will be cleaned without deleting. |
+| `flo cleanup --interactive` | Confirm each cleanup action. |
 
 ## VS Code Extension
 
