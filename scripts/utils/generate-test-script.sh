@@ -31,14 +31,11 @@ cat > "$TEST_FILE" << EOF
 
 set -e
 
-# Load test assertion library
-source "\$(dirname "\$0")/lib/test-assertions.sh" 2>/dev/null || {
-    echo "⚠️ Test assertion library not found, using basic assertions"
-    assert_true() { [ "\$1" = true ] || { echo "❌ FAIL: \$2"; return 1; }; }
-    assert_false() { [ "\$1" = false ] || { echo "❌ FAIL: \$2"; return 1; }; }
-    assert_equals() { [ "\$1" = "\$2" ] || { echo "❌ FAIL: \$3"; return 1; }; }
-    test_summary() { echo "📊 Test completed"; }
-}
+# Basic test assertion functions
+assert_true() { [ "\$1" = true ] || { echo "❌ FAIL: \$2"; return 1; }; }
+assert_false() { [ "\$1" = false ] || { echo "❌ FAIL: \$2"; return 1; }; }
+assert_equals() { [ "\$1" = "\$2" ] || { echo "❌ FAIL: \$3"; return 1; }; }
+test_summary() { echo "📊 Test completed"; }
 
 echo "🧪 Testing: ${DESCRIPTION}..."
 echo "📋 Issue: #${ISSUE_NUMBER} - ${ISSUE_TITLE}"

@@ -13,6 +13,7 @@ The system is built around the `flo-cli` TypeScript command-line tool, which pro
 *   **Universal Project Support:** Works out-of-the-box with any project type, including web apps, APIs, mobile apps, console tools, and libraries.
 *   **Strict TDD Enforcement:** The RED-GREEN-REFACTOR-COVER-NEXT cycle is enforced with hard stops, preventing scope creep and ensuring a disciplined workflow.
 *   **AI-Powered Automation:** Automate the entire feature development process, from creating branches and running tests to generating pull requests.
+*   **🚀 Intelligent PR Automation:** Modern GitHub integration with AI-generated descriptions, smart templates, automatic linking, and reviewer assignment.
 *   **Seamless VS Code Integration:** A dedicated VS Code extension provides real-time status updates, TDD phase tracking, and integrated commands.
 *   **Comprehensive Project Management:** Manage your GitHub issues, labels, and project boards directly from the command line.
 *   **Built-in Quality Gates:** Run project-specific builds, tests, and quality checks with a single command.
@@ -96,9 +97,49 @@ The `flo-cli` TypeScript tool provides a wide range of commands to manage your w
 ### Auto Workflow Commands
 | Command | Description |
 | --- | --- |
-| `flo auto:init <issue>` | Initialize auto workflow state for an issue. |
-| `flo auto:run <issue>` | Run autonomous TDD workflow for multiple acceptance criteria. |
-| `flo auto:status` | Show current auto workflow progress. |
+| `flo auto:run <issue> --execute` | Execute full autonomous TDD workflow |
+| `flo auto:run <issue> --execute --auto-pr` | Execute workflow with automatic PR creation |
+| `flo auto:run <issue> --execute --no-pr` | Execute workflow without PR creation |
+| `flo auto:run <issue> --execute --draft-pr` | Execute workflow and create draft PR |
+| `flo auto:run <issue> --criteria 2-4 --execute` | Execute specific acceptance criteria range |
+| `flo auto:run <issue> --dry-run` | Validate workflow without execution |
+| `flo auto:status` | Show autonomous workflow status |
+
+### PR Automation Flags
+| Flag | Description |
+| --- | --- |
+| `--auto-pr` | Automatically create PR after successful completion (default) |
+| `--no-pr` | Skip PR creation entirely |
+| `--draft-pr` | Create PR as draft for work-in-progress |
+| `--pr-template <name>` | Use specific PR template (feature, bugfix, hotfix) |
+| `--assign-reviewers` | Auto-assign reviewers based on code changes |
+
+### Example Workflows
+
+**Complete Feature Development with PR:**
+```bash
+# Execute full workflow with automatic PR creation
+flo auto:run 325 --execute --auto-pr --assign-reviewers
+
+# Use custom template for bug fixes
+flo auto:run 326 --execute --pr-template bugfix --draft-pr
+
+# Work on specific acceptance criteria
+flo auto:run 327 --criteria 1-3 --execute --no-pr
+```
+
+**Manual TDD Workflow:**
+```bash
+# Start TDD session
+flo tdd:start 325
+
+# Follow the cycle
+flo tdd:red      # Write failing test
+flo tdd:green    # Minimal implementation  
+flo tdd:refactor # Improve code quality
+flo tdd:cover    # Add comprehensive tests
+flo tdd:next     # Move to next criteria
+```
 
 ### Board Management Commands
 | Command | Description |
@@ -150,19 +191,24 @@ The WorkFlo VS Code extension provides a seamless integration with the `flo-cli`
 
 ```
 /
-├── flo-cli/         # TypeScript CLI application
-│   ├── src/         # TypeScript source code
-│   │   ├── commands/    # CLI command implementations
-│   │   ├── services/    # Business logic services
-│   │   └── lib/         # Utility libraries
-│   ├── tests/       # Jest unit tests
-│   ├── dist/        # Compiled JavaScript output
-│   └── package.json # Node.js package configuration
-├── vscode-extension/  # VS Code extension source code
-├── tdd              # Legacy TDD script (being migrated)
-├── lib/             # Legacy helper scripts (being migrated)
-├── docs/            # Documentation
-└── README.md        # This file
+├── flo-cli/           # TypeScript CLI application
+│   ├── src/           # TypeScript source code
+│   │   ├── commands/  # CLI command implementations
+│   │   └── services/  # Business logic services
+│   ├── tests/         # Jest unit tests
+│   └── dist/          # Compiled JavaScript output
+├── vscode-extension/  # VS Code extension
+├── scripts/           # Shell scripts and utilities
+│   ├── legacy/        # Legacy bash scripts (being migrated)
+│   ├── test/          # Test scripts
+│   └── utils/         # Utility scripts
+├── tests/             # Integration and system tests
+├── docs/              # Documentation
+│   ├── guidelines/    # Development guidelines
+│   ├── workflows/     # Workflow documentation
+│   └── architecture/  # Architecture documentation
+├── ai-providers/      # AI provider configurations
+└── README.md          # This file
 ```
 
 ## Motivation

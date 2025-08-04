@@ -4,12 +4,9 @@
 
 set -e
 
-# Load test assertion library
-source "$(dirname "$0")/lib/test-assertions.sh" 2>/dev/null || {
-    echo "⚠️ Test assertion library not found, using basic assertions"
-    assert_true() { [ "$1" = true ] || { echo "❌ FAIL: $2"; return 1; }; }
-    test_summary() { echo "📊 Test completed"; }
-}
+# Basic test assertion functions
+assert_true() { [ "$1" = true ] || { echo "❌ FAIL: $2"; return 1; }; }
+test_summary() { echo "📊 Test completed"; }
 
 echo "🧪 Testing meaningful work validation..."
 

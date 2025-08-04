@@ -4,7 +4,56 @@ This file provides guidance to Claude Code when working with the WorkFlo reposit
 
 ## Mandatory Reading. CRITICAL!
 
-YOU MUST read [AI_GUIDELINES.md](AI_GUIDELINES.md) at the start of every session.
+YOU MUST read [AI_GUIDELINES.md](docs/guidelines/AI_GUIDELINES.md) at the start of every session.
+
+## TDD Enforcement Rules
+
+### File Edit Restrictions
+- **Test files (*.test.ts, *.spec.ts)**: Only editable during RED and COVER phases
+- **Implementation files (*.ts, *.js)**: Only editable during GREEN and REFACTOR phases
+- **No direct edits**: Must use TDD workflow commands for issues with acceptance criteria
+
+### AI Agent Required Behavior
+1. **When user says "implement X" for an issue**, ALWAYS respond:
+   ```
+   I'll implement this using the TDD workflow. Let me start:
+   flo tdd:start <issue>
+   ```
+
+2. **Before any coding**, ALWAYS check:
+   - Is there an active TDD session? (`flo tdd:status`)
+   - What phase are we in?
+   - What acceptance criteria is current?
+
+3. **Phase-specific actions**:
+   - RED: Write ONE failing test only
+   - GREEN: Write MINIMAL code to pass the test
+   - REFACTOR: Improve code quality (optional)
+   - COVER: Add comprehensive tests
+   - NEXT: Move to next AC (requires explicit command)
+
+### Workflow Enforcement Reminders
+- **Every session**: Read AI_GUIDELINES.md first
+- **Before coding**: Run `flo tdd:status` or check `.tdd-state`
+- **Before implementing**: Ensure you're in GREEN phase
+- **Before writing tests**: Ensure you're in RED or COVER phase
+- **Check if TDD required**: `./scripts/utils/check-tdd-required.sh <issue>`
+
+### TDD Override (Emergency Use Only!)
+
+To temporarily disable TDD enforcement:
+```bash
+# Disable for current session
+export TDD_OVERRIDE=true
+
+# Re-enable enforcement
+unset TDD_OVERRIDE
+```
+
+⚠️ **WARNING**: Only use for:
+- Emergency hotfixes
+- Fixing broken TDD state
+- Non-code changes (docs, configs)
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.

@@ -4,15 +4,12 @@
 
 set -e
 
-# Load test assertion library
-source "$(dirname "$0")/lib/test-assertions.sh" 2>/dev/null || {
-    echo "⚠️ Test assertion library not found, using basic assertions"
-    assert_true() { [ "$1" = true ] || { echo "❌ FAIL: $2"; return 1; }; }
-    assert_false() { [ "$1" = false ] || { echo "❌ FAIL: $2"; return 1; }; }
-    assert_equals() { [ "$1" = "$2" ] || { echo "❌ FAIL: $3"; return 1; }; }
-    assert_command_succeeds() { eval "$1" >/dev/null 2>&1 || { echo "❌ FAIL: $2"; return 1; }; }
-    test_summary() { echo "📊 Test completed"; }
-}
+# Basic test assertion functions
+assert_true() { [ "$1" = true ] || { echo "❌ FAIL: $2"; return 1; }; }
+assert_false() { [ "$1" = false ] || { echo "❌ FAIL: $2"; return 1; }; }
+assert_equals() { [ "$1" = "$2" ] || { echo "❌ FAIL: $3"; return 1; }; }
+assert_command_succeeds() { eval "$1" >/dev/null 2>&1 || { echo "❌ FAIL: $2"; return 1; }; }
+test_summary() { echo "📊 Test completed"; }
 
 echo "🧪 Testing generate-test-script.sh utility..."
 echo ""
@@ -20,7 +17,7 @@ echo ""
 # Test 1: Script exists and is executable
 test_script_exists() {
     echo "🔍 Test 1: Script exists and is executable"
-    if [[ -x ./generate-test-script.sh ]]; then
+    if [[ -x ../utils/generate-test-script.sh ]]; then
         echo "✅ PASS: generate-test-script.sh is executable"
         return 0
     else
@@ -33,7 +30,7 @@ test_script_exists() {
 test_usage_message() {
     echo "🔍 Test 2: Usage message when no arguments provided"
     local output
-    output=$(./generate-test-script.sh 2>&1 || true)
+    output=$(../utils/generate-test-script.sh 2>&1 || true)
     
     if echo "$output" | grep -q "Usage:"; then
         echo "✅ PASS: Usage message displayed correctly"
@@ -52,7 +49,7 @@ test_script_generation() {
     
     # Generate test script
     local output
-    output=$(./generate-test-script.sh 168 test-sample-168 "Sample test description" 2>&1)
+    output=$(../utils/generate-test-script.sh 168 test-sample-168 "Sample test description" 2>&1)
     
     # Check if file was created
     if [[ -f test-sample-168.sh ]]; then
@@ -93,11 +90,11 @@ test_script_generation() {
         return 1
     fi
     
-    # Verify test assertion library integration
-    if echo "$content" | grep -q "test-assertions.sh"; then
-        echo "✅ PASS: Test assertion library integration present"
+    # Verify basic test structure is present
+    if echo "$content" | grep -q "echo.*PASS\|echo.*FAIL"; then
+        echo "✅ PASS: Basic test output structure present"
     else
-        echo "❌ FAIL: Test assertion library integration missing"
+        echo "❌ FAIL: Test output structure missing"
         rm -f test-sample-168.sh
         return 1
     fi
@@ -114,7 +111,7 @@ test_name_sanitization() {
     rm -f test-special-chars.sh
     
     # Generate test with special characters in name
-    ./generate-test-script.sh 168 "Test@Special#Chars!" "Test description" >/dev/null 2>&1
+    ../utils/generate-test-script.sh 168 "Test@Special#Chars!" "Test description" >/dev/null 2>&1
     
     # Check if properly sanitized file was created
     if [[ -f testspecialchars.sh ]]; then
@@ -136,7 +133,7 @@ test_generated_script_execution() {
     rm -f test-execution-168.sh
     
     # Generate test script
-    ./generate-test-script.sh 168 test-execution-168 "Execution test">/dev/null 2>&1
+    ../utils/generate-test-script.sh 168 test-execution-168 "Execution test">/dev/null 2>&1
     
     # Try to execute the generated script
     if ./test-execution-168.sh >/dev/null 2>&1; then

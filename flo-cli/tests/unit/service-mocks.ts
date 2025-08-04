@@ -158,10 +158,10 @@ export class MockProjectDetector {
     return {
       detectProjectType: jest.fn().mockReturnValue('bash'),
       getBuildCommand: jest.fn().mockReturnValue(null),
-      getTestCommand: jest.fn().mockReturnValue('./run-tests'),
+      getTestCommand: jest.fn().mockReturnValue('npm test'),
       hasTests: jest.fn().mockReturnValue(true),
       getProjectCommands: jest.fn().mockReturnValue({
-        test: './run-tests'
+        test: 'npm test'
       })
     };
   }

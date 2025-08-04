@@ -2,6 +2,7 @@ import { BaseCommand } from '../base-command';
 import { Logger } from '../services/logger';
 import { ProjectDetector } from '../services/project-detector';
 import { execSync } from 'child_process';
+import { existsSync } from 'fs';
 
 export default class QualityCheck extends BaseCommand {
   static override description = 'Run quality checks';
@@ -42,6 +43,21 @@ export default class QualityCheck extends BaseCommand {
       Logger.warn('No tests found');
     }
 
+    // Run mutation testing for Node.js projects with Stryker config
+    if (projectType === 'nodejs' && this.hasMutationTesting()) {
+      Logger.info('Running mutation tests...');
+      try {
+        execSync('npm run test:mutation', { stdio: 'inherit' });
+        Logger.success('Mutation tests passed - test quality meets standards');
+      } catch (error) {
+        this.handleError(error, 'Mutation tests failed - test quality insufficient for PR approval');
+      }
+    }
+
     Logger.success('Quality checks completed');
+  }
+
+  private hasMutationTesting(): boolean {
+    return existsSync('stryker.conf.json') && existsSync('package.json');
   }
 }
